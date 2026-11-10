@@ -1,0 +1,438 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Gói hỗ trợ tiếng Việt và bảng mã ---
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage[T5]{fontenc}
+
+% --- Canh lề và bố cục trang ---
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Gói toán học, đồ họa, bảng biểu ---
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{enumitem}
+
+% --- Gói màu sắc và hộp ghi chú (tcolorbox) ---
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[most]{tcolorbox}
+
+% Thiết lập màu sắc thương hiệu
+\definecolor{brewPrimary}{RGB}{74, 44, 42}       % Nâu cà phê đậm
+\definecolor{brewSecondary}{RGB}{181, 136, 99}   % Màu caramen / latte
+\definecolor{brewAccent}{RGB}{40, 116, 166}      % Xanh dương công nghệ
+\definecolor{brewBg}{RGB}{249, 246, 240}         % Màu nền giấy kem nhẹ
+\definecolor{brewGray}{RGB}{100, 100, 100}
+
+% Hộp hiển thị User Story chuẩn
+\newtcolorbox{storybox}[1]{
+    colback=brewBg,
+    colframe=brewPrimary,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=#1,
+    arc=4mm,
+    boxrule=1pt,
+    left=5mm,
+    right=5mm,
+    top=3mm,
+    bottom=3mm
+}
+
+% --- Gói liên kết ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=brewPrimary,
+    urlcolor=brewAccent,
+    citecolor=brewSecondary,
+    pdftitle={BrewLite - User Stories Specification},
+    pdfauthor={BrewLite Team - Software Engineering Assignment 2}
+}
+
+% --- Header và Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small \textcolor{brewGray}{\textbf{BrewLite} -- Coffee Ordering System}}
+\fancyhead[R]{\small \textcolor{brewGray}{Học phần Công nghệ Phần mềm}}
+\fancyfoot[L]{\small \textcolor{brewGray}{Mã tài liệu: US-VER-1.0}}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\begin{document}
+
+% ==========================================
+% TRANG TIÊU ĐỀ (TITLE PAGE)
+% ==========================================
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    
+    {\Large \textbf{TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN / BÁCH KHOA}\par}
+    {\large \textbf{KHOA CÔNG NGHỆ THÔNG TIN}\par}
+    \vspace{0.3cm}
+    {\large HỌC PHẦN: CÔNG NGHỆ PHẦN MỀM (SOFTWARE ENGINEERING)\par}
+    
+    \vspace{2cm}
+    \rule{\linewidth}{1.5pt}\\[0.4cm]
+    {\huge \bfseries \textcolor{brewPrimary}{ĐẶC TẢ CÂU CHUYỆN NGƯỜI DÙNG}\par}
+    {\Large \bfseries \textcolor{brewSecondary}{(USER STORIES SPECIFICATION)}\par}
+    \vspace{0.2cm}
+    {\large \textbf{HỆ THỐNG ĐẶT CÀ PHÊ KHÔNG TIỀN MẶT -- BREWLITE}\par}
+    \rule{\linewidth}{1.5pt}\\[2cm]
+    
+    \begin{minipage}{0.48\textwidth}
+        \textbf{Thông tin tài liệu:}
+        \begin{itemize}[leftmargin=*,noitemsep]
+            \item \textbf{Mã tài liệu:} US-VER-1.0
+            \item \textbf{Dự án:} BrewLite Coffee
+            \item \textbf{Phiên bản:} 1.0 (Final)
+            \item \textbf{Ngày cập nhật:} 26/10/2026
+        \end{itemize}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \textbf{Nhóm thực hiện:}
+        \begin{itemize}[leftmargin=*,noitemsep]
+            \item \textbf{Học phần:} Assignment 2
+            \item \textbf{Quy trình:} Agile / Scrum
+            \item \textbf{Trạng thái:} Đã phê duyệt (Approved)
+        \end{itemize}
+    \end{minipage}
+    
+    \vfill
+    {\large \textbf{Năm học 2026 -- 2027}\par}
+\end{titlepage}
+
+% ==========================================
+% MỤC LỤC
+% ==========================================
+\tableofcontents
+\newpage
+
+% ==========================================
+% PHẦN 1: TỔNG QUAN & PHƯƠNG PHÁP LUẬN
+% ==========================================
+\section{Tổng quan và Phương pháp luận Agile}
+
+\subsection{Mục đích tài liệu}
+Tài liệu này xác định danh sách các \textbf{User Stories (Câu chuyện người dùng)} cho dự án \textbf{BrewLite} -- Hệ thống đặt thức uống và thanh toán không dùng tiền mặt. Các câu chuyện người dùng làm cầu nối chuyển tải các yêu cầu nghiệp vụ và yêu cầu chức năng (SRS) thành các đầu việc phát triển cụ thể trong mô hình \textbf{Agile / Scrum}.
+
+\subsection{Tiêu chuẩn INVEST}
+Mỗi câu chuyện người dùng trong hệ thống BrewLite đều được thiết kế và kiểm duyệt theo 6 tiêu chuẩn cốt lõi \textbf{INVEST}:
+\begin{itemize}
+    \item \textbf{I -- Independent (Độc lập):} Các User Story giảm thiểu tối đa sự phụ thuộc chéo, cho phép lập trình viên phát triển và kiểm thử độc lập trong Sprint.
+    \item \textbf{N -- Negotiable (Có thể thương lượng):} Chi tiết giao diện và kỹ thuật có thể linh hoạt thảo luận trong các buổi Sprint Planning.
+    \item \textbf{V -- Valuable (Có giá trị):} Mọi tính năng đều hướng tới việc giải quyết bài toán nghiệp vụ cho Khách hàng (Customer) hoặc Nhân viên (Barista).
+    \item \textbf{E -- Estimable (Ước lượng được):} Độ phức tạp được đo lường chính xác bằng thang đo Story Points.
+    \item \textbf{S -- Small (Gói gọn):} Phạm vi vừa vặn, đảm bảo hiện thực trọn vẹn trong một chu kỳ Sprint 2 tuần.
+    \item \textbf{T -- Testable (Kiểm thử được):} Đi kèm các Tiêu chí chấp nhận (\textit{Acceptance Criteria}) có thể viết Unit Test và Integration Test tự động.
+\end{itemize}
+
+\subsection{Cấu trúc mẫu User Story}
+Tất cả câu chuyện tuân theo cú pháp kinh điển:
+\begin{quote}
+    \textbf{Là một} \textit{[Vai trò / Persona]},\\
+    \textbf{Tôi muốn} \textit{[Hành động / Tính năng mong muốn]},\\
+    \textbf{Để} \textit{[Giá trị / Lợi ích nhận được]}.
+\end{quote}
+
+\subsection{Quy ước Thang đo Story Points (Dãy số Fibonacci)}
+\begin{center}
+\begin{tabularx}{\textwidth}{c c X}
+\toprule
+\textbf{Điểm (SP)} & \textbf{Mức độ phức tạp} & \textbf{Mô tả chi tiết áp dụng cho BrewLite} \\
+\midrule
+\textbf{1 -- 2} & Rất thấp -- Thấp & Giao diện tĩnh, thay đổi nhỏ về layout, thêm field hiển thị đơn giản. \\
+\textbf{3} & Trung bình & Chức năng CRUD cơ bản (ví dụ: Giỏ hàng phía Client, xem lịch sử đơn). \\
+\textbf{5} & Khá cao & Tích hợp xác thực JWT, phân quyền Role-based, máy trạng thái FSM. \\
+\textbf{8} & Cao & Giao dịch CSDL phân tán (ACID Transaction), khóa lạc quan (Optimistic Concurrency Control), chống trùng lặp thanh toán (Idempotency Key). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
+
+% ==========================================
+% PHẦN 2: BẢNG TỔNG HỢP PRODUCT BACKLOG
+% ==========================================
+\section{Bảng tổng hợp Product Backlog}
+
+Dưới đây là bảng phân rã và sắp xếp thứ tự ưu tiên của toàn bộ 9 User Stories dựa trên mô hình \textbf{MoSCoW}:
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|c|X|c|c|c|c|c|}
+\hline
+\rowcolor{brewPrimary!15}
+\textbf{Mã US} & \textbf{Tên User Story} & \textbf{Persona} & \textbf{MoSCoW} & \textbf{SP} & \textbf{Sprint} & \textbf{Mã FR} \\
+\hline
+\textbf{US-01} & Xem thực đơn đồ uống trực quan & Khách hàng & \textbf{Must} & 3 & Sprint 1 & FR-01 \\
+\hline
+\textbf{US-02} & Tùy chỉnh kích cỡ (Size) và Topping & Khách hàng & \textbf{Must} & 5 & Sprint 2 & FR-02 \\
+\hline
+\textbf{US-03} & Quản lý giỏ hàng linh hoạt & Khách hàng & \textbf{Must} & 3 & Sprint 2 & FR-03 \\
+\hline
+\textbf{US-04} & Đăng ký \& Đăng nhập bảo mật JWT & Khách/Barista & \textbf{Must} & 5 & Sprint 2 & FR-04 \\
+\hline
+\textbf{US-05} & Đặt hàng an toàn \& Khóa giữ kho & Khách hàng & \textbf{Must} & 8 & Sprint 2 & FR-05 \\
+\hline
+\textbf{US-06} & Thanh toán an toàn \& Chống trùng lặp & Khách hàng & \textbf{Must} & 8 & Sprint 2 & FR-06 \\
+\hline
+\textbf{US-07} & Xem lịch sử đơn \& Tích điểm thưởng & Khách hàng & \textbf{Should} & 3 & Sprint 2 & FR-07 \\
+\hline
+\textbf{US-08} & Tiếp nhận \& Cập nhật tiến độ pha chế & Barista & \textbf{Must} & 5 & Sprint 2 & FR-08 \\
+\hline
+\textbf{US-09} & Quản lý bật/tắt khả dụng món & Quản lý/Barista & \textbf{Should} & 3 & Sprint 2 & FR-09 \\
+\hline
+\rowcolor{brewSecondary!20}
+\multicolumn{4}{|c|}{\textbf{TỔNG CỘNG ĐIỂM STORY POINTS TOÀN DỰ ÁN}} & \textbf{40 SP} & \multicolumn{2}{c|}{2 Sprints} \\
+\hline
+\end{tabularx}
+\caption{Bảng tổng hợp danh sách User Stories dự án BrewLite}
+\label{tab:user_stories_summary}
+\end{table}
+
+\newpage
+
+% ==========================================
+% PHẦN 3: ĐẶC TẢ CHI TIẾT TỪNG USER STORY
+% ==========================================
+\section{Đặc tả chi tiết từng User Story}
+
+% -------------------------------------------------------------
+% US-01
+% -------------------------------------------------------------
+\subsection{US-01: Xem thực đơn đồ uống trực quan}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-01} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 3 SP (Sprint 1)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Khách hàng sử dụng điện thoại di động,\\
+\textbf{Tôi muốn} xem danh mục đồ uống trực quan kèm hình ảnh, tên món, giá cơ sở và tình trạng còn hàng,\\
+\textbf{Để} tôi có thể lựa chọn thức uống phù hợp nhanh chóng mà không cần phải đứng đợi xem bảng giá tại quầy.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-01.1}] Khi truy cập ứng dụng, hệ thống gọi API \texttt{GET /products} và hiển thị danh sách sản phẩm đang hoạt động (\texttt{isActive = true}) phân nhóm theo danh mục.
+    \item[\textbf{AC-01.2}] Mỗi thẻ đồ uống hiển thị rõ: Ảnh minh họa, Tên sản phẩm, Giá bán cơ sở (VNĐ) và Mô tả tóm tắt.
+    \item[\textbf{AC-01.3}] Khi sản phẩm có \texttt{stock = 0}, hiển thị nhãn cảnh báo \textit{"Hết hàng"} và vô hiệu hóa nút chọn.
+    \item[\textbf{AC-01.4}] Hiển thị hiệu ứng Skeleton Loader trong thời gian tải dữ liệu và hiển thị thông báo lỗi thân thiện khi kết nối thất bại.
+\end{itemize}
+
+\vspace{0.3cm}
+% -------------------------------------------------------------
+% US-02
+% -------------------------------------------------------------
+\subsection{US-02: Tùy chỉnh kích cỡ (Size) và Topping}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-02} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 5 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Khách hàng có sở thích uống cà phê riêng,\\
+\textbf{Tôi muốn} chọn kích thước ly (Size S, M, L) và lựa chọn thêm các loại Topping kèm theo với giá tiền hiển thị tức thì,\\
+\textbf{Để} ly nước được pha đúng theo khẩu vị cá nhân và tôi nắm rõ giá tiền trước khi đưa vào giỏ hàng.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-02.1}] Khi nhấp vào sản phẩm, hệ thống tải chi tiết qua \texttt{GET /products/:id} và danh sách topping qua \texttt{GET /api/toppings}.
+    \item[\textbf{AC-02.2}] Cho phép chọn một kích cỡ: Size S (giá gốc), Size M (+5.000đ), Size L (+10.000đ).
+    \item[\textbf{AC-02.3}] Cho phép tích chọn đồng thời nhiều loại Topping khả dụng.
+    \item[\textbf{AC-02.4}] Giá tạm tính trên nút hành động cập nhật ngay lập tức: 
+    \[ \text{Giá tạm tính} = \text{Giá theo Size} + \sum \text{Giá Topping đã chọn} \]
+\end{itemize}
+
+\newpage
+
+% -------------------------------------------------------------
+% US-03
+% -------------------------------------------------------------
+\subsection{US-03: Quản lý giỏ hàng linh hoạt}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-03} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 3 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Khách hàng chuẩn bị đặt đồ uống,\\
+\textbf{Tôi muốn} kiểm tra giỏ hàng, tùy ý tăng/giảm số lượng từng món hoặc xóa món không còn muốn mua,\\
+\textbf{Để} kiểm soát chính xác chi phí và danh sách đồ uống trước khi chuyển sang bước thanh toán.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-03.1}] Giỏ hàng lưu trữ đầy đủ: \texttt{productId}, tên món, kích cỡ, danh sách toppings, số lượng và tổng tiền từng dòng.
+    \item[\textbf{AC-03.2}] Cho phép điều chỉnh số lượng ($1 \le quantity \le 99$). Giảm về 0 sẽ xóa dòng sản phẩm tương ứng.
+    \item[\textbf{AC-03.3}] Tổng thanh toán tự động cập nhật chính xác:
+    \[ \text{Tổng tiền} = \sum_{i=1}^{n} \Big[ (\text{Giá size}_i + \sum \text{Giá topping}_i) \times \text{Số lượng}_i \Big] \]
+    \item[\textbf{AC-03.4}] Dữ liệu giỏ hàng được đồng bộ và duy trì trong Local Storage (qua Zustand store), không mất khi tải lại trang.
+\end{itemize}
+
+\vspace{0.3cm}
+% -------------------------------------------------------------
+% US-04
+% -------------------------------------------------------------
+\subsection{US-04: Đăng ký \& Đăng nhập bảo mật JWT}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-04} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 5 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Người dùng hệ thống (Khách hàng hoặc Barista),\\
+\textbf{Tôi muốn} đăng ký tài khoản và đăng nhập bảo mật bằng Email cùng Mật khẩu,\\
+\textbf{Để} xác thực danh tính cá nhân, quản lý đơn hàng của mình và truy cập đúng phân quyền tài khoản.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-04.1}] Mật khẩu người dùng được băm một chiều bằng thuật toán \texttt{bcrypt} (cost factor $\ge 10$) trước khi lưu vào CSDL.
+    \item[\textbf{AC-04.2}] Đăng ký bị từ chối và báo lỗi \texttt{409 Conflict} nếu địa chỉ Email đã tồn tại.
+    \item[\textbf{AC-04.3}] Đăng nhập thành công trả về JWT Bearer Token chứa \texttt{userId} và \texttt{role} (\texttt{customer} hoặc \texttt{barista}).
+    \item[\textbf{AC-04.4}] Hệ thống điều hướng tự động: Khách hàng về trang gọi món; Barista về trang Quản lý đơn hàng quầy pha chế.
+\end{itemize}
+
+\newpage
+
+% -------------------------------------------------------------
+% US-05
+% -------------------------------------------------------------
+\subsection{US-05: Đặt hàng an toàn \& Khóa giữ kho (ACID Transaction)}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-05} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 8 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Khách hàng tiến hành gửi đơn,\\
+\textbf{Tôi muốn} xác nhận đặt đơn hàng từ giỏ hàng và được hệ thống tạm giữ số lượng đồ uống trong kho,\\
+\textbf{Để} bảo đảm món nước của tôi được quán ghi nhận chắc chắn và không bị người khác mua mất trong lúc thanh toán.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-05.1}] API \texttt{POST /orders} yêu cầu Header xác thực Bearer Token hợp lệ.
+    \item[\textbf{AC-05.2}] Thao tác tạo đơn hàng (\texttt{Order} với trạng thái \texttt{PENDING}), các dòng chi tiết món (\texttt{OrderItem}), toppings (\texttt{OrderItemTopping}) và trừ tồn kho (\texttt{stock}) được thực thi trong một \textbf{Database Transaction nguyên tử (ACID)}.
+    \item[\textbf{AC-05.3}] Áp dụng cơ chế Khóa lạc quan (Optimistic Concurrency Control) thông qua cột \texttt{version} của bảng \texttt{Product} nhằm chống bán vượt tồn kho (Overselling).
+    \item[\textbf{AC-05.4}] Nếu kho không đủ đáp ứng, giao dịch bị Rollback lập tức và trả về mã phản hồi \texttt{400 Bad Request}.
+\end{itemize}
+
+\vspace{0.3cm}
+% -------------------------------------------------------------
+% US-06
+% -------------------------------------------------------------
+\subsection{US-06: Thanh toán an toàn \& Chống trùng lặp (Idempotency Key)}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-06} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 8 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Khách hàng thanh toán không tiền mặt,\\
+\textbf{Tôi muốn} thanh toán đơn hàng qua Ví điện tử (\texttt{WALLET}) hoặc Thẻ (\texttt{CARD}) với cơ chế bảo vệ giao dịch,\\
+\textbf{Để} thanh toán diễn ra nhanh chóng, tiện lợi và không bị rủi ro trừ tiền 2 lần khi mạng chập chờn.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-06.1}] Khách hàng chọn phương thức thanh toán: Ví điện tử (\texttt{WALLET}) hoặc Thẻ (\texttt{CARD}).
+    \item[\textbf{AC-06.2}] Mọi yêu cầu gửi đến \texttt{POST /payments} phải đính kèm khóa \texttt{idempotencyKey} (chuỗi chuẩn UUIDv4).
+    \item[\textbf{AC-06.3}] Nếu gửi lại request với cùng \texttt{idempotencyKey}, hệ thống trả về kết quả giao dịch trước đó mà không xử lý trừ tiền hay ghi nhận lại.
+    \item[\textbf{AC-06.4}] Thanh toán thành công chuyển trạng thái đơn sang \texttt{PAID} và kích hoạt tích lũy điểm thưởng thành viên.
+    \item[\textbf{AC-06.5}] Nếu thất bại, đơn chuyển sang \texttt{PAYMENT\_FAILED} và tự động hoàn trả lại tồn kho ban đầu (Rollback stock).
+\end{itemize}
+
+\newpage
+
+% -------------------------------------------------------------
+% US-07
+% -------------------------------------------------------------
+\subsection{US-07: Xem lịch sử đơn \& Tích điểm thưởng thành viên}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-07} \quad | \quad \textbf{Mức độ ưu tiên:} Should Have \quad | \quad \textbf{Ước lượng:} 3 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Khách hàng thường xuyên uống tại quán,\\
+\textbf{Tôi muốn} tra cứu lại danh sách các đơn hàng đã đặt trong quá khứ và tổng điểm thưởng tích lũy của mình,\\
+\textbf{Để} theo dõi lịch sử chi tiêu và biết số điểm tích lũy để đổi quà trong các lần mua sau.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-07.1}] Người dùng tra cứu danh sách đơn qua \texttt{GET /orders}, kết quả được lọc chính xác theo \texttt{userId} của phiên đăng nhập.
+    \item[\textbf{AC-07.2}] Mỗi đơn hàng hoàn tất thanh toán (\texttt{PAID}) tự động cộng điểm tích lũy theo tỷ lệ:
+    \[ 10.000\text{ VNĐ} = 1\text{ điểm thưởng (loyaltyPoint)} \]
+    \item[\textbf{AC-07.3}] Điểm tích lũy được hiển thị minh bạch tại thanh trạng thái của tài khoản người dùng trên ứng dụng.
+\end{itemize}
+
+\vspace{0.3cm}
+% -------------------------------------------------------------
+% US-08
+% -------------------------------------------------------------
+\subsection{US-08: Tiếp nhận \& Cập nhật tiến độ pha chế}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-08} \quad | \quad \textbf{Mức độ ưu tiên:} Must Have \quad | \quad \textbf{Ước lượng:} 5 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Nhân viên Barista tại quầy,\\
+\textbf{Tôi muốn} nhận danh sách các đơn hàng đã thanh toán thành công theo thời gian thực và cập nhật tiến độ pha chế,\\
+\textbf{Để} tôi pha chế đúng yêu cầu kích cỡ/topping và thông báo kịp thời cho khách nhận đồ uống khi hoàn tất.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-08.1}] Màn hình quầy Barista chỉ cho phép người dùng có phân quyền \texttt{role = barista} truy cập.
+    \item[\textbf{AC-08.2}] Hiển thị chi tiết từng món trong đơn: Tên món, Size, số lượng và danh sách Topping chi tiết.
+    \item[\textbf{AC-08.3}] Chuyển đổi trạng thái đơn hàng tuần tự nghiêm ngặt theo máy trạng thái hữu hạn (FSM):
+    \[ \text{PAID} \longrightarrow \text{PREPARING} \longrightarrow \text{READY} \longrightarrow \text{COMPLETED} \]
+    \item[\textbf{AC-08.4}] Chặn hoàn toàn việc chuyển trạng thái nhảy cóc hoặc đảo ngược quy trình (ví dụ: chuyển từ \texttt{PENDING} thẳng lên \texttt{COMPLETED}).
+\end{itemize}
+
+\newpage
+
+% -------------------------------------------------------------
+% US-09
+% -------------------------------------------------------------
+\subsection{US-09: Quản lý bật/tắt khả dụng món \& Topping}
+\textbf{Ánh xạ yêu cầu SRS:} \texttt{FR-09} \quad | \quad \textbf{Mức độ ưu tiên:} Should Have \quad | \quad \textbf{Ước lượng:} 3 SP (Sprint 2)
+
+\begin{storybox}{Nội dung Câu chuyện người dùng}
+\textbf{Là một} Quản lý cửa hàng hoặc Barista,\\
+\textbf{Tôi muốn} bật hoặc tắt trạng thái kinh doanh của từng món hoặc topping khi quán đột xuất hết nguyên liệu,\\
+\textbf{Để} khách hàng không đặt phải những món mà quán tạm thời không thể phục vụ.
+\end{storybox}
+
+\subsubsection*{Tiêu chí chấp nhận (Acceptance Criteria):}
+\begin{itemize}[noitemsep]
+    \item[\textbf{AC-09.1}] Cho phép nhân viên cập nhật thuộc tính \texttt{isActive} của món qua \texttt{PATCH /api/products/:id} và \texttt{isAvailable} của topping qua \texttt{PATCH /api/toppings/:id}.
+    \item[\textbf{AC-09.2}] Món hoặc topping bị tắt lập tức chuyển sang trạng thái ẩn hoặc vô hiệu hóa trên màn hình chọn món của khách hàng.
+    \item[\textbf{AC-09.3}] Nếu khách hàng đã đưa món vào giỏ trước đó, hệ thống sẽ cảnh báo và chặn tạo đơn tại bước kiểm tra kho.
+\end{itemize}
+
+% ==========================================
+% PHẦN 4: ĐỊNH NGHĨA HOÀN THÀNH (DOD)
+% ==========================================
+\section{Định nghĩa Hoàn thành chung (Definition of Done - DoD)}
+
+Một User Story được xác nhận hoàn thành (Definition of Done) khi đáp ứng toàn bộ các tiêu chí:
+
+\begin{enumerate}
+    \item \textbf{Chất lượng mã nguồn (Code Quality):}
+    \begin{itemize}[noitemsep]
+        \item Mã nguồn viết bằng TypeScript có type-safety nghiêm ngặt.
+        \item Vượt qua toàn bộ quy chuẩn kiểm tra mã của \texttt{oxlint} và định dạng \texttt{prettier}.
+    \end{itemize}
+    \item \textbf{Kiểm thử tự động (Automated Testing):}
+    \begin{itemize}[noitemsep]
+        \item 100\% các Tiêu chí chấp nhận (AC) được kiểm chứng qua kiểm thử đơn vị (Unit Tests) và tích hợp (Integration Tests).
+        \item Không có hồi quy (Regression) ảnh hưởng đến các luồng chức năng đã phát triển trước đó.
+    \end{itemize}
+    \item \textbf{Bảo mật \& Toàn vẹn dữ liệu:}
+    \begin{itemize}[noitemsep]
+        \item Các API thao tác dữ liệu được bảo vệ qua JWT Token và phân quyền RBAC.
+        \item Thao tác trừ tồn kho và thanh toán đảm bảo tính nguyên tử (ACID Transaction) và Idempotency.
+    \end{itemize}
+    \item \textbf{Tích hợp \& Vận hành (CI/CD):}
+    \begin{itemize}[noitemsep]
+        \item Vượt qua Pipeline GitHub Actions tự động (\texttt{Lint $\rightarrow$ Test $\rightarrow$ Build}).
+        \item Ứng dụng chạy thành công và ổn định qua Docker Compose (\texttt{docker compose up --build}).
+    \end{itemize}
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,63 @@
+@startuml usecase-checkout
+!theme plain
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype polyline
+skinparam nodesep 35
+skinparam ranksep 110
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 12
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #1E3A8A
+    BorderThickness 1.5
+    ArrowColor #2563EB
+    ArrowThickness 1.2
+}
+
+skinparam actor {
+    BackgroundColor #EFF6FF
+    BorderColor #1E40AF
+    BorderThickness 1.5
+}
+
+left to right direction
+
+actor "Khách hàng\n(Customer)" as Customer
+actor "Cổng thanh toán\n(PayOS / MoMo)" as PaymentService
+
+rectangle "Hệ thống BrewLite - Phân hệ Đặt hàng và Thanh toán" {
+    usecase "Đặt và thanh toán\nđơn hàng" as UC_PlaceOrder
+    usecase "Xử lý giao dịch\nthanh toán" as UC_ProcessPayment
+
+    usecase "Xác thực phiên\nđăng nhập (JWT)" as UC_Auth
+    usecase "Tạo đơn hàng và\nTrừ tồn kho (Transaction)" as UC_CreateOrder
+    usecase "Giảm giá theo điểm\ntích lũy thành viên" as UC_Discount
+    usecase "Tích lũy điểm\nthành viên" as UC_Loyalty
+    usecase "Kiểm tra Idempotency\n(Chống trừ tiền trùng)" as UC_Idempotency
+    usecase "Hoàn trả tồn kho\n(Stock Rollback)" as UC_Rollback
+
+    ' <<include>>
+    UC_PlaceOrder .right.> UC_ProcessPayment : <<include>>
+    UC_PlaceOrder .down.> UC_Auth : <<include>>
+    UC_PlaceOrder .down.> UC_CreateOrder : <<include>>
+
+    ' <<extend>>
+    UC_Discount .up.> UC_CreateOrder : <<extend>>
+    UC_Loyalty .up.> UC_ProcessPayment : <<extend>>
+    UC_Idempotency .up.> UC_ProcessPayment : <<extend>>
+    UC_Rollback .up.> UC_ProcessPayment : <<extend>>
+
+    ' Sắp thứ tự dọc cho cột bên phải
+    UC_Auth -[hidden]right- UC_CreateOrder
+    UC_CreateOrder -[hidden]right- UC_Loyalty
+    UC_Loyalty -[hidden]right- UC_Idempotency
+    UC_Idempotency -[hidden]right- UC_Rollback
+}
+
+Customer -[hidden]right- PaymentService
+Customer -down- UC_PlaceOrder
+PaymentService -down- UC_ProcessPayment
+
+@enduml
