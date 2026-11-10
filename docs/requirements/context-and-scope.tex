@@ -1,0 +1,278 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\geometry{top=2cm, bottom=2cm, left=2.5cm, right=2cm}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{amsmath,amssymb}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup[table]{position=top,skip=6pt}
+\captionsetup[figure]{position=bottom,skip=6pt}
+
+% Thiết lập màu sắc chuyên nghiệp
+\definecolor{brandblue}{RGB}{37, 99, 235}
+\definecolor{darkslate}{RGB}{30, 41, 59}
+\definecolor{tableheader}{RGB}{239, 246, 255}
+\definecolor{lightgray}{RGB}{248, 250, 252}
+
+% Cấu hình Header & Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small \textcolor{darkslate}{\textbf{BrewLite} -- Bối Cảnh, Stakeholder và Phạm Vi}}
+\fancyhead[R]{\small \textcolor{darkslate}{Assignment 2}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Cấu hình liên kết
+\hypersetup{
+    colorlinks=true,
+    linkcolor=brandblue,
+    urlcolor=brandblue,
+    citecolor=brandblue
+}
+
+\begin{document}
+
+% Tiêu đề tài liệu
+\begin{center}
+    {\LARGE \textbf{\textcolor{brandblue}{BỐI CẢNH, STAKEHOLDER VÀ PHẠM VI HỆ THỐNG}}}\\[0.3cm]
+    {\large \textbf{(Context \& Scope Specification)}}\\[0.5cm]
+    \begin{tcolorbox}[colback=lightgray,colframe=brandblue,arc=3mm,width=0.95\textwidth]
+        \small
+        \textbf{Dự án:} Hệ thống Đặt đồ uống trực tuyến BrewLite (Coffee Ordering System)\\
+        \textbf{Học phần:} Công nghệ Phần mềm (Software Engineering) -- Assignment 2\\
+        \textbf{Công nghệ cốt lõi:} Next.js (Mobile-First / PWA), NestJS, PostgreSQL\\
+        \textbf{Phiên bản:} 1.0 \hfill \textbf{Ngày lập:} 20/10/2026
+    \end{tcolorbox}
+\end{center}
+
+\vspace{0.3cm}
+
+\section{Bối cảnh \& Vấn đề nghiệp vụ (Business Context \& Problem Statement)}
+
+\subsection{Bối cảnh dự án}
+Trong mô hình kinh doanh quán cà phê và đồ uống hiện đại, tốc độ phục vụ, tính chính xác của đơn hàng và trải nghiệm cá nhân hóa là yếu tố sống còn để thu hút và giữ chân khách hàng. \textbf{BrewLite} là nền tảng quản lý và đặt đồ uống trực tuyến hướng tới trải nghiệm gọn nhẹ, nhanh chóng trên thiết bị di động (\textit{Mobile-First / PWA}), kết nối trực tiếp và đồng bộ giữa Khách hàng, Nhân viên pha chế (\textit{Barista}) và Quản lý cửa hàng.
+
+\subsection{Vấn đề nghiệp vụ cần giải quyết (Problem Statement)}
+Hệ thống giải quyết 5 bài toán thực tế thường gặp tại các cửa hàng cà phê bán lẻ truyền thống:
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+    \item \textbf{Quá tải và chờ đợi lâu vào giờ cao điểm:} Khách hàng phải xếp hàng dài để chờ nhân viên ghi nhận món tại quầy, gây gián đoạn và giảm tỷ lệ hài lòng của khách.
+    \item \textbf{Sai sót trong tiếp nhận và pha chế order:} Khách hàng có nhu cầu tùy ý thay đổi yêu cầu (chọn kích cỡ Size S/M/L, chọn nhiều topping kèm theo). Việc truyền đạt trực tiếp hoặc ghi chép giấy dễ dẫn đến nhầm lẫn, làm sai công thức gây lãng phí nguyên liệu.
+    \item \textbf{Thiếu tính minh bạch trong theo dõi tiến độ đơn hàng:} Khách hàng không nắm được đơn của mình đang ở giai đoạn nào (chờ thanh toán, đang pha chế, hay đã xong để lấy), dẫn đến việc tụ tập chờ đợi quanh quầy bar gây lộn xộn.
+    \item \textbf{Quản lý tồn kho và doanh thu phân tán:} Khó kiểm soát tồn kho tức thời (\textit{real-time stock}) dẫn đến tình trạng khách đặt món nhưng thực tế đã hết hàng; thiếu cơ chế đối soát thanh toán và rủi ro đặt trùng đơn do lỗi mạng.
+    \item \textbf{Thiếu cơ chế gắn kết khách hàng (Customer Loyalty):} Cửa hàng chưa có giải pháp tự động tích lũy điểm thưởng thành viên theo giá trị đơn hàng để tái thu hút khách hàng quay lại.
+\end{enumerate}
+
+\clearpage
+
+\section{Bảng phân tích các bên liên quan (Stakeholder Matrix)}
+
+Đề bài Assignment 2 quy định bắt buộc phải phân tích đầy đủ \textbf{6 nhóm stakeholder} chính:
+
+\begin{table}[H]
+\centering
+\caption{Bảng phân tích 6 nhóm bên liên quan (Stakeholder Matrix)}
+\label{tab:stakeholders}
+\vspace{0.2cm}
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|c|}
+\hline
+\rowcolor{tableheader}
+\textbf{STT} & \textbf{Stakeholder} & \textbf{Mục tiêu chính (Goals)} & \textbf{Kỳ vọng đối với hệ thống} & \textbf{Mức độ} \\
+\hline
+\textbf{1} & \textbf{Khách hàng}\newline\textit{(Customer)} & 
+- Xem menu đồ uống và giá minh bạch.\newline
+- Tùy chỉnh kích thước và Topping.\newline
+- Đặt hàng, thanh toán nhanh và nhận thông báo khi đồ uống hoàn thành.\newline
+- Tích lũy điểm thưởng tự động. & 
+- Giao diện thân thiện, mượt mà trên mobile, tải dưới 2 giây.\newline
+- Giỏ hàng tính tiền chính xác kèm phí topping.\newline
+- Nhận diện rõ ràng trạng thái đơn hàng.\newline
+- Không bị mất phiên đăng nhập đột ngột. & 
+\textbf{Rất cao} \\
+\hline
+\textbf{2} & \textbf{Nhân viên quầy / Pha chế}\newline\textit{(Barista)} & 
+- Tiếp nhận danh sách đơn hàng tức thời theo thứ tự thời gian.\newline
+- Nắm rõ chi tiết từng món (Size, Topping).\newline
+- Cập nhật nhanh trạng thái pha chế. & 
+- Giao diện trực quan, dễ thao tác trên màn hình quầy.\newline
+- Phản hồi trạng thái đơn tức thời, tránh trùng hoặc sót đơn.\newline
+- Giảm thiểu order thủ công tại quầy. & 
+\textbf{Cao} \\
+\hline
+\textbf{3} & \textbf{Quản lý cửa hàng}\newline\textit{(Store Manager)} & 
+- Kiểm soát chính xác số lượng tồn kho theo thời gian thực.\newline
+- Bật/tắt món hoặc topping khi hết nguyên liệu.\newline
+- Theo dõi dòng tiền và báo cáo lịch sử đơn. & 
+- Hệ thống cảnh báo tự động khi sản phẩm hết hàng hoặc ngừng kinh doanh.\newline
+- Dữ liệu tài chính nhất quán, bảo mật và lưu vết giao dịch đầy đủ. & 
+\textbf{Cao} \\
+\hline
+\textbf{4} & \textbf{Giảng viên / Nghiệm thu}\newline\textit{(Lecturer / Evaluator)} & 
+- Kiểm chứng việc áp dụng đúng quy trình phát triển phần mềm (Agile qua 2 Sprint).\newline
+- Đánh giá tính hoàn thiện của các tạo phẩm kỹ thuật. & 
+- Tài liệu chuẩn xác, nhất quán với mã nguồn và sơ đồ thiết kế.\newline
+- Hệ thống có khả năng truy vết hoàn chỉnh (\textit{Traceability Matrix}).\newline
+- Ứng dụng chạy ổn định trên Production qua HTTPS. & 
+\textbf{Rất cao} \\
+\hline
+\textbf{5} & \textbf{Nhóm phát triển}\newline\textit{(Development Team)} & 
+- Xây dựng hệ thống module hóa, dễ mở rộng, mã nguồn sạch sẽ.\newline
+- Đảm bảo độ tin cậy thông qua kiểm thử tự động.\newline
+- Tự động hóa đóng gói và triển khai CI/CD. & 
+- Cấu trúc thư mục monorepo/multi-apps rõ ràng.\newline
+- Cơ chế migration dữ liệu nhất quán với Prisma ORM.\newline
+- Dễ dàng chạy và tái tạo môi trường local qua Docker Compose. & 
+\textbf{Cao} \\
+\hline
+\textbf{6} & \textbf{Đơn vị thanh toán}\newline\textit{(Payment Provider -- Mock)} & 
+- Xử lý trừ tiền và xác thực giao dịch an toàn.\newline
+- Ngăn chặn gian lận hoặc thanh toán trùng lặp (\textit{Idempotency}). & 
+- Phản hồi kết quả thanh toán chính xác (\texttt{SUCCESS} hoặc \texttt{FAILED}).\newline
+- Có cơ chế \texttt{idempotencyKey} an toàn khi client gửi lại request. & 
+\textbf{Trung bình} \\
+\hline
+\end{tabularx}
+\end{table}
+
+\newpage
+
+\section{Phạm vi hệ thống (System Scope)}
+
+\subsection{Phạm vi trong hệ thống (In-Scope)}
+
+\subsubsection{A. Phạm vi cốt lõi (MVP -- Minimum Viable Product -- Sprint 1)}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+    \item \textbf{Danh mục đồ uống (Menu Browsing):}
+    \begin{itemize}
+        \item Khách hàng xem danh sách đồ uống kèm ảnh, giá cơ bản, mô tả và tình trạng còn/hết hàng.
+        \item API truy vấn danh sách và chi tiết món: \texttt{GET /products}, \texttt{GET /products/:id}.
+        \item Giao diện Mobile-first đáp ứng đủ 3 trạng thái bắt buộc: Loading (Skeleton), Empty State và Error Alert.
+    \end{itemize}
+    \item \textbf{Dữ liệu mẫu \& Khởi tạo Schema:} Xây dựng cấu trúc bảng ban đầu và nạp dữ liệu mẫu (\textit{Database Seeding}) cho menu đồ uống trong PostgreSQL.
+\end{itemize}
+
+\subsubsection{B. Phạm vi hoàn thiện hệ thống (Sprint 2)}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+    \item \textbf{Tùy biến món \& Giỏ hàng (Khách vãng lai không cần đăng nhập):}
+    \begin{itemize}
+        \item Chọn kích cỡ món (Size S cơ sở, Size M $+5.000$đ, Size L $+10.000$đ).
+        \item Chọn thêm Topping (trân châu, thạch, kem cheese) kèm cập nhật giá tức thời.
+        \item Quản lý giỏ hàng: Thêm món, điều chỉnh số lượng ($1 \le quantity \le 99$), xóa món và tính tổng tiền tự động.
+    \end{itemize}
+    \item \textbf{Xác thực \& Phân quyền (Authentication \& Authorization):}
+    \begin{itemize}
+        \item Đăng ký, đăng nhập tài khoản bằng Email và Mật khẩu (mã hóa an toàn bằng \texttt{bcrypt}).
+        \item Cấp phát và xác thực phiên làm việc bằng JSON Web Token (JWT Bearer Token).
+        \item Phân quyền theo vai trò (\textit{Role-based Access Control}): Khách hàng (\texttt{customer}) và Barista (\texttt{barista}).
+    \end{itemize}
+    \item \textbf{Quy trình Đặt hàng \& Thanh toán trực tuyến:}
+    \begin{itemize}
+        \item Tạo đơn hàng trong một Database Transaction (Atomic) đảm bảo an toàn dữ liệu.
+        \item Kiểm soát tồn kho đồng thời qua cơ chế Khóa lạc quan (\textit{Optimistic Concurrency Control} bằng cột \texttt{version}).
+        \item Thanh toán trực tuyến (\textbf{Bắt buộc đăng nhập}): Hỗ trợ cổng thanh toán mô phỏng Ví điện tử (\texttt{WALLET}) và Thẻ (\texttt{CARD}).
+        \item Cơ chế \textbf{Idempotency Key} (\texttt{idempotencyKey}) chống thanh toán trùng lặp khi người dùng bấm liên tiếp hoặc mạng chập chờn.
+    \end{itemize}
+    \item \textbf{Theo dõi đơn hàng \& Điểm thưởng:}
+    \begin{itemize}
+        \item Theo dõi trạng thái đơn hàng thời gian thực theo máy trạng thái: \texttt{PENDING} $\rightarrow$ \texttt{PAID} $\rightarrow$ \texttt{PREPARING} $\rightarrow$ \texttt{READY} $\rightarrow$ \texttt{COMPLETED}.
+        \item Xem danh sách lịch sử các đơn hàng đã đặt và chi tiết từng hóa đơn.
+        \item Tự động tích lũy điểm thưởng thành viên: $10.000\text{ VNĐ} = 1\text{ điểm}$ vào tài khoản.
+    \end{itemize}
+    \item \textbf{Kiểm thử \& Tự động hóa CI/CD:}
+    \begin{itemize}
+        \item Unit test cho hàm tính tiền, Integration test cho API tạo đơn/thanh toán, E2E test cho luồng đặt hàng.
+        \item Pipeline CI trên GitHub Actions: Install $\rightarrow$ Lint $\rightarrow$ Unit Test $\rightarrow$ Build.
+        \item Đóng gói Docker, file \texttt{docker-compose.yml} và triển khai lên Production có HTTPS.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Phạm vi mở rộng (Future Scope)}
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+    \item Thông báo đẩy (\textit{Web Push Notifications / WebSocket}) khi đơn hàng chuyển sang trạng thái sẵn sàng nhận (\texttt{READY}).
+    \item Hệ thống đánh giá, bình luận và chấm điểm đồ uống sau khi hoàn thành đơn.
+    \item Báo cáo thống kê biểu đồ doanh thu theo ngày/tuần/tháng dành cho quản lý cửa hàng.
+\end{itemize}
+
+\subsection{Ngoài phạm vi thực hiện (Out-of-Scope)}
+Để đảm bảo thời gian và độ sâu kỹ thuật theo yêu cầu đồ án, các nội dung sau \textbf{không thực hiện}:
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+    \item \textbf{Cổng thanh toán thực tế:} Không liên kết trực tiếp cổng thanh toán Live/Sandbox của MoMo, VNPAY, ZaloPay hay Stripe (sử dụng Mock Payment Service nội bộ).
+    \item \textbf{Giao hàng đường dài:} Không tích hợp định vị GPS hoặc đơn vị vận chuyển thứ ba (GrabExpress, ShopeeFood). Khách nhận đồ uống tại quầy.
+    \item \textbf{Phần cứng quầy POS vật lý:} Không tích hợp máy in hóa đơn nhiệt ESC/POS, máy POS cà thẻ hay két tiền tự động.
+    \item \textbf{Quản lý nhân sự và ca kíp:} Không xây dựng phân hệ chấm công, tính lương nhân viên.
+\end{enumerate}
+
+\newpage
+
+\section{Các giả định \& Ràng buộc (Assumptions \& Constraints)}
+
+\subsection{Giả định (Assumptions)}
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+    \item \textbf{Thiết bị người dùng:} Khách hàng sở hữu smartphone hoặc máy tính có trình duyệt web hiện đại hỗ trợ JavaScript/HTML5 và kết nối mạng ổn định.
+    \item \textbf{Quy mô vận hành:} Hệ thống phục vụ cho một cửa hàng cà phê đơn lẻ (\textit{Single Store}) với lưu lượng truy cập dưới 100 giao dịch đồng thời trong giờ cao điểm.
+    \item \textbf{Thanh toán:} Khách hàng luôn có đủ số dư tài khoản khi chọn phương thức ví hợp lệ trong kịch bản kiểm thử luồng chuẩn.
+    \item \textbf{Môi trường đánh giá:} Giảng viên và người chấm bài có thể truy cập được các URL public (frontend, API backend và health check) qua giao thức HTTPS.
+\end{enumerate}
+
+\subsection{Ràng buộc kỹ thuật (Technical Constraints)}
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+    \item \textbf{Ràng buộc công nghệ bắt buộc (Theo mục 1.1 đề bài):}
+    \begin{itemize}
+        \item \textbf{Frontend:} Next.js 16 (App Router) theo định hướng Mobile-first / PWA.
+        \item \textbf{Backend:} NestJS kiến trúc module/domain hướng đối tượng.
+        \item \textbf{Database:} PostgreSQL 16 (quản lý schema và migrations thông qua Prisma ORM).
+        \item \textbf{Containerization:} Hệ thống đóng gói bằng Docker và khởi chạy được bằng \texttt{docker-compose}.
+    \end{itemize}
+    \item \textbf{Ràng buộc giao thức \& bảo mật:}
+    \begin{itemize}
+        \item Giao tiếp Client -- Server qua chuẩn RESTful API bằng JSON qua HTTPS.
+        \item Các API nhạy cảm (tạo đơn, thanh toán, lịch sử, đổi trạng thái) bắt buộc xác thực bằng JWT Bearer Token.
+        \item Mật khẩu người dùng được băm một chiều an toàn bằng thuật toán \texttt{bcrypt} (cost factor $\ge 10$).
+    \end{itemize}
+    \item \textbf{Ràng buộc toàn vẹn dữ liệu (Data Integrity):}
+    \begin{itemize}
+        \item Tạo đơn hàng, lưu chi tiết món, lưu topping và trừ tồn kho phải nằm trong một Database Transaction (Atomic).
+        \item Áp dụng Khóa lạc quan (\textit{Optimistic Concurrency Control}) bằng trường \texttt{version} để chống hiện tượng Race Condition khi trừ kho.
+    \end{itemize}
+\end{enumerate}
+
+\clearpage
+
+\section{Đánh giá rủi ro ban đầu (Initial Risk Assessment)}
+
+\begin{table}[H]
+\centering
+\caption{Bảng đánh giá rủi ro ban đầu và giải pháp giảm thiểu}
+\label{tab:risks}
+\vspace{0.2cm}
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}p{3.5cm}|c|c|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tableheader}
+\textbf{Mã} & \textbf{Rủi ro nhận diện} & \textbf{Xác suất} & \textbf{Tác động} & \textbf{Giải pháp giảm thiểu (Mitigation)} \\
+\hline
+\textbf{R-01} & \textbf{Bán vượt tồn kho}\newline(\textit{Overselling}) & Trung bình & Rất cao & Áp dụng Optimistic Locking qua cột \texttt{version} trong bảng \texttt{Product}. Giao dịch xung đột sẽ bị hủy và báo lỗi 400 thân thiện. \\
+\hline
+\textbf{R-02} & \textbf{Thanh toán trùng lặp}\newline(\textit{Double Payment}) & Cao & Nghiêm trọng & Yêu cầu \texttt{idempotencyKey} duy nhất trong request thanh toán. Backend kiểm tra bản ghi cũ và trả về kết quả mà không trừ tiền lần 2. \\
+\hline
+\textbf{R-03} & \textbf{Xung đột Schema \& DB Migration} & Trung bình & Cao & Sử dụng Prisma Migration có kiểm soát phiên bản bằng Git (\texttt{prisma migrate deploy}), tự động chạy an toàn trong pipeline CI/CD trước khi khởi động app. \\
+\hline
+\textbf{R-04} & \textbf{Sự cố triển khai CI/CD Production} & Trung bình & Cao & Chọn nền tảng PaaS hiện đại (Render / Railway / Fly.io) hỗ trợ Docker container, quản lý biến môi trường qua Secret Manager và test sớm từ Sprint 1. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\end{document}
