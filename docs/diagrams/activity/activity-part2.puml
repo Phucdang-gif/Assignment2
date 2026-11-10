@@ -1,0 +1,130 @@
+@startuml activity-part2
+!theme plain
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 12
+
+skinparam activity {
+    BackgroundColor #FFFFFF
+    BorderColor #2D3748
+    ArrowColor #4A5568
+    DiamondBackgroundColor #FEFCBF
+    DiamondBorderColor #B7791F
+}
+
+title SƠ ĐỒ HOẠT ĐỘNG (ACTIVITY DIAGRAM) - PHẦN B: THANH TOÁN, PHA CHẾ & HOÀN TẤT ĐƠN\n(Phụ trách: Thành viên B)
+
+|#EBF8FF|Customer|
+|#F0FFF4|Next.js UI|
+|#FEFCBF|NestJS API & DB|
+|#FFF1F2|Payment Service|
+|#E6FFFA|Barista|
+
+|Customer|
+start
+:Nhận đơn hàng ở trạng thái PENDING;
+note right
+  **TIẾP NHẬN TỪ THÀNH VIÊN A:**
+  Đơn hàng đã được tạo trong Database
+  với trạng thái PENDING, mã orderId và tổng tiền
+end note
+
+:Xem thông tin tổng thanh toán trên màn hình;
+:Chọn phương thức thanh toán (Ví điện tử WALLET / Thẻ CARD);
+:Bấm nút "Xác nhận thanh toán";
+
+|Next.js UI|
+:Tạo mã chống trùng lặp idempotencyKey (UUID);
+:Gửi request POST /payments;
+note right: Payload: { orderId, amount, method, idempotencyKey }
+
+|NestJS API & DB|
+:Kiểm tra idempotencyKey trong bảng Payment;
+if (Khóa thanh toán đã tồn tại trong DB?) then ([Đã xử lý trước đó])
+    :Trả về kết quả giao dịch đã lưu trước đó;
+    detach
+else ([Giao dịch mới])
+    :Gửi yêu cầu thanh toán sang Cổng thanh toán;
+endif
+
+|Payment Service|
+:Xử lý kiểm tra tài khoản và trừ tiền;
+
+' === NHÁNH 3: KẾT QUẢ THANH TOÁN ===
+if (Giao dịch thanh toán thành công?) then ([Thanh toán THÀNH CÔNG])
+    :Phản hồi kết quả TRANSACTION_SUCCESS;
+    
+    |NestJS API & DB|
+    :Lưu bản ghi Payment mới kèm idempotencyKey;
+    :Cập nhật trạng thái Order thành 'PAID';
+    :Tự động cộng điểm thưởng loyaltyPoints vào tài khoản khách;
+    :Commit Transaction & trả về 200 OK;
+    
+    |Next.js UI|
+    :Hiển thị màn hình "Đặt hàng & Thanh toán thành công!";
+    :Điều hướng sang màn hình Theo dõi đơn hàng (Tracking);
+    
+    ' === VẬN HÀNH QUẦY PHA CHẾ (BARISTA) ===
+    |Barista|
+    :Màn hình quầy nhận thông báo đơn hàng mới (PAID);
+    :Bấm tiếp nhận đơn và bắt đầu pha chế;
+    
+    |NestJS API & DB|
+    :Cập nhật trạng thái Order thành 'PREPARING';
+    
+    |Barista|
+    :Thực hiện pha chế đồ uống theo đúng công thức;
+    :Pha chế hoàn tất, bấm xác nhận "Món đã sẵn sàng";
+    
+    |NestJS API & DB|
+    :Cập nhật trạng thái Order thành 'READY';
+    
+    |Next.js UI|
+    :Cập nhật trạng thái đơn hàng thời gian thực: READY;
+    :Hiển thị thông báo "Đồ uống đã xong, mời bạn đến quầy nhận!";
+    
+    |Customer|
+    :Đến quầy bar xuất trình mã đơn hàng và nhận nước;
+    
+    |Barista|
+    :Bàn giao đồ uống cho khách và bấm "Hoàn tất đơn";
+    
+    |NestJS API & DB|
+    :Cập nhật trạng thái Order thành 'COMPLETED';
+    
+    |Customer|
+    :Nhận thức uống và kết thúc quy trình đặt hàng;
+    stop
+
+else ([Thanh toán THẤT BẠI / Timeout])
+    :Phản hồi kết quả TRANSACTION_FAILED;
+    
+    |NestJS API & DB|
+    :Cập nhật trạng thái Order thành 'PAYMENT_FAILED';
+    :Mở Database Transaction tự động hoàn tồn kho:
+    Tăng lại số lượng (increment stock) của các món;
+    :Trả về lỗi 400 Bad Request kèm lý do thất bại;
+    
+    |Next.js UI|
+    :Hiển thị Toast báo lỗi thanh toán thất bại;
+    :Hiển thị tùy chọn: Thử lại hoặc Hủy đơn;
+    
+    |Customer|
+    if (Khách hàng muốn thử lại thanh toán?) then ([Thử lại])
+        :Chọn lại phương thức thanh toán khác;
+        |Next.js UI|
+        :Tạo idempotencyKey mới và quay lại bước gửi POST /payments;
+        detach
+    else ([Hủy đơn])
+        |Next.js UI|
+        :Gửi request hủy đơn;
+        |NestJS API & DB|
+        :Cập nhật trạng thái Order thành 'CANCELLED';
+        |Customer|
+        :Đơn hàng bị hủy bỏ hoàn toàn;
+        stop
+    endif
+endif
+
+@enduml

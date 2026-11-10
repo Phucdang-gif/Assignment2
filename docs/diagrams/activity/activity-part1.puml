@@ -1,0 +1,126 @@
+@startuml activity-part1
+!theme plain
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 12
+
+skinparam activity {
+    BackgroundColor #FFFFFF
+    BorderColor #2D3748
+    ArrowColor #4A5568
+    DiamondBackgroundColor #FEFCBF
+    DiamondBorderColor #B7791F
+}
+
+title SƠ ĐỒ HOẠT ĐỘNG (ACTIVITY DIAGRAM) - PHẦN A: KHÁM PHÁ, GIỎ HÀNG & ĐẶT HÀNG\n(Phụ trách: Thành viên A | Khớp 100% với Sơ đồ tổng quát Activity-01)
+
+|#EBF8FF|Customer|
+|#F0FFF4|Next.js UI|
+|#FEFCBF|NestJS API & DB|
+
+|Customer|
+start
+:Truy cập ứng dụng BrewLite (PWA / Mobile Web);
+
+|Next.js UI|
+:Gửi yêu cầu GET /products;
+
+|NestJS API & DB|
+:Truy vấn danh sách đồ uống active từ Database;
+:Trả về danh mục sản phẩm kèm số lượng tồn kho (stock);
+
+|Next.js UI|
+:Render giao diện Menu đồ uống (Mobile-First);
+
+|Customer|
+:Xem danh mục và chọn món đồ uống;
+
+|Next.js UI|
+if (Sản phẩm còn hàng? (stock > 0)) then ([Còn hàng])
+    :Hiển thị Popup chi tiết món (Size, Topping);
+else ([Hết hàng / stock = 0])
+    :Hiển thị nhãn "Hết hàng" (Vô hiệu hóa nút chọn);
+    |Customer|
+    :Chọn món đồ uống khác;
+    detach
+endif
+
+|Customer|
+:Chọn kích thước (Size S / M / L);
+:Chọn danh sách Topping đi kèm;
+:Bấm "Thêm vào giỏ hàng";
+
+|Next.js UI|
+:Cập nhật giỏ hàng cục bộ (cartStore);
+:Tính lại tổng tiền: sum((Giá size + Topping) * SL);
+:Hiển thị thông báo "Đã thêm vào giỏ hàng";
+
+|Customer|
+:Mở giỏ hàng kiểm tra danh sách món;
+:Bấm nút "Tiến hành đặt hàng";
+
+|Next.js UI|
+' ========================================================
+' 1. NHÁNH RẼ: KIỂM TRA ĐĂNG NHẬP (AUTHENTICATION)
+' ========================================================
+if (Khách hàng đã đăng nhập? (Có JWT Token hợp lệ)) then ([Đã đăng nhập])
+    :Lấy accessToken (Bearer JWT) từ authStore;
+else ([Chưa đăng nhập])
+    :Lưu tạm trạng thái giỏ hàng;
+    :Chuyển hướng (Redirect) sang trang Đăng nhập / Đăng ký;
+    |Customer|
+    :Nhập thông tin tài khoản (Email & Password);
+    |Next.js UI|
+    :Gửi POST /auth/login hoặc POST /auth/register;
+    |NestJS API & DB|
+    :Xác thực mật khẩu (bcrypt) và cấp Token JWT;
+    |Next.js UI|
+    :Lưu Token JWT vào authStore;
+    :Tự động điều hướng quay lại trang Giỏ hàng / Checkout;
+endif
+
+|Next.js UI|
+:Gửi request POST /orders (kèm giỏ hàng + Bearer Token);
+
+|NestJS API & DB|
+:Bắt đầu Database Transaction ($transaction);
+' ========================================================
+' 2. NHÁNH RẼ: KIỂM TRA TỒN KHO & OPTIMISTIC LOCKING
+' ========================================================
+:Kiểm tra số lượng tồn kho (stock) của từng món;
+
+if (Tồn kho đáp ứng đủ số lượng yêu cầu?) then ([Đủ số lượng])
+    :Áp dụng Optimistic Lock (version) & Trừ tồn kho tạm thời;
+    :Tạo bản ghi Order mới với trạng thái 'PENDING';
+    :Tạo các bản ghi OrderItem và OrderItemTopping;
+    :Commit Transaction thành công;
+    :Trả về { orderId, total, status: 'PENDING' };
+else ([Hết hàng / Thiếu tồn kho])
+    :Rollback Database Transaction;
+    :Ném lỗi 400 Bad Request / 409 Conflict;
+    |Next.js UI|
+    :Hiển thị Toast: "Sản phẩm không đủ tồn kho, vui lòng chọn lại!";
+    |Customer|
+    :Quay lại Giỏ hàng để điều chỉnh số lượng;
+    detach
+endif
+
+|Next.js UI|
+:Nhận orderId và chuyển hướng sang màn hình Thanh toán;
+
+' ========================================================
+' ĐIỂM GIAO THOA (HANDSHAKE) - BÀN GIAO CHO THÀNH VIÊN B
+' ========================================================
+|Customer|
+:Đơn hàng PENDING sẵn sàng thanh toán;
+note right
+  **ĐIỂM GIAO THOA (HANDSHAKE):**
+  - Hoàn tất phần việc của Thành viên A
+  - Dữ liệu bàn giao: orderId, total, JWT
+  - Trạng thái Order trong DB: PENDING
+end note
+
+stop
+
+@enduml
