@@ -22,4 +22,4 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`Backend server is running on http://0.0.0.0:${port}`);
 }
-bootstrap();
+void bootstrap();

@@ -1,5 +1,5 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { order_status, payment_method } from '@prisma/client';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import { order_status } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { PaymentsService } from '../payments/payments.service';
 import { CreatePaymentDto, PaymentMethod } from '../payments/dto/create-payment.dto';

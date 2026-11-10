@@ -1,22 +1,36 @@
-# Bỏ qua thư viện thư mục con
+# Dependencies
 node_modules/
-dist/
-.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Bỏ qua file biến môi trường thật (chỉ giữ lại .env.example)
+# Environment files
 .env
-*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Bỏ qua log và file hệ thống
-*.log
-.DS_Store
+# Next.js build
+apps/web/.next/
+apps/web/out/
 
+# NestJS build
+apps/api/dist/
+
+# Database & Docker
+*.db
+*.sqlite
+postgres_data/
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# IDE & OS
 .vscode/
-
-# Bỏ qua các file phụ trợ sinh ra khi biên dịch LaTeX
-*.aux
-*.out
-*.synctex.gz
-*.toc
-*.fls
-*.fdb_latexmk
+.idea/
+.DS_Store
+Thumbs.db

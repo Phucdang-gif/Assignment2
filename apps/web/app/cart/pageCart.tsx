@@ -272,11 +272,11 @@ export default function CartPage() {
       }
 
       router.push('/checkout');
-    } catch (err: any) {
+    } catch (err: unknown) {
       isNavigatingRef.current = false;
       isSubmittingRef.current = false;
       setIsSubmitting(false);
-      alert(err.message || 'Có lỗi xảy ra khi kiểm tra tồn kho.');
+      alert(err instanceof Error ? err.message : 'Có lỗi xảy ra khi kiểm tra tồn kho.');
     }
   };
 

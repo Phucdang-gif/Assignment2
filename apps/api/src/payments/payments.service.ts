@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
   OnModuleInit,
@@ -480,7 +479,7 @@ export class PaymentsService implements OnModuleInit {
               currentOrder = updated.order;
             }
           }
-        } catch (e: any) {
+        } catch {
           // Bỏ qua lỗi kết nối trong polling ngầm
         }
       }

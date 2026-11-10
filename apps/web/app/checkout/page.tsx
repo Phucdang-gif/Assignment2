@@ -342,8 +342,8 @@ export default function CheckoutPage() {
       isPayingRef.current = true;
       setIsPaying(true);
 
-      let orderId = createdOrderData?.id || useCartStore.getState().pendingOrderId;
-      let payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : grandTotal;
+      const orderId = createdOrderData?.id || useCartStore.getState().pendingOrderId;
+      const payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : grandTotal;
 
       if (!orderId) {
         alert("Phiên thanh toán không tồn tại hoặc đã hết hạn. Vui lòng quay lại giỏ hàng!");
@@ -530,8 +530,8 @@ export default function CheckoutPage() {
       clearCheckoutItems();
       clearActiveCart();
       window.location.href = `/orders/${targetOrderId}?status=PAID`;
-    } catch (err: any) {
-      alert(err.message || "Lỗi xác nhận thanh toán MoMo");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Lỗi xác nhận thanh toán MoMo");
     } finally {
       setIsPaying(false);
     }
