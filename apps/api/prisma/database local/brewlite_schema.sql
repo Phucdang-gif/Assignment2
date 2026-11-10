@@ -1,4 +1,6 @@
 DROP TABLE IF EXISTS "OrderItemTopping" CASCADE;
+DROP TABLE IF EXISTS "ProductRecipeItem" CASCADE;
+DROP TABLE IF EXISTS "Ingredient" CASCADE;
 DROP TABLE IF EXISTS "Payment" CASCADE;
 DROP TABLE IF EXISTS "OrderItem" CASCADE;
 DROP TABLE IF EXISTS "Order" CASCADE;
@@ -40,7 +42,9 @@ CREATE TABLE "Category" (
 
 CREATE TABLE "User" (
     "id"            BIGSERIAL PRIMARY KEY,
+    "fullName"      VARCHAR(100),
     "email"         VARCHAR(255) NOT NULL UNIQUE,
+    "phone"         VARCHAR(15) UNIQUE,
     "passwordHash"  VARCHAR(255) NOT NULL,
     "loyaltyPoints" INTEGER NOT NULL DEFAULT 0 CHECK ("loyaltyPoints" >= 0),
     "role"          "user_role" NOT NULL DEFAULT 'customer',
@@ -49,6 +53,7 @@ CREATE TABLE "User" (
 );
 
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
 
 CREATE TABLE "Product" (
     "id"          BIGSERIAL PRIMARY KEY,
@@ -114,3 +119,26 @@ CREATE TABLE "Payment" (
 
 CREATE UNIQUE INDEX "Payment_idempotencyKey_key" ON "Payment"("idempotencyKey");
 CREATE INDEX "idx_payment_orderid" ON "Payment"("orderId");
+
+CREATE TABLE "Ingredient" (
+    "id"          SERIAL PRIMARY KEY,
+    "name"        VARCHAR(255) NOT NULL,
+    "unit"        VARCHAR(20) NOT NULL,
+    "stock"       DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK ("stock" >= 0),
+    "createdAt"   TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt"   TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "ProductRecipeItem" (
+    "id"           SERIAL PRIMARY KEY,
+    "productId"    BIGINT NOT NULL REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE NO ACTION,
+    "size"         "product_size" NOT NULL,
+    "ingredientId" INTEGER NOT NULL REFERENCES "Ingredient"("id") ON DELETE CASCADE ON UPDATE NO ACTION,
+    "amount"       DOUBLE PRECISION NOT NULL CHECK ("amount" > 0),
+    "createdAt"    TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt"    TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ProductRecipeItem_productId_size_ingredientId_key" UNIQUE ("productId", "size", "ingredientId")
+);
+
+CREATE INDEX "idx_recipe_product_size" ON "ProductRecipeItem"("productId", "size");
+

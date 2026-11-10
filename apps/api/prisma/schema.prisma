@@ -63,6 +63,7 @@ model Product {
   updatedAt  DateTime      @default(now()) @db.Timestamptz(6)
   category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   OrderItem  OrderItem[]
+  ProductRecipeItem ProductRecipeItem[]
 
   @@index([categoryId], map: "idx_product_categoryid")
 }
@@ -137,3 +138,29 @@ model Topping {
   createdAt        DateTime           @default(now()) @db.Timestamptz(6)
   OrderItemTopping OrderItemTopping[]
 }
+
+model Ingredient {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  unit              String              @db.VarChar(20)
+  stock             Float               @default(0)
+  createdAt         DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  ProductRecipeItem ProductRecipeItem[]
+}
+
+model ProductRecipeItem {
+  id           Int          @id @default(autoincrement())
+  productId    BigInt
+  size         product_size
+  ingredientId Int
+  amount       Float
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
+  Product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Ingredient   Ingredient   @relation(fields: [ingredientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([productId, size, ingredientId], name: "uq_product_size_ingredient")
+  @@index([productId, size], map: "idx_recipe_product_size")
+}
+

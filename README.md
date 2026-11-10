@@ -215,14 +215,14 @@ docker compose up --build
 ### Quá trình khởi động tự động gồm:
 
 1. **Dịch vụ `db`**: Khởi chạy PostgreSQL 16 Alpine, cấu hình volume lưu trữ bền vững `pgdata` và kiểm tra sức khỏe (`healthcheck`).
-2. **Dịch vụ `backend` (`apps/api`)**: Chờ database sẵn sàng -> tự động tạo cấu trúc bảng (`npx prisma db push`) -> tự động chạy script `seed.js` để đọc và nạp toàn bộ dữ liệu từ file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) (gồm 12 món đồ uống, 3 tài khoản, topping, đơn hàng) -> khởi chạy máy chủ NestJS tại cổng `3001`.
-3. **Dịch vụ `frontend` (`apps/web`)**: Build mã nguồn Next.js đa tầng (multi-stage) -> phục vụ ứng dụng tại cổng `3000`.
+2. **Dịch vụ `api` (`apps/api`)**: Chờ database sẵn sàng -> tự động tạo cấu trúc bảng (`npx prisma db push`) -> tự động chạy script `seed.js` để đọc và nạp toàn bộ dữ liệu từ file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) (gồm 12 món đồ uống, 3 tài khoản, topping, đơn hàng, nguyên vật liệu & công thức pha chế theo size S/M/L) -> khởi chạy máy chủ NestJS tại cổng `3001`.
+3. **Dịch vụ `web` (`apps/web`)**: Build mã nguồn Next.js đa tầng (multi-stage) -> phục vụ ứng dụng tại cổng `3000`.
 
 ### Truy cập các dịch vụ:
 
-- 🌐 **Frontend Web App**: [http://localhost:3000](http://localhost:3000)
-- 🔌 **Backend REST API**: [http://localhost:3001](http://localhost:3001)
-- 🗄️ **PostgreSQL Port**: `localhost:5432`
+- 🌐 **Web App (`apps/web`)**: [http://localhost:3000](http://localhost:3000)
+- 🔌 **API Service (`apps/api`)**: [http://localhost:3001](http://localhost:3001)
+- 🗄️ **PostgreSQL Port**: `localhost:5433` (map từ 5432 của container)
 
 ### Dừng hệ thống & Reset dữ liệu:
 
@@ -248,17 +248,22 @@ Phương thức này là **tùy chọn (optional)** dành cho trường hợp b�
 
 ### Bước 1: Khởi tạo Cơ sở dữ liệu cục bộ bằng File SQL
 
-Bạn mở công cụ **pgAdmin 4**, **DBeaver** hoặc cửa sổ dòng lệnh `psql` để chạy 2 file SQL đã chuẩn bị sẵn trong thư mục `apps/api/prisma/database local/`:
+Bạn mở công cụ **pgAdmin 4**, **DBeaver** hoặc cửa sổ dòng lệnh `psql` để chạy file SQL trong thư mục `apps/api/prisma/database local/`:
 
-1. Tạo một cơ sở dữ liệu mới tên là `brewlite`.
-2. Mở file [`brewlite_schema.sql`](apps/api/prisma/database%20local/brewlite_schema.sql) và bấm thực thi (**F5**) để tạo bảng và ràng buộc.
-3. Mở file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) và bấm thực thi (**F5**) để nạp 12 món đồ uống và tài khoản mẫu.
+* **Cách 1 (Chạy 1 file duy nhất - Khuyên dùng)**: Mở file [`brewlite_init_full.sql`](apps/api/prisma/database%20local/brewlite_init_full.sql) và bấm thực thi (**F5**). File này đã gom toàn bộ tạo bảng (Schema), Enums, Ràng buộc, Dữ liệu mẫu (Seed Data) và Công thức pha chế (Recipes).
+* **Cách 2 (Chạy tách rời 2 bước)**:
+  1. Mở file [`brewlite_schema.sql`](apps/api/prisma/database%20local/brewlite_schema.sql) và bấm (**F5**) để tạo bảng và cấu trúc.
+  2. Mở file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) và bấm (**F5**) để nạp dữ liệu mẫu và công thức.
 
 _(Hoặc chạy nhanh bằng lệnh `psql`):_
 
 ```bash
-psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_schema.sql"
-psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_seed_data.sql"
+# Chạy 1 lệnh khởi tạo toàn diện:
+psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_init_full.sql"
+
+# Hoặc chạy tách rời:
+# psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_schema.sql"
+# psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_seed_data.sql"
 ```
 
 ### Bước 2: Chuẩn bị biến môi trường

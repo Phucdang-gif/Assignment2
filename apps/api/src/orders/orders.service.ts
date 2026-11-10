@@ -121,6 +121,22 @@ export class OrdersService {
       for (const expOrder of expiredPendingOrders) {
         await this.prisma.$transaction(async (tx) => {
           for (const item of expOrder.OrderItem) {
+            if ((tx as any).productRecipeItem) {
+              const recipeItems = await (tx as any).productRecipeItem.findMany({
+                where: {
+                  productId: item.productId,
+                  size: item.size,
+                },
+              });
+
+              for (const r of recipeItems) {
+                await (tx as any).ingredient.update({
+                  where: { id: r.ingredientId },
+                  data: { stock: { increment: r.amount * item.qty } },
+                });
+              }
+            }
+
             await tx.product.update({
               where: { id: item.productId },
               data: {
@@ -154,6 +170,34 @@ export class OrdersService {
 
             if (!product) {
               throw new NotFoundException(`Sản phẩm #${item.productId} không tồn tại`);
+            }
+
+            // Kiểm tra và trừ tồn kho theo nguyên vật liệu (ProductRecipeItem & Ingredient)
+            if ((tx as any).productRecipeItem) {
+              const recipeItems = await (tx as any).productRecipeItem.findMany({
+                where: {
+                  productId: BigInt(item.productId) as any,
+                  size: item.size as any,
+                },
+                include: { Ingredient: true },
+              });
+
+              if (recipeItems.length > 0) {
+                for (const r of recipeItems) {
+                  const needed = r.amount * item.qty;
+                  const ing = r.Ingredient;
+                  if (!ing || ing.stock < needed) {
+                    throw new BadRequestException(
+                      `Nguyên liệu "${ing?.name || 'Không xác định'}" không đủ để pha món "${product.name}" size ${item.size} (còn ${ing?.stock ?? 0} ${ing?.unit ?? ''}, cần ${needed} ${ing?.unit ?? ''})`,
+                    );
+                  }
+
+                  await (tx as any).ingredient.update({
+                    where: { id: r.ingredientId },
+                    data: { stock: { decrement: needed } },
+                  });
+                }
+              }
             }
 
             if (product.stock < item.qty) {
@@ -273,6 +317,22 @@ export class OrdersService {
 
     return this.prisma.$transaction(async (tx) => {
       for (const item of order.OrderItem) {
+        if ((tx as any).productRecipeItem) {
+          const recipeItems = await (tx as any).productRecipeItem.findMany({
+            where: {
+              productId: item.productId,
+              size: item.size,
+            },
+          });
+
+          for (const r of recipeItems) {
+            await (tx as any).ingredient.update({
+              where: { id: r.ingredientId },
+              data: { stock: { increment: r.amount * item.qty } },
+            });
+          }
+        }
+
         await tx.product.update({
           where: { id: item.productId },
           data: {

@@ -17,11 +17,9 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile
-    container_name: brewlite-backend
+  api:
+    build: ./apps/api
+    container_name: brewlite-api
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -35,18 +33,16 @@ services:
       db:
         condition: service_healthy
 
-  frontend:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-    container_name: brewlite-frontend
+  web:
+    build: ./apps/web
+    container_name: brewlite-web
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
     depends_on:
-      - backend
+      - api
 
 volumes:
   pgdata:

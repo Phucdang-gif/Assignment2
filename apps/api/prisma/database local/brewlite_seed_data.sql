@@ -7,10 +7,10 @@ INSERT INTO "Category" (id, name, "createdAt", "updatedAt") VALUES
     (4, 'Đá xay & Thức uống khác', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO "User" (id, email, "passwordHash", "loyaltyPoints", role, "createdAt", "updatedAt") VALUES
-    (1, 'barista@brewlite.com',   '$2b$10$mP5dJ.qWueg02XGw/Bu/AevZNCBtware14sA3KYotm2IgfCBoUv7e', 100, 'barista',  now(), now()),
-    (2, 'customer@brewlite.com',  '$2b$10$ptgUmawGGT9c4RLeqIoLx.OQj6vuIOfjrhOq/clKVgO5cNhPTyvF2',  50, 'customer', now(), now()),
-    (3, 'khachhang2@example.com', '$2b$10$vaMHsq05UxbqkciIo9skZes9eoqKkO3wHyIx3ZYY76GvDHvM5lj4m',  20, 'customer', now(), now())
+INSERT INTO "User" (id, "fullName", email, phone, "passwordHash", "loyaltyPoints", role, "createdAt", "updatedAt") VALUES
+    (1, 'Nguyễn Văn Barista', 'barista@brewlite.com',   '0901234567', '$2b$10$mP5dJ.qWueg02XGw/Bu/AevZNCBtware14sA3KYotm2IgfCBoUv7e', 100, 'barista',  now(), now()),
+    (2, 'Trần Thị Khách Hàng', 'customer@brewlite.com',  '0912345678', '$2b$10$ptgUmawGGT9c4RLeqIoLx.OQj6vuIOfjrhOq/clKVgO5cNhPTyvF2',  50, 'customer', now(), now()),
+    (3, 'Lê Văn Khách Hàng 2', 'khachhang2@example.com', '0987654321', '$2b$10$vaMHsq05UxbqkciIo9skZes9eoqKkO3wHyIx3ZYY76GvDHvM5lj4m',  20, 'customer', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO "Product" (id, "categoryId", name, price, "imageUrl", description, stock, version, status, "createdAt", "updatedAt") VALUES
@@ -70,6 +70,179 @@ INSERT INTO "Payment" (id, "orderId", "idempotencyKey", amount, method) VALUES
     (2, 2, 'idem-brewlite-ord2-card-002',   47000.00, 'CARD'),
     (3, 3, 'idem-brewlite-ord3-wallet-003', 44000.00, 'WALLET')
 ON CONFLICT (id) DO NOTHING;
+
+-- Dữ liệu mẫu Nguyên vật liệu (Ingredients)
+INSERT INTO "Ingredient" (id, name, unit, stock, "createdAt", "updatedAt") VALUES
+    (1,  'Cà phê Robusta Đắk Lắk',   'g',    5000.0, now(), now()),
+    (2,  'Cà phê Espresso Arabica',  'g',    5000.0, now(), now()),
+    (3,  'Sữa đặc Ngôi Sao Phương Nam','ml', 10000.0, now(), now()),
+    (4,  'Sữa tươi thanh trùng Barista', 'ml', 10000.0, now(), now()),
+    (5,  'Cốt trà đen tự nhiên',     'ml',   8000.0, now(), now()),
+    (6,  'Cốt trà Oolong nướng',     'ml',   8000.0, now(), now()),
+    (7,  'Siro đào thượng hạng',     'ml',   3000.0, now(), now()),
+    (8,  'Sốt Caramel thơm béo',     'ml',   2000.0, now(), now()),
+    (9,  'Bột Matcha Uji nguyên chất','g',   2000.0, now(), now()),
+    (10, 'Cốt dừa Bến Tre',          'ml',   4000.0, now(), now()),
+    (11, 'Ly giấy Size S',           'cai',  500.0,  now(), now()),
+    (12, 'Ly giấy Size M',           'cai',  500.0,  now(), now()),
+    (13, 'Ly giấy Size L',           'cai',  500.0,  now(), now())
+ON CONFLICT (id) DO NOTHING;
+
+-- Công thức định mức tiêu hao (ProductRecipeItem) cho từng sản phẩm và size
+INSERT INTO "ProductRecipeItem" ("productId", size, "ingredientId", amount, "createdAt", "updatedAt") VALUES
+    -- 1. Cà phê sữa đá (id: 1)
+    (1, 'S', 1,  20.0, now(), now()), -- 20g cà phê
+    (1, 'S', 3,  25.0, now(), now()), -- 25ml sữa đặc
+    (1, 'S', 11, 1.0,  now(), now()), -- 1 ly size S
+    (1, 'M', 1,  25.0, now(), now()), -- 25g cà phê
+    (1, 'M', 3,  35.0, now(), now()), -- 35ml sữa đặc
+    (1, 'M', 12, 1.0,  now(), now()), -- 1 ly size M
+    (1, 'L', 1,  35.0, now(), now()), -- 35g cà phê
+    (1, 'L', 3,  50.0, now(), now()), -- 50ml sữa đặc
+    (1, 'L', 13, 1.0,  now(), now()), -- 1 ly size L
+
+    -- 2. Americano (id: 2)
+    (2, 'S', 2,  18.0, now(), now()),
+    (2, 'S', 11, 1.0,  now(), now()),
+    (2, 'M', 2,  25.0, now(), now()),
+    (2, 'M', 12, 1.0,  now(), now()),
+    (2, 'L', 2,  36.0, now(), now()),
+    (2, 'L', 13, 1.0,  now(), now()),
+
+    -- 3. Cappuccino (id: 3)
+    (3, 'S', 2,  18.0,  now(), now()),
+    (3, 'S', 4,  120.0, now(), now()),
+    (3, 'S', 11, 1.0,   now(), now()),
+    (3, 'M', 2,  25.0,  now(), now()),
+    (3, 'M', 4,  160.0, now(), now()),
+    (3, 'M', 12, 1.0,   now(), now()),
+    (3, 'L', 2,  36.0,  now(), now()),
+    (3, 'L', 4,  220.0, now(), now()),
+    (3, 'L', 13, 1.0,   now(), now()),
+
+    -- 4. Bạc xỉu 3 tầng (id: 4)
+    (4, 'S', 1,  15.0,  now(), now()),
+    (4, 'S', 3,  30.0,  now(), now()),
+    (4, 'S', 4,  80.0,  now(), now()),
+    (4, 'S', 11, 1.0,   now(), now()),
+    (4, 'M', 1,  20.0,  now(), now()),
+    (4, 'M', 3,  40.0,  now(), now()),
+    (4, 'M', 4,  100.0, now(), now()),
+    (4, 'M', 12, 1.0,   now(), now()),
+    (4, 'L', 1,  28.0,  now(), now()),
+    (4, 'L', 3,  55.0,  now(), now()),
+    (4, 'L', 4,  140.0, now(), now()),
+    (4, 'L', 13, 1.0,   now(), now()),
+
+    -- 5. Caramel Macchiato (id: 5)
+    (5, 'S', 2,  18.0,  now(), now()),
+    (5, 'S', 4,  100.0, now(), now()),
+    (5, 'S', 8,  20.0,  now(), now()),
+    (5, 'S', 11, 1.0,   now(), now()),
+    (5, 'M', 2,  25.0,  now(), now()),
+    (5, 'M', 4,  140.0, now(), now()),
+    (5, 'M', 8,  30.0,  now(), now()),
+    (5, 'M', 12, 1.0,   now(), now()),
+    (5, 'L', 2,  36.0,  now(), now()),
+    (5, 'L', 4,  180.0, now(), now()),
+    (5, 'L', 8,  40.0,  now(), now()),
+    (5, 'L', 13, 1.0,   now(), now()),
+
+    -- 6. Trà đào cam sả (id: 6)
+    (6, 'S', 5,  100.0, now(), now()),
+    (6, 'S', 7,  25.0,  now(), now()),
+    (6, 'S', 11, 1.0,   now(), now()),
+    (6, 'M', 5,  140.0, now(), now()),
+    (6, 'M', 7,  35.0,  now(), now()),
+    (6, 'M', 12, 1.0,   now(), now()),
+    (6, 'L', 5,  180.0, now(), now()),
+    (6, 'L', 7,  45.0,  now(), now()),
+    (6, 'L', 13, 1.0,   now(), now()),
+
+    -- 7. Trà vải lài thanh long (id: 7)
+    (7, 'S', 5,  100.0, now(), now()),
+    (7, 'S', 7,  25.0,  now(), now()),
+    (7, 'S', 11, 1.0,   now(), now()),
+    (7, 'M', 5,  140.0, now(), now()),
+    (7, 'M', 7,  35.0,  now(), now()),
+    (7, 'M', 12, 1.0,   now(), now()),
+    (7, 'L', 5,  180.0, now(), now()),
+    (7, 'L', 7,  45.0,  now(), now()),
+    (7, 'L', 13, 1.0,   now(), now()),
+
+    -- 8. Trà sen vàng hạt sen (id: 8)
+    (8, 'S', 6,  100.0, now(), now()),
+    (8, 'S', 4,  40.0,  now(), now()),
+    (8, 'S', 3,  15.0,  now(), now()),
+    (8, 'S', 11, 1.0,   now(), now()),
+    (8, 'M', 6,  140.0, now(), now()),
+    (8, 'M', 4,  60.0,  now(), now()),
+    (8, 'M', 3,  25.0,  now(), now()),
+    (8, 'M', 12, 1.0,   now(), now()),
+    (8, 'L', 6,  180.0, now(), now()),
+    (8, 'L', 4,  80.0,  now(), now()),
+    (8, 'L', 3,  35.0,  now(), now()),
+    (8, 'L', 13, 1.0,   now(), now()),
+
+    -- 9. Trà sữa Oolong nướng (id: 9)
+    (9, 'S', 6,  100.0, now(), now()),
+    (9, 'S', 4,  80.0,  now(), now()),
+    (9, 'S', 3,  25.0,  now(), now()),
+    (9, 'S', 11, 1.0,   now(), now()),
+    (9, 'M', 6,  140.0, now(), now()),
+    (9, 'M', 4,  100.0, now(), now()),
+    (9, 'M', 3,  35.0,  now(), now()),
+    (9, 'M', 12, 1.0,   now(), now()),
+    (9, 'L', 6,  180.0, now(), now()),
+    (9, 'L', 4,  140.0, now(), now()),
+    (9, 'L', 3,  45.0,  now(), now()),
+    (9, 'L', 13, 1.0,   now(), now()),
+
+    -- 10. Trà sữa trân châu đường đen (id: 10)
+    (10, 'S', 5,  100.0, now(), now()),
+    (10, 'S', 4,  80.0,  now(), now()),
+    (10, 'S', 3,  25.0,  now(), now()),
+    (10, 'S', 11, 1.0,   now(), now()),
+    (10, 'M', 5,  140.0, now(), now()),
+    (10, 'M', 4,  100.0, now(), now()),
+    (10, 'M', 3,  35.0,  now(), now()),
+    (10, 'M', 12, 1.0,   now(), now()),
+    (10, 'L', 5,  180.0, now(), now()),
+    (10, 'L', 4,  140.0, now(), now()),
+    (10, 'L', 3,  45.0,  now(), now()),
+    (10, 'L', 13, 1.0,   now(), now()),
+
+    -- 11. Trà sữa Matcha kem cheese (id: 11)
+    (11, 'S', 9,  15.0,  now(), now()),
+    (11, 'S', 4,  120.0, now(), now()),
+    (11, 'S', 3,  20.0,  now(), now()),
+    (11, 'S', 11, 1.0,   now(), now()),
+    (11, 'M', 9,  20.0,  now(), now()),
+    (11, 'M', 4,  160.0, now(), now()),
+    (11, 'M', 3,  30.0,  now(), now()),
+    (11, 'M', 12, 1.0,   now(), now()),
+    (11, 'L', 9,  28.0,  now(), now()),
+    (11, 'L', 4,  200.0, now(), now()),
+    (11, 'L', 3,  40.0,  now(), now()),
+    (11, 'L', 13, 1.0,   now(), now()),
+
+    -- 12. Cà phê dừa đá xay (id: 12)
+    (12, 'S', 1,  20.0,  now(), now()),
+    (12, 'S', 10, 80.0,  now(), now()),
+    (12, 'S', 3,  30.0,  now(), now()),
+    (12, 'S', 11, 1.0,   now(), now()),
+    (12, 'M', 1,  25.0,  now(), now()),
+    (12, 'M', 10, 120.0, now(), now()),
+    (12, 'M', 3,  40.0,  now(), now()),
+    (12, 'M', 12, 1.0,   now(), now()),
+    (12, 'L', 1,  35.0,  now(), now()),
+    (12, 'L', 10, 160.0, now(), now()),
+    (12, 'L', 3,  50.0,  now(), now()),
+    (12, 'L', 13, 1.0,   now(), now())
+ON CONFLICT ("productId", size, "ingredientId") DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('"Ingredient"', 'id'), (SELECT COALESCE(MAX(id), 1) FROM "Ingredient"));
+SELECT setval(pg_get_serial_sequence('"ProductRecipeItem"', 'id'), (SELECT COALESCE(MAX(id), 1) FROM "ProductRecipeItem"));
 
 SELECT setval(pg_get_serial_sequence('"Category"', 'id'),  (SELECT COALESCE(MAX(id), 1) FROM "Category"));
 SELECT setval(pg_get_serial_sequence('"User"', 'id'),      (SELECT COALESCE(MAX(id), 1) FROM "User"));

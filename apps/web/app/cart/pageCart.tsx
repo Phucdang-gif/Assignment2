@@ -252,6 +252,16 @@ export default function CartPage() {
 
       const orderData = await orderResponse.json();
 
+      if (orderResponse.status === 401) {
+        useAuthStore.getState().logout();
+        isNavigatingRef.current = false;
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
+        alert('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại để thanh toán!');
+        router.push('/login?redirect=/cart');
+        return;
+      }
+
       if (!orderResponse.ok) {
         throw new Error(
           Array.isArray(orderData.message)
