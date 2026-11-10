@@ -1,0 +1,251 @@
+@startuml class-diagram
+!theme plain
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam roundcorner 6
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 11
+skinparam linetype ortho
+
+hide circle
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #1E40AF
+    ArrowColor #2563EB
+    HeaderBackgroundColor #EFF6FF
+    FontSize 11
+    AttributeFontSize 10
+}
+
+skinparam enum {
+    BackgroundColor #FEFCE8
+    BorderColor #B45309
+    ArrowColor #B45309
+    HeaderBackgroundColor #FEF08A
+    FontSize 10
+    AttributeFontSize 9
+}
+
+title SƠ ĐỒ LỚP MIỀN NGHIỆP VỤ HỆ THỐNG BREWLITE (DOMAIN CLASS DIAGRAM)\nMã định danh: Class-01
+
+' ==========================================================
+' 1. CÁC THỰC THỂ CỐT LÕI (CORE DOMAIN ENTITIES)
+' ==========================================================
+
+class User {
+    + id: BigInt
+    + fullName: String
+    + email: String
+    + phone: String
+    + passwordHash: String
+    + loyaltyPoints: Int = 0
+    + role: user_role = customer
+    + createdAt: DateTime
+    + updatedAt: DateTime
+    --
+    + verifyPassword(plain: String): Boolean
+    + addLoyaltyPoints(pts: Int): Void
+    + deductLoyaltyPoints(pts: Int): Boolean
+}
+
+class Category {
+    + id: Int
+    + name: String
+    + createdAt: DateTime
+    + updatedAt: DateTime
+    --
+    + getActiveProducts(): List<Product>
+}
+
+class Product {
+    + id: BigInt
+    + categoryId: Int
+    + name: String
+    + price: Decimal(12,2)
+    + imageUrl: String
+    + description: String
+    + stock: Int = 0
+    + version: Int 
+    + status: ProductStatus 
+    + createdAt: DateTime
+    + updatedAt: DateTime
+    --
+    + isAvailable(): Boolean
+    + checkStock(qty: Int): Boolean
+    + decrementStock(qty: Int, expectedVer: Int): Boolean
+    + incrementStock(qty: Int): Void
+}
+
+class Topping {
+    + id: Int
+    + name: String
+    + price: Int
+    + isAvailable: Boolean 
+    + createdAt: DateTime
+    --
+    + toggleAvailability(available: Boolean): Void
+}
+
+class Order {
+    + id: BigInt
+    + userId: BigInt
+    + promotionId: BigInt 
+    + status: order_status 
+    + subtotal: Decimal(12,2)
+    + discountAmount: Decimal(12,2) = 0
+    + total: Decimal(12,2)
+    + createdAt: DateTime
+    + updatedAt: DateTime
+    --
+    + calculateTotal(): Decimal
+    + applyPromotion(promo: Promotion): Void
+    + transitionTo(newStatus: order_status): Boolean
+    + cancelAndRollback(): Void
+}
+
+class OrderItem {
+    + id: BigInt
+    + orderId: BigInt
+    + productId: BigInt
+    + size: product_size = M
+    + qty: Int >= 1
+    + unitPrice: Decimal(12,2)
+    + lineTotal: Decimal(12,2)
+    --
+    + calculateLineTotal(): Decimal
+}
+
+class OrderItemTopping {
+    + orderItemId: BigInt
+    + toppingId: Int
+    + priceAtTime: Int
+}
+
+class Payment {
+    + id: BigInt
+    + orderId: BigInt
+    + idempotencyKey: String
+    + amount: Decimal(12,2)
+    + method: payment_method
+    + status: payment_status 
+    + transactionRef: String
+    + createdAt: DateTime
+    --
+    + processPayment(): Boolean
+    + isIdempotentDuplicate(key: String): Boolean
+}
+
+class Promotion {
+    + id: BigInt
+    + code: String
+    + description: String
+    + discountType: discount_type
+    + discountValue: Decimal(12,2)
+    + minOrderValue: Decimal(12,2) = 0
+    + startDate: DateTime
+    + endDate: DateTime
+    + isActive: Boolean 
+    --
+    + isValid(now: DateTime, orderVal: Decimal): Boolean
+    + computeDiscount(subtotal: Decimal): Decimal
+}
+
+class LoyaltyTransaction {
+    + id: BigInt
+    + userId: BigInt
+    + orderId: BigInt
+    + points: Int
+    + type: loyalty_type
+    + balanceAfter: Int
+    + reason: String
+    + createdAt: DateTime
+    --
+    + recordTransaction(): Void
+}
+
+' ==========================================================
+' 2. CÁC KIỂU ENUMERATION (MÁY TRẠNG THÁI & HẰNG SỐ NGHIỆP VỤ)
+' ==========================================================
+
+enum "<<enumeration>>\nuser_role" as user_role {
+    customer
+    barista
+    admin
+}
+
+enum "<<enumeration>>\norder_status" as order_status {
+    PENDING
+    PAID
+    PREPARING
+    READY
+    COMPLETED
+    PAYMENT_FAILED
+    CANCELLED
+}
+
+enum "<<enumeration>>\npayment_method" as payment_method {
+    WALLET
+    CARD
+}
+
+enum "<<enumeration>>\npayment_status" as payment_status {
+    SUCCESS
+    FAILED
+}
+
+enum "<<enumeration>>\nproduct_size" as product_size {
+    S
+    M
+    L
+}
+
+enum "<<enumeration>>\nProductStatus" as ProductStatus {
+    active
+    inactive
+}
+
+enum "<<enumeration>>\ndiscount_type" as discount_type {
+    PERCENTAGE
+    FIXED_AMOUNT
+    MEMBERSHIP_TIER
+}
+
+enum "<<enumeration>>\nloyalty_type" as loyalty_type {
+    EARN
+    REDEEM
+    ADJUST
+}
+
+' ==========================================================
+' 3. QUAN HỆ CẤU TRÚC GIỮA CÁC THỰC THỂ (ASSOCIATION & COMPOSITION)
+' ==========================================================
+
+Category "1" --> "0..*" Product
+OrderItem "0..*" --> "1" Product
+
+User "1" --> "0..*" Order
+User "1" --> "0..*" LoyaltyTransaction
+
+Order "1" *-- "1..*" OrderItem
+OrderItem "1" *-- "0..*" OrderItemTopping
+Topping "1" --> "0..*" OrderItemTopping
+
+Order "1" --> "0..*" Payment
+Promotion "0..1" --> "0..*" Order
+Order "0..1" --> "0..1" LoyaltyTransaction
+
+' ==========================================================
+' 4. MỐI QUAN HỆ SỬ DỤNG ENUM (DEPENDENCY ARROWS)
+' ==========================================================
+
+User ..> user_role : uses
+Product ..> ProductStatus : status
+Order ..> order_status : state
+OrderItem ..> product_size : size
+Payment ..> payment_method : method
+Payment ..> payment_status : status
+Promotion ..> discount_type : type
+LoyaltyTransaction ..> loyalty_type : type
+
+@enduml
