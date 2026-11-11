@@ -1,0 +1,353 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\geometry{top=2cm, bottom=2cm, left=2.5cm, right=2cm}
+
+\usepackage{booktabs}
+\usepackage{xltabular}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{amsmath,amssymb}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup[table]{position=top,skip=6pt}
+\captionsetup[figure]{position=bottom,skip=6pt}
+
+% Thiết lập màu sắc chuyên nghiệp
+\definecolor{brandblue}{RGB}{37, 99, 235}
+\definecolor{darkslate}{RGB}{30, 41, 59}
+\definecolor{tableheader}{RGB}{239, 246, 255}
+\definecolor{lightgray}{RGB}{248, 250, 252}
+\definecolor{tagmust}{RGB}{220, 38, 38}
+\definecolor{tagshould}{RGB}{217, 119, 6}
+
+% Cấu hình Header & Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small \textcolor{darkslate}{\textbf{BrewLite} -- Đặc Tả Yêu Cầu Phần Mềm (SRS)}}
+\fancyhead[R]{\small \textcolor{darkslate}{Task 1.2}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+% Cấu hình liên kết
+\hypersetup{
+    colorlinks=true,
+    linkcolor=brandblue,
+    urlcolor=brandblue,
+    citecolor=brandblue
+}
+
+\begin{document}
+
+% Tiêu đề tài liệu
+\begin{center}
+    {\LARGE \textbf{\textcolor{brandblue}{ĐẶC TẢ YÊU CẦU PHẦN MỀM RÚT GỌN}}}\\[0.3cm]
+    {\large \textbf{(Software Requirements Specification -- SRS)}}\\[0.4cm]
+    \begin{tcolorbox}[colback=lightgray,colframe=brandblue,arc=3mm,width=0.95\textwidth]
+        \small
+        \textbf{Dự án:} Hệ thống Đặt đồ uống trực tuyến BrewLite\\
+        \textbf{Học phần:} Công nghệ Phần mềm (Software Engineering) -- Assignment 2\\
+        \textbf{Mã tài liệu:} SRS-VER-1.0 \hfill \textbf{Ngày cập nhật:} 20/10/2026\\
+        \textbf{Trạng thái:} Đã phê duyệt (Baseline Task 1.2)
+    \end{tcolorbox}
+\end{center}
+
+\vspace{0.2cm}
+
+\section{Giới thiệu tổng quan (Introduction)}
+Tài liệu này xác định danh mục \textbf{Yêu cầu chức năng (Functional Requirements -- FR)} và \textbf{Yêu cầu phi chức năng (Non-Functional Requirements -- NFR)} cho hệ thống đặt đồ uống trực tuyến BrewLite. Mọi yêu cầu được phân loại mức độ ưu tiên theo mô hình \textbf{MoSCoW} (\textit{Must have, Should have, Could have, Won't have}), đi kèm các \textbf{Tiêu chí chấp nhận (Acceptance Criteria)} đo lường và kiểm chứng được, làm cơ sở truy vết thiết kế kiến trúc, hiện thực mã nguồn và xây dựng kịch bản kiểm thử tự động.
+
+\section{Sơ đồ Use-case tổng quát hệ thống (Overall Use Case Diagram)}
+
+\subsection{Sơ đồ Use-case tổng quát (UML Use Case Diagram)}
+Sơ đồ mô hình hóa toàn bộ tương tác giữa 4 nhóm Actor với các phân hệ nghiệp vụ của hệ thống BrewLite.
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+    \item \textbf{Tệp mã nguồn PlantUML:} \href{run:../diagrams/usecase-general.puml}{\texttt{docs/diagrams/usecase-general.puml}}
+    \item \textbf{Tệp đồ họa vector SVG:} \href{run:../diagrams/usecase-general.svg}{\texttt{docs/diagrams/usecase-general.svg}}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\begin{minipage}{0.95\textwidth}
+        \centering
+        \vspace{0.3cm}
+        \textit{(Xem sơ đồ đồ họa vector trực quan tại tệp: \texttt{docs/diagrams/usecase-general.svg})}\\[0.2cm]
+        \textbf{Các phân hệ chính trong sơ đồ:}
+        \begin{enumerate}[itemsep=1pt]
+            \item \textbf{Phân hệ Khách hàng:} UC-01 đến UC-09 (Xem menu, tùy biến món, giỏ hàng, đặt đơn, thanh toán, theo dõi, lịch sử).
+            \item \textbf{Phân hệ Xác thực:} UC-10, UC-11 (Đăng ký tài khoản, Đăng nhập cấp JWT).
+            \item \textbf{Phân hệ Pha chế (Barista):} UC-12, UC-13 (Tiếp nhận đơn PAID, Cập nhật tiến độ pha chế).
+            \item \textbf{Phân hệ Quản trị:} UC-14, UC-15 (Bật/tắt món \& topping, Báo cáo doanh thu).
+        \end{enumerate}
+        \vspace{0.2cm}
+    \end{minipage}}
+    \caption{Sơ đồ Use-case tổng quát hệ thống BrewLite}
+    \label{fig:usecase-general}
+\end{figure}
+
+\subsection{Bảng phân tích các Actor (Tác nhân)}
+
+\vspace{0.2cm}
+\noindent
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{xltabular}{\textwidth}{|c|>{\raggedright\arraybackslash}p{3cm}|c|>{\raggedright\arraybackslash}X|}
+\caption{Bảng phân tích vai trò 4 Actor trong hệ thống} \label{tab:actors} \\
+\hline
+\rowcolor{tableheader}
+\textbf{STT} & \textbf{Actor (Tác nhân)} & \textbf{Phân loại} & \textbf{Mô tả vai trò trong hệ thống} \\
+\hline
+\endfirsthead
+
+\hline
+\rowcolor{tableheader}
+\textbf{STT} & \textbf{Actor (Tác nhân)} & \textbf{Phân loại} & \textbf{Mô tả vai trò trong hệ thống (tiếp theo)} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\textbf{1} & \textbf{Khách hàng}\newline\textit{(Customer)} & Primary Actor & Người dùng sử dụng thiết bị di động (PWA/Web) để duyệt menu, tùy biến size/topping, quản lý giỏ hàng, đặt đơn (không cần login) và đăng nhập khi thực hiện thanh toán trực tuyến. \\
+\hline
+\textbf{2} & \textbf{Nhân viên quầy}\newline\textit{(Barista)} & Primary Actor & Người dùng nội bộ tại quán chịu trách nhiệm tiếp nhận các đơn hàng đã thanh toán (\texttt{PAID}), thực hiện pha chế và cập nhật trạng thái đơn (\texttt{PREPARING} $\rightarrow$ \texttt{READY} $\rightarrow$ \texttt{COMPLETED}). \\
+\hline
+\textbf{3} & \textbf{Quản lý cửa hàng}\newline\textit{(Store Manager)} & Secondary / Admin & Kiểm soát trạng thái món và topping (bật/tắt khi hết nguyên liệu), giám sát số lượng tồn kho và xem báo cáo lịch sử đơn hàng. \\
+\hline
+\textbf{4} & \textbf{Cổng thanh toán}\newline\textit{(Payment Service)} & External Actor & Dịch vụ thanh toán mô phỏng xử lý trừ tiền qua Ví điện tử (\texttt{WALLET}) hoặc Thẻ (\texttt{CARD}), có cơ chế \texttt{idempotencyKey} chống thanh toán trùng lặp. \\
+\end{xltabular}
+
+\subsection{Bảng ánh xạ Use-case với Yêu cầu chức năng (Traceability)}
+
+\vspace{0.2cm}
+\noindent
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{xltabular}{\textwidth}{|c|>{\raggedright\arraybackslash}p{3.2cm}|c|c|>{\raggedright\arraybackslash}X|}
+\caption{Bảng ánh xạ 15 Use-case với Yêu cầu chức năng} \label{tab:usecases} \\
+\hline
+\rowcolor{tableheader}
+\textbf{Mã UC} & \textbf{Tên Use-case} & \textbf{Actor chính} & \textbf{Mã FR} & \textbf{Quan hệ liên kết} \\
+\hline
+\endfirsthead
+
+\hline
+\rowcolor{tableheader}
+\textbf{Mã UC} & \textbf{Tên Use-case} & \textbf{Actor chính} & \textbf{Mã FR} & \textbf{Quan hệ liên kết (tiếp theo)} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\textbf{UC-01} & Xem menu đồ uống & Customer & \textbf{FR-01, FR-12} & Use-case cơ sở hiển thị danh mục món và gợi ý. \\
+\hline
+\textbf{UC-02} & Tìm kiếm \& lọc đồ uống & Customer & \textbf{FR-01} & \texttt{<<extend>>} UC-01 (khi cần tìm kiếm nhanh). \\
+\hline
+\textbf{UC-03} & Xem chi tiết sản phẩm & Customer & \textbf{FR-02} & Use-case cơ sở xem mô tả, ảnh, giá gốc. \\
+\hline
+\textbf{UC-04} & Tùy biến Size \& Topping & Customer & \textbf{FR-02} & \texttt{<<extend>>} UC-03 (chọn size, thêm topping, tính giá động). \\
+\hline
+\textbf{UC-05} & Quản lý giỏ hàng & Customer & \textbf{FR-03} & Thêm món, đổi số lượng, xóa món (\textbf{Không cần login}). \\
+\hline
+\textbf{UC-06} & Đặt hàng mới & Customer & \textbf{FR-05, FR-10, FR-11} & \texttt{<<include>>} UC-05; Tạo đơn \texttt{PENDING}, áp dụng ưu đãi TV. \\
+\hline
+\textbf{UC-07} & \textbf{Thanh toán trực tuyến} & Customer, Payment & \textbf{FR-06, FR-13} & \texttt{<<include>>} UC-06; \texttt{<<include>>} UC-11 (\textbf{Bắt buộc Login}); gọi Payment Service đổi \texttt{PAID}. \\
+\hline
+\textbf{UC-08} & Theo dõi trạng thái đơn & Customer & \textbf{FR-08} & Hiển thị tiến trình: \texttt{PENDING} $\rightarrow$ \texttt{PAID} $\rightarrow$ \dots $\rightarrow$ \texttt{COMPLETED}. \\
+\hline
+\textbf{UC-09} & Xem lịch sử \& tích điểm & Customer & \textbf{FR-07, FR-11} & \texttt{<<include>>} UC-11; xem lịch sử và điểm \texttt{loyaltyPoints}. \\
+\hline
+\textbf{UC-10} & Đăng ký tài khoản & Customer & \textbf{FR-04} & Đăng ký tài khoản mới với mật khẩu mã hóa \texttt{bcrypt}. \\
+\hline
+\textbf{UC-11} & Đăng nhập cấp JWT & Customer, Barista & \textbf{FR-04} & Cấp phát JWT Bearer Token chứa \texttt{userId} và \texttt{role}. \\
+\hline
+\textbf{UC-12} & Tiếp nhận đơn đã thanh toán & Barista & \textbf{FR-08} & Quầy pha chế nhận danh sách đơn hàng có trạng thái \texttt{PAID}. \\
+\hline
+\textbf{UC-13} & Cập nhật tiến độ pha chế & Barista & \textbf{FR-08} & \texttt{<<include>>} UC-12; \texttt{<<include>>} UC-11 (\textbf{Bắt buộc Login}). \\
+\hline
+\textbf{UC-14} & Bật/tắt món \& topping & Store Manager & \textbf{FR-09} & Cập nhật cờ \texttt{isAvailable} khi quán tạm hết nguyên liệu. \\
+\hline
+\textbf{UC-15} & Báo cáo doanh thu \& đơn & Store Manager & Khác & Xem tổng kết số lượng đơn hàng và doanh thu theo thời gian. \\
+\end{xltabular}
+
+\section{Danh sách Yêu cầu Chức năng (Functional Requirements -- FR)}
+
+Mức độ ưu tiên phân loại theo quy chuẩn \textbf{MoSCoW}:
+\begin{itemize}[itemsep=1pt]
+    \item \textbf{Must have (M):} Bắt buộc phải có để hệ thống hoạt động trong phạm vi MVP (Sprint 1 và Sprint 2).
+    \item \textbf{Should have (S):} Cần thiết để trải nghiệm người dùng hoàn chỉnh.
+    \item \textbf{Could have (C):} Tính năng bổ trợ nếu có thêm thời gian (Gợi ý món hot).
+    \item \textbf{Won't have (W):} Tạm hoãn, không triển khai trong phạm vi MVP (Thanh toán tiền mặt).
+\end{itemize}
+
+\vspace{0.2cm}
+\noindent
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{xltabular}{\textwidth}{|c|>{\raggedright\arraybackslash}p{1.8cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{3cm}|c|>{\raggedright\arraybackslash}X|}
+\caption{Danh sách 13 Yêu cầu chức năng đầy đủ theo MoSCoW} \label{tab:fr} \\
+\hline
+\rowcolor{tableheader}
+\textbf{Mã YC} & \textbf{Nhóm} & \textbf{Tên yêu cầu} & \textbf{Mô tả chi tiết} & \textbf{MoSCoW} & \textbf{Tiêu chí chấp nhận (Acceptance Criteria)} \\
+\hline
+\endfirsthead
+
+\hline
+\rowcolor{tableheader}
+\textbf{Mã YC} & \textbf{Nhóm} & \textbf{Tên yêu cầu} & \textbf{Mô tả chi tiết} & \textbf{MoSCoW} & \textbf{Tiêu chí chấp nhận (tiếp theo)} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\textbf{FR-01} & \textbf{Menu} & Xem danh sách đồ uống & Khách hàng xem menu với ảnh, tên món, giá cơ sở, trạng thái còn/hết hàng. & \textbf{Must} & 
+\textbf{AC-01.1:} Trả về danh sách món active qua \texttt{GET /products}.\newline
+\textbf{AC-01.2:} Hiển thị rõ nhãn "Hết hàng" nếu \texttt{stock = 0} hoặc \texttt{inactive}. \\
+\hline
+\textbf{FR-02} & \textbf{Chi tiết món} & Cấu hình Size \& Topping & Khách hàng xem chi tiết, chọn Size (S/M/L) và danh sách Topping đi kèm. & \textbf{Must} & 
+\textbf{AC-02.1:} Lấy chi tiết món qua \texttt{GET /products/:id}.\newline
+\textbf{AC-02.2:} Lấy danh sách topping qua \texttt{GET /api/toppings}.\newline
+\textbf{AC-02.3:} Đổi size (S: gốc, M: $+5.000$đ, L: $+10.000$đ) hoặc thêm topping thì tổng giá tạm tính cập nhật tức thì. \\
+\hline
+\textbf{FR-03} & \textbf{Giỏ hàng} & Quản lý giỏ hàng cục bộ & Thêm món vào giỏ, tăng/giảm số lượng, xóa món và xem tổng tiền. & \textbf{Must} & 
+\textbf{AC-03.1:} Giỏ lưu đúng: \texttt{productId, size, qty, toppings[]}.\newline
+\textbf{AC-03.2:} Chỉnh sửa số lượng ($1 \le qty \le 99$) hoặc xóa món.\newline
+\textbf{AC-03.3:} Dữ liệu giỏ hàng được duy trì sau khi tải lại trang (reload).\newline
+\textbf{AC-03.4:} Tổng tiền tính đúng: $\sum ((\text{Giá size} + \sum \text{Topping}) \times \text{Số lượng})$. \\
+\hline
+\textbf{FR-04} & \textbf{Xác thực} & Đăng ký \& Đăng nhập & Đăng ký Email/Mật khẩu và đăng nhập nhận JWT Token xác thực. & \textbf{Must} & 
+\textbf{AC-04.1:} Mật khẩu mã hóa một chiều bằng \texttt{bcrypt}.\newline
+\textbf{AC-04.2:} Từ chối nếu Email đã tồn tại trong hệ thống.\newline
+\textbf{AC-04.3:} Đăng nhập thành công trả về JWT Token chứa \texttt{userId} và \texttt{role} (\texttt{customer} hoặc \texttt{barista}). \\
+\hline
+\textbf{FR-05} & \textbf{Đặt đơn} & Tạo đơn hàng mới & Gửi giỏ hàng để tạo đơn hàng mới, kiểm tra tồn kho, chuyển trạng thái sang \texttt{PENDING}. & \textbf{Must} & 
+\textbf{AC-05.1:} API \texttt{POST /orders} yêu cầu JWT Token.\newline
+\textbf{AC-05.2:} Tạo Order, OrderItem, OrderItemTopping và trừ kho phải nằm trong một Database Transaction (Atomic).\newline
+\textbf{AC-05.3:} Khóa lạc quan qua cột \texttt{version}. Báo lỗi 400 nếu không đủ hàng tồn kho. \\
+\hline
+\textbf{FR-06} & \textbf{Thanh toán} & Thanh toán đơn hàng & Khách hàng thanh toán đơn \texttt{PENDING} qua Ví điện tử hoặc Thẻ mô phỏng. & \textbf{Must} & 
+\textbf{AC-06.1:} API \texttt{POST /payments} nhận \texttt{orderId}, \texttt{method}, \texttt{amount}, \texttt{idempotencyKey}.\newline
+\textbf{AC-06.2:} Trùng \texttt{idempotencyKey} trả về kết quả cũ, không trừ tiền hay tạo giao dịch lần 2.\newline
+\textbf{AC-06.3:} Thành công chuyển đơn sang \texttt{PAID}. Thất bại chuyển sang \texttt{PAYMENT\_FAILED}. \\
+\hline
+\textbf{FR-07} & \textbf{Lịch sử} & Xem đơn \& Tích điểm & Khách xem danh sách đơn đã mua và điểm tích lũy thành viên. & \textbf{Must} & 
+\textbf{AC-07.1:} \texttt{GET /orders} lọc theo \texttt{userId} đang đăng nhập.\newline
+\textbf{AC-07.2:} Đơn \texttt{PAID} tự động cộng điểm: $10.000\text{ VNĐ} = 1\text{ điểm}$ vào \texttt{loyaltyPoints}. \\
+\hline
+\textbf{FR-08} & \textbf{Tiến độ đơn} & Cập nhật pha chế & Barista xem đơn \texttt{PAID} và cập nhật lần lượt sang \texttt{PREPARING}, \texttt{READY}, \texttt{COMPLETED}. & \textbf{Must} & 
+\textbf{AC-08.1:} API \texttt{PATCH /orders/:id/status} yêu cầu \texttt{role = barista}.\newline
+\textbf{AC-08.2:} Chuyển trạng thái theo đúng máy trạng thái FSM. Không cho phép nhảy cóc trạng thái bất hợp lệ. \\
+\hline
+\textbf{FR-09} & \textbf{Quản lý món} & Bật/tắt món \& topping & Bật/tắt khả dụng của sản phẩm hoặc topping khi quán tạm hết nguyên liệu. & \textbf{Should} & 
+\textbf{AC-09.1:} Cập nhật cờ \texttt{isAvailable} qua \texttt{PATCH /api/toppings/:id}.\newline
+\textbf{AC-09.2:} Món/topping tắt khả dụng lập tức ẩn khỏi danh sách lựa chọn của khách hàng. \\
+\hline
+\textbf{FR-10} & \textbf{Dọn dẹp đơn} & Hủy đơn quá hạn tự động & Tự động hủy đơn hàng \texttt{PENDING} quá hạn và hoàn trả tồn kho. & \textbf{Must} & 
+\textbf{AC-10.1:} Tự động hủy các đơn \texttt{PENDING} quá thời hạn (15 phút) sang \texttt{CANCELLED}.\newline
+\textbf{AC-10.2:} Hoàn trả chính xác số lượng tồn kho (\textit{Stock Rollback}) cho sản phẩm tương ứng. \\
+\hline
+\textbf{FR-11} & \textbf{Ưu đãi TV} & Giảm giá theo hạng TV & Áp dụng chiết khấu dựa trên hạng thành viên tích lũy của khách hàng. & \textbf{Should} & 
+\textbf{AC-11.1:} Tính toán hạng Bạc (5\%), Vàng (10\%), Kim Cương (15\%) dựa trên \texttt{loyaltyPoints}.\newline
+\textbf{AC-11.2:} Tự động trừ tiền giảm giá vào tổng đơn hàng khi đặt hàng. \\
+\hline
+\textbf{FR-12} & \textbf{Gợi ý món} & Gợi ý đồ uống phổ biến & Hiển thị danh sách top đồ uống được đặt nhiều nhất tại trang chủ. & \textbf{Could} & 
+\textbf{AC-12.1:} Hiển thị mục "Món bán chạy" (Top trending) tại màn hình Menu.\newline
+\textbf{AC-12.2:} Cho phép người dùng chọn nhanh món từ danh mục gợi ý. \\
+\hline
+\textbf{FR-13} & \textbf{Tiền mặt} & Thanh toán tiền mặt tại quầy & Thanh toán bằng tiền mặt trực tiếp tại quầy thu ngân. & \textbf{Won't} & 
+\textbf{AC-13.1:} Hệ thống hiển thị thông báo rõ ràng chỉ chấp nhận phương thức thanh toán trực tuyến mô phỏng trong phiên bản hiện tại. \\
+\end{xltabular}
+
+\section{Danh sách Yêu cầu Phi Chức năng (Non-Functional Requirements -- NFR)}
+
+\vspace{0.2cm}
+\noindent
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{xltabular}{\textwidth}{|c|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}p{4cm}|c|>{\raggedright\arraybackslash}X|}
+\caption{Danh sách 5 Yêu cầu phi chức năng cốt lõi (Non-Functional Requirements)} \label{tab:nfr} \\
+\hline
+\rowcolor{tableheader}
+\textbf{Mã YC} & \textbf{Phân loại} & \textbf{Tên yêu cầu} & \textbf{MoSCoW} & \textbf{Tiêu chí chấp nhận (Acceptance Criteria)} \\
+\hline
+\endfirsthead
+
+\hline
+\rowcolor{tableheader}
+\textbf{Mã YC} & \textbf{Phân loại} & \textbf{Tên yêu cầu} & \textbf{MoSCoW} & \textbf{Tiêu chí chấp nhận (tiếp theo)} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\textbf{NFR-01} & \textbf{Hiệu năng}\newline(\textit{Performance}) & Thời gian đáp ứng hệ thống & \textbf{Must} & 
+\textbf{AC-NFR-01.1:} Thời gian phản hồi 95\% các API truy vấn (\texttt{GET /products}) $< 300\text{ms}$ ở tải bình thường.\newline
+\textbf{AC-NFR-01.2:} Thời gian FCP trang chủ mobile $< 2.0\text{s}$. \\
+\hline
+\textbf{NFR-02} & \textbf{Bảo mật}\newline(\textit{Security}) & An toàn dữ liệu \& Xác thực & \textbf{Must} & 
+\textbf{AC-NFR-02.1:} Mật khẩu băm bằng \texttt{bcrypt} (cost $\ge 10$), không lưu plain-text.\newline
+\textbf{AC-NFR-02.2:} API bảo vệ bằng JWT Token và phân quyền RBAC.\newline
+\textbf{AC-NFR-02.3:} Parameterized Queries ngăn chặn SQL Injection. \\
+\hline
+\textbf{NFR-03} & \textbf{Toàn vẹn}\newline(\textit{Data Integrity}) & Xử lý tranh chấp kho \& Chống trùng giao dịch & \textbf{Must} & 
+\textbf{AC-NFR-03.1:} Thao tác tạo đơn và trừ kho tuân thủ chuẩn ACID qua \texttt{\$transaction} của Prisma.\newline
+\textbf{AC-NFR-03.2:} Khóa lạc quan qua \texttt{version} chống bán âm kho.\newline
+\textbf{AC-NFR-03.3:} Ràng buộc \texttt{idempotencyKey} là duy nhất. \\
+\hline
+\textbf{NFR-04} & \textbf{Khả dụng}\newline(\textit{Usability}) & Giao diện Mobile-first \& Trạng thái & \textbf{Must} & 
+\textbf{AC-NFR-04.1:} Bố cục Responsive tối ưu cho màn hình $375\text{px} - 430\text{px}$.\newline
+\textbf{AC-NFR-04.2:} Đủ 3 trạng thái: Loading (Skeleton), Empty data và Error Alert. \\
+\hline
+\textbf{NFR-05} & \textbf{Triển khai}\newline(\textit{Deployability}) & Đóng gói Docker \& CI/CD tự động & \textbf{Must} & 
+\textbf{AC-NFR-05.1:} Khởi động đầy đủ 3 services bằng \texttt{docker compose up}.\newline
+\textbf{AC-NFR-05.2:} GitHub Actions CI chạy 4 bước: Install $\rightarrow$ Lint $\rightarrow$ Test $\rightarrow$ Build và chặn merge nếu lỗi.\newline
+\textbf{AC-NFR-05.3:} Cung cấp endpoint \texttt{GET /health} trả về 200 OK. \\
+\end{xltabular}
+
+\section{Máy trạng thái đơn hàng (Order State Machine)}
+Vòng đời đơn hàng tuân thủ nghiêm ngặt máy trạng thái hữu hạn (\textit{Finite State Machine -- FSM}):
+
+\begin{center}
+\small
+\fbox{\begin{minipage}{0.9\textwidth}
+\centering
+\vspace{0.2cm}
+\textbf{Khách đặt đơn} $\xrightarrow{\text{POST /orders}}$ \texttt{PENDING} $\xrightarrow[\text{POST /payments}]{\text{Thanh toán thành công}}$ \texttt{PAID} $\xrightarrow{\text{Nhận pha chế}}$ \texttt{PREPARING} $\xrightarrow{\text{Pha chế xong}}$ \texttt{READY} $\xrightarrow{\text{Giao khách}}$ \texttt{COMPLETED}\\[0.2cm]
+\textit{Các nhánh ngoại lệ:} \texttt{PENDING} $\xrightarrow{\text{Lỗi / Hết giờ}}$ \texttt{PAYMENT\_FAILED} \quad $\vert$ \quad \texttt{PENDING} $\xrightarrow{\text{Khách hủy}}$ \texttt{CANCELLED}
+\vspace{0.2cm}
+\end{minipage}}
+\end{center}
+
+\begin{itemize}[leftmargin=*,itemsep=1.5pt]
+    \item \textbf{PENDING:} Đơn vừa tạo, chờ thanh toán (tồn kho đã được tạm giữ an toàn trong transaction).
+    \item \textbf{PAID:} Đã thanh toán tiền thành công, hệ thống tự động cộng điểm \texttt{loyaltyPoints} cho khách.
+    \item \textbf{PREPARING:} Nhân viên Barista tiếp nhận đơn và thực hiện pha chế theo công thức.
+    \item \textbf{READY:} Thức uống đã pha xong, sẵn sàng ở quầy chờ khách đến lấy.
+    \item \textbf{COMPLETED:} Khách đã nhận đồ uống tại quầy, quy trình đặt hàng hoàn tất.
+    \item \textbf{PAYMENT\_FAILED / CANCELLED:} Đơn hàng bị hủy bỏ; hệ thống tự động hoàn trả lại số lượng tồn kho (\textit{Rollback stock}).
+\end{itemize}
+
+\end{document}

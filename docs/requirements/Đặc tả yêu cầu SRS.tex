@@ -1,0 +1,184 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T5]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[vietnamese]{babel}
+  \usepackage{textcomp}
+\else
+  \usepackage{fontspec}
+  \usepackage[vietnamese]{babel}
+\fi
+\usepackage{lmodern}
+
+% Use upquote if available
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{%
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath}
+}{}
+
+\usepackage{xcolor}
+\usepackage[margin=2cm]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+\setlength{\emergencystretch}{3em}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{}
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Đặc tả Yêu cầu SRS - BrewLite},
+  pdflang={vi-VN},
+  hidelinks,
+  pdfcreator={LaTeX}}
+
+\author{Nhóm BrewLite}
+\date{}
+
+\begin{document}
+
+\section*{ĐẶC TẢ YÊU CẦU PHẦN MỀM RÚT GỌN (SRS) -- BREWLITE}
+
+\subsection*{1. Yêu cầu chức năng (Functional Requirements - FR)}
+\label{sec:functional-requirements}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{0.12\textwidth}
+  >{\raggedright\arraybackslash}p{0.24\textwidth}
+  >{\raggedright\arraybackslash}p{0.48\textwidth}
+  >{\raggedright\arraybackslash}p{0.10\textwidth}@{}}
+\toprule
+\textbf{Mã ID} & \textbf{Tên Yêu Cầu} & \textbf{Mô tả chi tiết} & \textbf{MoSCoW} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+FR-01 & Xem danh mục đồ uống & Hiển thị danh sách sản phẩm, danh mục, giá, tồn kho (stock) và trạng thái (active/inactive). & Must \\
+FR-02 & Tùy chỉnh món & Cho phép chọn size (S/M/L), số lượng (qty $\ge$ 1) và thêm các loại topping đi kèm. & Must \\
+FR-03 & Quản lý giỏ hàng & Cho phép thêm sản phẩm vào giỏ, điều chỉnh số lượng, xóa món, lưu trạng thái giỏ hàng khi reload và tính tổng tiền tạm tính. & Must \\
+FR-04 & Đăng ký tài khoản & Tạo tài khoản với các ràng buộc chuẩn hóa: email (chỉ nhận các domain phổ biến/edu), số điện thoại chuẩn VN và họ tên định dạng chữ. & Must \\
+FR-05 & Đăng nhập \& Xác thực & Đăng nhập bằng email, mật khẩu. Hệ thống phân quyền dựa trên user\_role (customer, barista) và cấp Bearer JWT token. & Must \\
+FR-06 & Tạo đơn hàng (Checkout) & Khởi tạo đơn hàng từ giỏ với trạng thái PENDING. Hệ thống tự động kiểm tra số lượng tồn kho (stock) của sản phẩm trước khi tạo. & Must \\
+FR-07 & Dọn dẹp đơn tự động & Tự động hủy (CANCELLED) các đơn hàng PENDING bị quá hạn hoặc các đơn PENDING cũ của người dùng, đồng thời hoàn trả lại tồn kho. & Must \\
+FR-08 & Thanh toán mô phỏng & Thanh toán qua dịch vụ Thẻ/Ví điện tử mô phỏng, xác thực qua Webhook/Callback với cơ chế Idempotency chống trùng và chuyển đơn sang PAID. & Must \\
+FR-09 & Lịch sử \& Chi tiết đơn & Khách hàng chỉ được xem đơn của mình. Nhân viên/Barista có quyền xem toàn bộ đơn hàng trong hệ thống. & Must \\
+FR-10 & Quản lý trạng thái đơn & Barista tiếp nhận đơn PAID và lần lượt cập nhật trạng thái hợp lệ: PREPARING $\rightarrow$ READY $\rightarrow$ COMPLETED. & Must \\
+FR-11 & Tích lũy điểm thưởng & Tự động cộng điểm loyaltyPoints (1 điểm / 10.000đ) vào tài khoản khách hàng khi thanh toán đơn thành công. & Should \\
+FR-12 & Giảm giá theo thành viên & Tự động tính toán và áp dụng giảm giá (5\%, 10\%, 15\%) tùy theo hạng (Bạc, Vàng, Kim Cương) dựa trên điểm tích lũy khi tạo đơn. & Should \\
+FR-13 & Gợi ý đồ uống phổ biến & Hiển thị danh mục món bán chạy (Top trending) tại trang chủ để người dùng dễ lựa chọn. & Could \\
+FR-14 & Thanh toán tiền mặt tại quầy & Không hỗ trợ thanh toán tiền mặt trực tiếp tại quầy trong phạm vi phiên bản thử nghiệm MVP. & Won't \\
+\end{longtable}
+
+\subsection*{2. Yêu cầu phi chức năng (Non-Functional Requirements - NFR)}
+\label{sec:non-functional-requirements}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{0.14\textwidth}
+  >{\raggedright\arraybackslash}p{0.22\textwidth}
+  >{\raggedright\arraybackslash}p{0.48\textwidth}
+  >{\raggedright\arraybackslash}p{0.10\textwidth}@{}}
+\toprule
+\textbf{Mã ID} & \textbf{Thuộc tính} & \textbf{Mô tả chi tiết (Dựa trên code Backend)} & \textbf{MoSCoW} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+NFR-01 & Toàn vẹn dữ liệu & Hệ thống phải sử dụng Transaction và Optimistic Locking (thông qua trường version của Product) để ngăn chặn lỗi quá tải tồn kho khi nhiều người cùng đặt một món. & Must \\
+NFR-02 & Hiệu năng & Thời gian phản hồi API (đặc biệt là GET /products) phải tối ưu ($<$ 500ms). Hệ thống xử lý mượt mà khi nhiều khách đặt cùng lúc thông qua cơ chế Optimistic Locking để không bị lỗi trừ âm tồn kho. & Must \\
+NFR-03 & Tính khả dụng & Frontend sử dụng Next.js thiết kế theo hướng mobile-first/PWA, có khả năng duy trì giỏ hàng khi tải lại trang. Trạng thái đơn hàng phải tuân thủ nghiêm ngặt luồng chuyển đổi một chiều. Có cơ chế retry tự động 3 lần ở backend nếu xảy ra xung đột khi tạo đơn. & Must \\
+NFR-04 & Bảo mật & Mật khẩu băm bằng bcrypt, bảo vệ API bằng JWT, phải validate chặt chẽ dữ liệu đầu vào (chống SQL Injection/XSS ngầm qua Regex và DTO validation pipe). & Must \\
+NFR-05 & Khả năng triển khai & Hệ thống (UI, API, DB) phải được đóng gói bằng Docker. Tích hợp pipeline CI/CD chạy tự động qua các bước (Lint $\rightarrow$ Test $\rightarrow$ Build $\rightarrow$ Deploy) và triển khai lên môi trường Production (Render/Railway). & Must \\
+\end{longtable}
+
+\subsection*{3. Tiêu chí chấp nhận (Acceptance Criteria)}
+\label{sec:acceptance-criteria}
+
+\subsubsection*{3.1. Tiêu chí chấp nhận yêu cầu chức năng (FR)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{0.14\textwidth}
+  >{\raggedright\arraybackslash}p{0.82\textwidth}@{}}
+\toprule
+\textbf{Mã ID} & \textbf{Tiêu Chí Chấp Nhận} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+FR-01 & Khi khách hàng truy cập menu, hệ thống hiển thị danh sách đồ uống cùng tên, giá, danh mục, tồn kho và trạng thái. Sản phẩm inactive không được phép đặt hàng. \\
+FR-02 & Khách hàng có thể chọn size S/M/L, số lượng từ 1 trở lên và topping. Tổng tiền được tính đúng theo lựa chọn. \\
+FR-03 & Giỏ hàng lưu trữ đầy đủ các sản phẩm đã chọn kèm tùy chọn; tự động tính tổng tiền; dữ liệu giỏ không bị mất khi làm mới (refresh) trình duyệt. \\
+FR-04 & Đăng ký thành công khi email, số điện thoại và họ tên hợp lệ, email chưa tồn tại. Hệ thống từ chối dữ liệu không hợp lệ. \\
+FR-05 & Người dùng đăng nhập thành công với email và mật khẩu chính xác. Hệ thống từ chối thông tin sai và phân quyền đúng theo vai trò customer hoặc barista. \\
+FR-06 & Khi đặt hàng hợp lệ và tồn kho đủ, hệ thống tạo đơn hàng với trạng thái PENDING. Nếu tồn kho không đủ, hệ thống từ chối tạo đơn. \\
+FR-07 & Đơn PENDING quá thời hạn hoặc thuộc trường hợp cần dọn dẹp phải chuyển sang CANCELLED và hoàn trả đúng số lượng tồn kho. \\
+FR-08 & Khi cổng thanh toán xác nhận giao dịch thành công qua Webhook/Callback hợp lệ, đơn hàng chuyển sang PAID. Giao dịch thất bại không được ghi nhận là đã thanh toán; request trùng không tạo đơn lặp. \\
+FR-09 & Khách hàng chỉ xem được đơn hàng thuộc tài khoản của mình. Barista có quyền xem danh sách đơn hàng theo quyền được cấp. \\
+FR-10 & Barista có thể cập nhật đơn theo trình tự PREPARING $\rightarrow$ READY $\rightarrow$ COMPLETED. Hệ thống từ chối chuyển trạng thái không hợp lệ. \\
+FR-11 & Khi đơn thanh toán thành công, hệ thống cộng điểm theo tỷ lệ 1 điểm/10.000 đồng. Không cộng điểm trùng cho cùng một đơn. \\
+FR-12 & Hệ thống áp dụng đúng mức giảm giá theo hạng thành viên và điểm tích lũy tương ứng khi tạo đơn hàng. \\
+FR-13 & Giao diện trang chủ hiển thị danh mục món bán chạy dựa trên số lượng đặt hàng thực tế. \\
+FR-14 & Hệ thống hiển thị thông báo rõ ràng chỉ chấp nhận phương thức thanh toán trực tuyến mô phỏng trong phiên bản hiện tại. \\
+\end{longtable}
+
+\subsubsection*{3.2. Tiêu chí chấp nhận yêu cầu phi chức năng (NFR)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{0.14\textwidth}
+  >{\raggedright\arraybackslash}p{0.82\textwidth}@{}}
+\toprule
+\textbf{Mã ID} & \textbf{Tiêu Chí Chấp Nhận} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+NFR-01 & Khi nhiều khách hàng đặt cùng một sản phẩm, tồn kho không bị trừ vượt số lượng thực tế; dữ liệu đơn hàng và tồn kho phải nhất quán khi giao dịch thất bại. \\
+NFR-02 & API GET /products có thời gian phản hồi dưới 500ms trong môi trường và điều kiện kiểm thử được quy định. \\
+NFR-03 & Giao diện hiển thị và sử dụng mượt mà trên thiết bị di động (mobile-first); giỏ hàng duy trì sau khi tải lại trang; backend tự thử lại tối đa 3 lần khi xảy ra xung đột Optimistic Lock. \\
+NFR-04 & Mật khẩu trong cơ sở dữ liệu không được lưu dưới dạng văn bản thuần; API được bảo vệ bằng JWT; dữ liệu đầu vào không hợp lệ phải bị từ chối bằng mã 400 Bad Request. \\
+NFR-05 & Frontend, Backend và Database có thể khởi chạy đồng thời qua \texttt{docker-compose}; pipeline CI/CD thực hiện thành công các bước Lint, Test, Build và Deploy. \\
+\end{longtable}
+
+\subsection*{4. Sơ đồ Use-case tổng quát hệ thống}
+\label{sec:overall-usecase}
+
+\begin{center}
+\IfFileExists{media/image1.png}{%
+  \includegraphics[width=0.9\textwidth]{media/image1.png}
+}{%
+  \IfFileExists{diagrams/usecase-general.png}{%
+    \includegraphics[width=0.9\textwidth]{diagrams/usecase-general.png}
+  }{%
+    \framebox[\textwidth]{\parbox{0.95\textwidth}{\centering
+      \vspace{0.4cm}
+      \textbf{Sơ đồ Use-case tổng quát hệ thống BrewLite}\\[0.2cm]
+      \textit{(Tệp mã nguồn PlantUML: \texttt{docs/diagrams/usecase-general.puml})}\\
+      \textit{(Tệp đồ họa vector SVG: \texttt{docs/diagrams/usecase-general.svg})}\\[0.2cm]
+      Mô hình hóa tương tác giữa 4 Actor: Customer, Barista, Store Manager và Payment Service với toàn bộ các ca sử dụng từ UC-01 đến UC-15.
+      \vspace{0.4cm}
+    }}
+  }%
+}
+\end{center}
+
+\end{document}
