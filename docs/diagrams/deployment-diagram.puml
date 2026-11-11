@@ -31,12 +31,12 @@ skinparam frame {
   BorderThickness 2
 }
 
-title Deployment diagram - BrewLite (môi trường production: Vercel + Render)\nChú thích: [N-xx] = mã node, [C-xx] = mã kết nối (bảng truy vết: docs/architecture/deployment-diagram.md)
+title Deployment diagram - BrewLite (môi trường production: Vercel + Render)\nChú thích: [N-xx] = mã node, [C-xx] = mã kết nối (bảng truy vết: docs/deployment.md)
 
 ' ====================== NGƯỜI DÙNG ======================
 node "[N-01] Thiết bị người dùng\n(điện thoại / máy tính)" <<device>> as USER {
   node "Trình duyệt / PWA" <<execution environment>> as BROWSER {
-    artifact "Next.js client bundle\n(frontend/app, store)\nlocalStorage: cart-storage,\nauth-storage (JWT)" as CLIENT
+    artifact "Next.js client bundle\n(apps/web/app, store)\nlocalStorage: cart-storage,\nauth-storage (JWT)" as CLIENT
   }
 }
 
@@ -46,7 +46,7 @@ frame "PRODUCTION (Internet, HTTPS)" as PROD #F0FFF4 {
   node "[N-02] Vercel" <<platform: frontend hosting>> as VERCEL {
     node "Vercel Edge Network (CDN)\nTLS tự động cho *.vercel.app" <<CDN>> as EDGE
     node "[N-03] Next.js runtime\nproject: brewlite-web" <<execution environment>> as NEXT {
-      artifact "Build output của frontend/\n(next build, Node 20)" as WEBART
+      artifact "Build output của apps/web/\n(next build, Node 20)" as WEBART
     }
     note bottom of NEXT
       Project env (Vercel):
@@ -62,7 +62,7 @@ frame "PRODUCTION (Internet, HTTPS)" as PROD #F0FFF4 {
     node "Render load balancer\nkết thúc TLS, HTTP -> HTTPS" <<proxy>> as LB
 
     node "[N-05] Web Service: brewlite-api" <<Docker runtime>> as API {
-      artifact "Image build từ backend/Dockerfile\n(node:20-alpine, NestJS dist/main.js)\nlắng nghe 0.0.0.0:$PORT (mặc định 10000)" as APIART
+      artifact "Image build từ apps/api/Dockerfile\n(node:20-alpine, NestJS dist/main.js)\nlắng nghe 0.0.0.0:$PORT (mặc định 3001)" as APIART
     }
     note bottom of API
       Health check path: GET /health (HTTP 2xx)
@@ -89,14 +89,14 @@ frame "PRODUCTION (Internet, HTTPS)" as PROD #F0FFF4 {
 ' ====================== DỊCH VỤ BÊN THỨ BA ======================
 frame "DỊCH VỤ BÊN THỨ BA (ngoài hệ thống)" as EXT #FFFAF0 {
   node "[N-09] Docker Hub\n(container registry công khai)" <<registry>> as HUB
-  cloud "[N-10] PayOS\n(VietQR, sandbox/merchant)" as PAYOS
-  cloud "[N-11] MoMo sandbox\ntest-payment.momo.vn" as MOMO
+  cloud "[N-10] PayOS\n(VietQR, simulated/sandbox)" as PAYOS
+  cloud "[N-11] MoMo sandbox\n(simulated/sandbox)" as MOMO
 }
 
 ' ====================== CI ======================
 frame "CI (GitHub)" as CI #EBF8FF {
   node "[N-12] GitHub repository\n(main, pull request)" <<source control>> as GH {
-    artifact "docs/, frontend/, backend/,\n.github/workflows/ci.yml" as REPO
+    artifact "docs/, apps/web/, apps/api/,\npackages/, .github/workflows/ci.yml" as REPO
   }
   node "[N-13] GitHub Actions runner\nubuntu-latest" <<execution environment>> as RUNNER {
     artifact "Install -> Lint -> Unit Test -> Build\n(chặn merge nếu thất bại)" as PIPE
@@ -110,7 +110,7 @@ frame "LOCAL (máy lập trình viên)" as LOCAL #F7FAFC {
     node "container brewlite-backend\nhost :3001 -> :3001" <<container>> as LBE
     node "container brewlite-db (postgres:16-alpine)\nhost :5433 -> :5432\nvolume pgdata" <<container>> as LDB
     artifact ".env (không commit)\n.env.example (mẫu)" as ENVF
-    artifact "Mã nguồn (working copy git)\nfrontend/, backend/, docs/" as SRC
+    artifact "Mã nguồn (working copy git)\napps/web/, apps/api/, docs/" as SRC
     LFE -down-> LBE : HTTP
     LBE -down-> LDB : TCP 5432
   }

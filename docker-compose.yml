@@ -21,16 +21,9 @@ services:
       timeout: 5s
       retries: 5
 
-<<<<<<< Updated upstream
-  backend:
-    build:
-      context: ./apps/api
-    container_name: assignment2-api
-=======
   api:
     build: ./apps/api
     container_name: brewlite-api
->>>>>>> Stashed changes
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -44,16 +37,9 @@ services:
       db:
         condition: service_healthy
 
-<<<<<<< Updated upstream
-  frontend:
-    build:
-      context: ./apps/web
-    container_name: assignment2-web
-=======
   web:
     build: ./apps/web
     container_name: brewlite-web
->>>>>>> Stashed changes
     restart: unless-stopped
     ports:
       - "3000:3000"
