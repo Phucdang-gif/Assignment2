@@ -1,0 +1,118 @@
+@startuml deployment-diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam node {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  RoundCorner 8
+}
+skinparam component {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+}
+skinparam database {
+  BackgroundColor #FEF3C7
+  BorderColor #D97706
+}
+skinparam cloud {
+  BackgroundColor #F1F5F9
+  BorderColor #475569
+}
+
+title Sơ Đồ Triển Khai Hệ Thống BrewLite (UML Deployment Diagram)\nFrontend: Vercel | Backend & Database: Docker Container trên Render
+
+' ============================================================
+' 1. CLIENT TIER (THIẾT BỊ NGƯỜI DÙNG)
+' ============================================================
+node "<<device>>\nClient Device (Smartphone / Desktop)" as ClientDevice {
+  node "<<executionEnvironment>>\nMobile Browser / Installed PWA" as Browser {
+    artifact "Next.js Client Bundle\n(React 19 + Zustand Cart Store)" as ClientApp
+  }
+}
+
+' ============================================================
+' 2. LOCAL DEVELOPMENT BOUNDARY
+' ============================================================
+package "Ranh Giới 1: Môi Trường Local Development (Docker Compose)" as LocalBoundary #F0FDF4 {
+  node "<<executionEnvironment>>\nDocker Engine (docker-compose.yml)" as LocalDocker {
+    component "brewlite-frontend\n(Next.js :3000)" as LocalWeb
+    component "brewlite-backend\n(NestJS :3001)" as LocalApi
+    database "brewlite-db\n(postgres:16-alpine :5433->5432)\nVolume: pgdata" as LocalDb
+    LocalWeb --> LocalApi : HTTP (Port 3001)
+    LocalApi --> LocalDb : TCP (Port 5432)
+  }
+}
+
+' ============================================================
+' 3. CI/CD BOUNDARY (GITHUB ACTIONS & REGISTRY)
+' ============================================================
+package "Ranh Giới 2: Môi Trường CI/CD (GitHub Platform)" as CIBoundary #EFF6FF {
+  node "<<executionEnvironment>>\nGitHub Actions Runner (ubuntu-latest)" as GHARunner {
+    component "Backend CI Job\n(Install -> oxlint -> Prisma Migrate -> Jest -> Build)" as BackendCI
+    component "Frontend CI Job\n(Install -> ESLint -> Next.js Build)" as FrontendCI
+    database "Service Container\n(postgres:16-alpine :5432)\nDB: brewlite_test" as CITestDB
+    BackendCI --> CITestDB : TCP :5432
+  }
+
+  node "<<containerRegistry>>\nGitHub Container Registry (GHCR) / Docker Hub" as Registry {
+    artifact "Docker Image\nbrewlite-api:<commit-sha>" as ApiDockerImage
+    artifact "Docker Image\npostgres:16-alpine" as PgDockerImage
+  }
+
+  BackendCI ..> ApiDockerImage : "Docker Build & Push\n(apps/api/Dockerfile)"
+}
+
+' ============================================================
+' 4. PRODUCTION BOUNDARY (VERCEL + RENDER DOCKER CONTAINERS)
+' ============================================================
+package "Ranh Giới 3: Môi Trường Production (Cloud)" as ProdBoundary #FFFBEB {
+
+  cloud "<<cloudPlatform>>\nVercel Cloud (Frontend & Edge CDN)" as VercelCloud {
+    node "<<executionEnvironment>>\nVercel Edge Network / Serverless Runtime" as VercelNode {
+      component "<<PWA / SSR>>\nBrewLite Web App\n(apps/web - Next.js 16)" as ProdWeb
+      artifact "Env Vars:\nNEXT_PUBLIC_API_URL" as VercelEnv
+      ProdWeb ..> VercelEnv : "<<reads>>"
+    }
+  }
+
+  cloud "<<cloudPlatform>>\nRender Cloud Platform (Singapore Region)" as RenderCloud {
+    node "<<Reverse Proxy / Load Balancer>>\nRender HTTPS Ingress & TLS Termination" as RenderIngress
+
+    package "Render Private Network (Internal VPC)" as RenderVPC {
+      node "<<Docker Container>>\nbrewlite-api-service\n(apps/api/Dockerfile - Node 20 Alpine)" as RenderApiContainer {
+        component "<<NestJS Modular Monolith>>\nBrewLite REST API (:3001)\n[Auth | Products | Orders | Payments]" as ProdApi
+        component "Health Check Endpoint\nGET /health" as HealthCheck
+        component "Render Log Stream\n(stdout / stderr structured logs)" as LogStream
+        artifact "Render Secret Env Vars:\nDATABASE_URL\nJWT_SECRET\nPORT=3001" as RenderSecrets
+        ProdApi ..> RenderSecrets : "<<reads>>"
+      }
+
+      node "<<Docker Container>>\nbrewlite-postgres-container\n(image: postgres:16-alpine)" as RenderDbContainer {
+        database "PostgreSQL 16 Database\n(Port 5432 - Private Only)" as ProdDb
+        storage "<<Persistent Disk>>\nRender Persistent Volume\n(/var/lib/postgresql/data)" as PersistentVolume
+        ProdDb --> PersistentVolume : "Mount & Persist ACID Data"
+      }
+    }
+
+    component "<<Internal Subsystem>>\nMock Payment Gateway\n(VietQR / MoMo / Card + Idempotency)" as MockPayment
+  }
+}
+
+' ============================================================
+' CONNECTIONS & PROTOCOLS
+' ============================================================
+ClientApp ==> VercelNode : "HTTPS / TLS 1.3 (Port 443)\n[Tải giao diện PWA & Static Assets]"
+ClientApp ==> RenderIngress : "HTTPS / TLS 1.3 (Port 443)\n[REST API JSON + Bearer JWT]"
+VercelNode ==> RenderIngress : "HTTPS / TLS 1.3 (Port 443)\n[SSR Fetch / API Calls]"
+RenderIngress ==> ProdApi : "HTTP Internal Forward\n(Port 3001)"
+RenderIngress ..> HealthCheck : "Periodic Poll (30s)\nGET /health -> 200 OK"
+ProdApi ==> ProdDb : "TCP/IP (Port 5432)\n[Prisma Client + Optimistic Lock Tx]"
+ProdApi ==> MockPayment : "In-Process / Internal HTTP\n[Idempotency Key Verification]"
+
+FrontendCI ..> VercelNode : "Auto Deploy via Vercel Git Integration"
+ApiDockerImage ..> RenderApiContainer : "Pull Image & Deploy Hook\n+ npx prisma migrate deploy"
+PgDockerImage ..> RenderDbContainer : "Pull Official Image\npostgres:16-alpine"
+
+@enduml
