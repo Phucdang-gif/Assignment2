@@ -27,17 +27,17 @@ skinparam enum {
     AttributeFontSize 9
 }
 
-title SƠ ĐỒ LỚP MIỀN NGHIỆP VỤ HỆ THỐNG BREWLITE (DOMAIN CLASS DIAGRAM)\nMã định danh: Class-01
+title SƠ ĐỒ LỚP MIỀN NGHIỆP VỤ HỆ THỐNG BREWLITE (DOMAIN CLASS DIAGRAM)\nMã định danh: Class-01 | Chuẩn UML 2.5 (Task 2.3)
 
 ' ==========================================================
-' 1. CÁC THỰC THỂ CỐT LÕI (CORE DOMAIN ENTITIES)
+' 1. CÁC THỰC THỂ CỐT LÕI (CORE DOMAIN ENTITIES - TƯƠNG THÍCH SEED & SCHEMA)
 ' ==========================================================
 
 class User {
-    + id: BigInt
+    + id: BigInt [PK]
     + fullName: String
-    + email: String
-    + phone: String
+    + email: String [Unique]
+    + phone: String [Unique]
     + passwordHash: String
     + loyaltyPoints: Int = 0
     + role: user_role = customer
@@ -50,8 +50,8 @@ class User {
 }
 
 class Category {
-    + id: Int
-    + name: String
+    + id: Int [PK]
+    + name: String [Unique]
     + createdAt: DateTime
     + updatedAt: DateTime
     --
@@ -59,15 +59,15 @@ class Category {
 }
 
 class Product {
-    + id: BigInt
-    + categoryId: Int
+    + id: BigInt [PK]
+    + categoryId: Int [FK, Nullable]
     + name: String
     + price: Decimal(12,2)
     + imageUrl: String
     + description: String
     + stock: Int = 0
-    + version: Int 
-    + status: ProductStatus 
+    + version: Int = 0 {Optimistic Lock}
+    + status: ProductStatus = active
     + createdAt: DateTime
     + updatedAt: DateTime
     --
@@ -78,23 +78,20 @@ class Product {
 }
 
 class Topping {
-    + id: Int
-    + name: String
+    + id: Int [PK]
+    + name: String [Unique]
     + price: Int
-    + isAvailable: Boolean 
+    + isAvailable: Boolean = true
     + createdAt: DateTime
     --
     + toggleAvailability(available: Boolean): Void
 }
 
 class Order {
-    + id: BigInt
-    + userId: BigInt
-    + promotionId: BigInt 
-    + status: order_status 
-    + subtotal: Decimal(12,2)
-    + discountAmount: Decimal(12,2) = 0
-    + total: Decimal(12,2)
+    + id: BigInt [PK]
+    + userId: BigInt [FK]
+    + status: order_status = PENDING
+    + total: Decimal(12,2) = 0
     + createdAt: DateTime
     + updatedAt: DateTime
     --
@@ -105,56 +102,52 @@ class Order {
 }
 
 class OrderItem {
-    + id: BigInt
-    + orderId: BigInt
-    + productId: BigInt
+    + id: BigInt [PK]
+    + orderId: BigInt [FK]
+    + productId: BigInt [FK]
     + size: product_size = M
     + qty: Int >= 1
-    + unitPrice: Decimal(12,2)
     + lineTotal: Decimal(12,2)
     --
     + calculateLineTotal(): Decimal
 }
 
 class OrderItemTopping {
-    + orderItemId: BigInt
-    + toppingId: Int
+    + orderItemId: BigInt [PK, FK]
+    + toppingId: Int [PK, FK]
     + priceAtTime: Int
 }
 
 class Payment {
-    + id: BigInt
-    + orderId: BigInt
-    + idempotencyKey: String
+    + id: BigInt [PK]
+    + orderId: BigInt [FK]
+    + idempotencyKey: String [Unique, UUIDv4]
     + amount: Decimal(12,2)
     + method: payment_method
-    + status: payment_status 
-    + transactionRef: String
-    + createdAt: DateTime
     --
     + processPayment(): Boolean
     + isIdempotentDuplicate(key: String): Boolean
 }
 
 class Promotion {
-    + id: BigInt
-    + code: String
+    + id: BigInt [PK]
+    + code: String [Unique]
     + description: String
     + discountType: discount_type
     + discountValue: Decimal(12,2)
     + minOrderValue: Decimal(12,2) = 0
     + startDate: DateTime
     + endDate: DateTime
-    + isActive: Boolean 
+    + isActive: Boolean = true
     --
     + isValid(now: DateTime, orderVal: Decimal): Boolean
     + computeDiscount(subtotal: Decimal): Decimal
 }
 
 class LoyaltyTransaction {
-    + id: BigInt
-    + userId: BigInt
-    + orderId: BigInt
+    + id: BigInt [PK]
+    + userId: BigInt [FK]
+    + orderId: BigInt [FK, Nullable]
     + points: Int
     + type: loyalty_type
     + balanceAfter: Int
@@ -165,13 +158,12 @@ class LoyaltyTransaction {
 }
 
 ' ==========================================================
-' 2. CÁC KIỂU ENUMERATION (MÁY TRẠNG THÁI & HẰNG SỐ NGHIỆP VỤ)
+' 2. CÁC KIỂU ENUMERATION (CHUẨN HÓA VỚI DATABASE PRISMA & SEED DATA)
 ' ==========================================================
 
 enum "<<enumeration>>\nuser_role" as user_role {
     customer
     barista
-    admin
 }
 
 enum "<<enumeration>>\norder_status" as order_status {
@@ -187,11 +179,6 @@ enum "<<enumeration>>\norder_status" as order_status {
 enum "<<enumeration>>\npayment_method" as payment_method {
     WALLET
     CARD
-}
-
-enum "<<enumeration>>\npayment_status" as payment_status {
-    SUCCESS
-    FAILED
 }
 
 enum "<<enumeration>>\nproduct_size" as product_size {
@@ -221,7 +208,7 @@ enum "<<enumeration>>\nloyalty_type" as loyalty_type {
 ' 3. QUAN HỆ CẤU TRÚC GIỮA CÁC THỰC THỂ (ASSOCIATION & COMPOSITION)
 ' ==========================================================
 
-Category "1" --> "0..*" Product
+Category "0..1" --> "0..*" Product
 OrderItem "0..*" --> "1" Product
 
 User "1" --> "0..*" Order
@@ -229,23 +216,22 @@ User "1" --> "0..*" LoyaltyTransaction
 
 Order "1" *-- "1..*" OrderItem
 OrderItem "1" *-- "0..*" OrderItemTopping
-Topping "1" --> "0..*" OrderItemTopping
+Topping "1" <-- "0..*" OrderItemTopping
 
 Order "1" --> "0..*" Payment
-Promotion "0..1" --> "0..*" Order
-Order "0..1" --> "0..1" LoyaltyTransaction
+Promotion "0..1" ..> "0..*" Order : applies discount to
+Order "0..1" --> "0..1" LoyaltyTransaction : creates
 
 ' ==========================================================
 ' 4. MỐI QUAN HỆ SỬ DỤNG ENUM (DEPENDENCY ARROWS)
 ' ==========================================================
 
-User ..> user_role : uses
+User ..> user_role : role
 Product ..> ProductStatus : status
-Order ..> order_status : state
+Order ..> order_status : status
 OrderItem ..> product_size : size
 Payment ..> payment_method : method
-Payment ..> payment_status : status
-Promotion ..> discount_type : type
+Promotion ..> discount_type : discountType
 LoyaltyTransaction ..> loyalty_type : type
 
 @enduml

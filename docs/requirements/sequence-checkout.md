@@ -69,7 +69,7 @@ Sơ đồ thể hiện đầy đủ:
 ### Giai đoạn 3: Xử lý thanh toán, Idempotency và Đồng bộ kết quả
 1. **Next.js UI** tiếp tục gửi yêu cầu `POST /payments` kèm `orderId`, `method`, `amount` và `idempotencyKey`.
 2. **NestJS API** xác thực JWT và kiểm tra `idempotencyKey` trong Database:
-   - **Nhánh A2 (Idempotency Key đã tồn tại - COMPLETED)**: Trả về ngay kết quả giao dịch cũ với `200 OK`, **tuyệt đối không gọi Cổng thanh toán lần 2** và không trừ tiền lặp lại.
+   - **Nhánh A2 (Idempotency Key đã tồn tại trong CSDL)**: Trả về ngay kết quả giao dịch cũ với `200 OK`, **tuyệt đối không gọi Cổng thanh toán lần 2** và không trừ tiền lặp lại.
    - **Nhánh Idempotency Key chưa tồn tại**: Chuyển tiếp yêu cầu thanh toán sang Cổng thanh toán (`Payment Service`).
 3. **Xử lý phản hồi từ Cổng thanh toán**:
    - **Trường hợp Thành công (SUCCESS)**: Cổng thanh toán trả về `SUCCESS` kèm `transactionId`. NestJS API mở transaction lưu bản ghi `Payment`, cập nhật `Order` sang `PAID`, tự động cộng điểm thưởng `loyaltyPoints` vào tài khoản khách hàng, trả về `200 OK`. Next.js UI gọi `clearCart()` và điều hướng sang `/orders/:id`.
