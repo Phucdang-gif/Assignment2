@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1572 3390" width="100%" height="100%" style="background:#ffffff; font-family:'Segoe UI', Arial, sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#16A34A"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#DC2626"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#D97706"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="112%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- TITLE HEADER -->
+  <text x="786" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#0F172A">SƠ ĐỒ HOẠT ĐỘNG (ACTIVITY DIAGRAM) - PHẦN B: THANH TOÁN, PHA CHẾ &amp; HOÀN TẤT ĐƠN</text>
+  <text x="786" y="54" text-anchor="middle" font-size="12" fill="#475569">(Phụ trách: Thành viên B)</text>
+
+  <!-- SWIMLANES -->
+  <rect x="36" y="74" width="295" height="3296" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="36" y="74" width="295" height="42" fill="#EBF8FF" stroke="#3B82F6" stroke-width="1.6"/>
+  <text x="183" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#1E40AF">Customer</text>
+  <rect x="331" y="74" width="310" height="3296" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="331" y="74" width="310" height="42" fill="#F0FFF4" stroke="#10B981" stroke-width="1.6"/>
+  <text x="486" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#065F46">Next.js UI</text>
+  <rect x="641" y="74" width="310" height="3296" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="641" y="74" width="310" height="42" fill="#FEFCE8" stroke="#F59E0B" stroke-width="1.6"/>
+  <text x="796" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#92400E">NestJS API &amp; DB</text>
+  <rect x="951" y="74" width="295" height="3296" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="951" y="74" width="295" height="42" fill="#FFF1F2" stroke="#F43F5E" stroke-width="1.6"/>
+  <text x="1098" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#9F1239">Payment Service</text>
+  <rect x="1246" y="74" width="290" height="3296" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="1246" y="74" width="290" height="42" fill="#E6FFFA" stroke="#0D9488" stroke-width="1.6"/>
+  <text x="1391" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#115E59">Barista</text>
+
+  <!-- FLOW ELEMENTS -->
+  <circle cx="183" cy="155" r="11" fill="#0F172A"/>
+  <rect x="67" y="182" width="232" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="205" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Nhận đơn hàng ở trạng thái PENDING</text>
+  <path d="M 183 166 L 183 182" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="299" y1="201" x2="356" y2="211" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <polygon points="356,174 604,174 616,186 616,248 356,248" fill="#FFFBEB" stroke="#D97706" stroke-width="1.2" filter="url(#shadow)"/>
+  <polyline points="604,174 604,186 616,186" fill="#FDE68A" stroke="#D97706" stroke-width="1.2"/>
+  <text x="366" y="190" font-size="10.5" font-weight="700" fill="#92400E">TIẾP NHẬN TỪ THÀNH VIÊN A:</text>
+  <text x="366" y="206" font-size="10" fill="#78350F">Đơn hàng đã được tạo trong Database</text>
+  <text x="366" y="220" font-size="10" fill="#78350F">với trạng thái PENDING, mã orderId</text>
+  <text x="366" y="234" font-size="10" fill="#78350F">và tổng tiền</text>
+  <rect x="67" y="240" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="263" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Xem thông tin tổng thanh toán</text>
+  <text x="183" y="279" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">trên màn hình</text>
+  <path d="M 183 220 L 183 240" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="67" y="308" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="331" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Chọn phương thức thanh toán</text>
+  <text x="183" y="347" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">(Ví điện tử WALLET / Thẻ CARD)</text>
+  <path d="M 183 294 L 183 308" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="67" y="376" width="232" height="38" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="399" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Bấm nút &quot;Xác nhận thanh toán&quot;</text>
+  <path d="M 183 362 L 183 376" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="370" y="432" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="455" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Tạo mã chống trùng lặp</text>
+  <text x="486" y="471" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">idempotencyKey (UUID)</text>
+  <path d="M 299 395 L 486 395 L 486 432" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="370" y="500" width="232" height="38" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="523" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Gửi request POST /payments</text>
+  <path d="M 486 486 L 486 500" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="602" y1="519" x2="671" y2="526" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <polygon points="671,496 909,496 921,508 921,556 671,556" fill="#FFFBEB" stroke="#D97706" stroke-width="1.2" filter="url(#shadow)"/>
+  <polyline points="909,496 909,508 921,508" fill="#FDE68A" stroke="#D97706" stroke-width="1.2"/>
+  <text x="681" y="512" font-size="10.5" font-weight="700" fill="#92400E">Payload:</text>
+  <text x="681" y="528" font-size="10" fill="#78350F">{ orderId, amount, method,</text>
+  <text x="681" y="542" font-size="10" fill="#78350F">  idempotencyKey }</text>
+  <rect x="680" y="564" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="587" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Kiểm tra idempotencyKey</text>
+  <text x="796" y="603" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">trong bảng Payment</text>
+  <path d="M 602 519 L 796 519 L 796 564" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <polygon points="796,638 900,668 796,698 692,668" fill="#FEFCBF" stroke="#B7791F" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="665" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">Khóa thanh toán đã tồn tại</text>
+  <text x="796" y="679" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">trong DB?</text>
+  <path d="M 796 618 L 796 638" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="680" y="734" width="232" height="54" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="757" text-anchor="middle" font-size="11.5" font-weight="500" fill="#92400E">Trả về kết quả giao dịch</text>
+  <text x="796" y="773" text-anchor="middle" font-size="11.5" font-weight="500" fill="#92400E">đã lưu trước đó</text>
+  <path d="M 796 698 L 796 734" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="732" y="707" width="128" height="16" rx="4" fill="#FFFBEB" stroke="#D97706" stroke-width="0.9"/>
+  <text x="796" y="719" text-anchor="middle" font-size="9.5" font-weight="700" fill="#D97706">[Đã xử lý trước đó]</text>
+  <path d="M 796 788 L 796 806" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="768" y="808" width="56" height="18" rx="9" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="796" y="820" text-anchor="middle" font-size="9.5" font-style="italic" font-weight="600" fill="#475569">detach</text>
+  <rect x="680" y="870" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="893" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Gửi yêu cầu thanh toán sang</text>
+  <text x="796" y="909" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Cổng thanh toán</text>
+  <path d="M 900 668 L 935 668 L 935 850 L 796 850 L 796 870" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="744" y="834" width="104" height="16" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.9"/>
+  <text x="796" y="846" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16A34A">[Giao dịch mới]</text>
+  <rect x="982" y="942" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#F43F5E" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1098" y="965" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Xử lý kiểm tra tài khoản</text>
+  <text x="1098" y="981" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">và trừ tiền</text>
+  <path d="M 912 897 L 1098 897 L 1098 942" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <polygon points="1098,1016 1198,1046 1098,1076 998,1046" fill="#FEFCBF" stroke="#B7791F" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1098" y="1043" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">Giao dịch thanh toán</text>
+  <text x="1098" y="1057" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">thành công?</text>
+  <path d="M 1098 996 L 1098 1016" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="982" y="1112" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1098" y="1135" text-anchor="middle" font-size="11.5" font-weight="700" fill="#991B1B">Phản hồi kết quả</text>
+  <text x="1098" y="1151" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">TRANSACTION_FAILED</text>
+  <path d="M 1098 1076 L 1098 1112" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="998" y="1085" width="200" height="16" rx="4" fill="#FEF2F2" stroke="#DC2626" stroke-width="0.9"/>
+  <text x="1098" y="1097" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DC2626">[Thanh toán THẤT BẠI / Timeout]</text>
+  <rect x="680" y="1182" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="1205" text-anchor="middle" font-size="11.5" font-weight="700" fill="#991B1B">Cập nhật trạng thái Order</text>
+  <text x="796" y="1221" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">thành &#x27;PAYMENT_FAILED&#x27;</text>
+  <path d="M 982 1139 L 796 1139 L 796 1182" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="680" y="1250" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="1273" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Mở Database Transaction hoàn tồn kho:</text>
+  <text x="796" y="1289" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Tăng lại số lượng (increment stock)</text>
+  <path d="M 796 1236 L 796 1250" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="680" y="1318" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="1341" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Trả về lỗi 400 Bad Request</text>
+  <text x="796" y="1357" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">kèm lý do thất bại</text>
+  <path d="M 796 1304 L 796 1318" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="370" y="1388" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="1411" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Hiển thị Toast báo lỗi thanh toán</text>
+  <text x="486" y="1427" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">thất bại</text>
+  <path d="M 680 1345 L 486 1345 L 486 1388" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="370" y="1456" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="1479" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Hiển thị tùy chọn:</text>
+  <text x="486" y="1495" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Thử lại hoặc Hủy đơn</text>
+  <path d="M 486 1442 L 486 1456" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <polygon points="183,1530 283,1560 183,1590 83,1560" fill="#FEFCBF" stroke="#B7791F" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="1557" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">Khách hàng muốn</text>
+  <text x="183" y="1571" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">thử lại thanh toán?</text>
+  <path d="M 370 1483 L 183 1483 L 183 1530" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="67" y="1626" width="232" height="54" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="1649" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Chọn lại phương thức</text>
+  <text x="183" y="1665" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thanh toán khác</text>
+  <path d="M 183 1590 L 183 1626" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="149" y="1599" width="68" height="16" rx="4" fill="#FFFBEB" stroke="#D97706" stroke-width="0.9"/>
+  <text x="183" y="1611" text-anchor="middle" font-size="9.5" font-weight="700" fill="#D97706">[Thử lại]</text>
+  <rect x="370" y="1626" width="232" height="54" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="1649" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Tạo idempotencyKey mới và quay lại</text>
+  <text x="486" y="1665" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">bước gửi POST /payments</text>
+  <path d="M 299 1653 L 370 1653" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <path d="M 486 1680 L 486 1698" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="458" y="1700" width="56" height="18" rx="9" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="486" y="1712" text-anchor="middle" font-size="9.5" font-style="italic" font-weight="600" fill="#475569">detach</text>
+  <rect x="370" y="1762" width="232" height="38" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="1785" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Gửi request hủy đơn</text>
+  <path d="M 83 1560 L 52 1560 L 52 1742 L 486 1742 L 486 1762" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="452" y="1726" width="68" height="16" rx="4" fill="#FEF2F2" stroke="#DC2626" stroke-width="0.9"/>
+  <text x="486" y="1738" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DC2626">[Hủy đơn]</text>
+  <rect x="680" y="1814" width="232" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="1837" text-anchor="middle" font-size="11.5" font-weight="700" fill="#991B1B">Cập nhật trạng thái Order</text>
+  <text x="796" y="1853" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">thành &#x27;CANCELLED&#x27;</text>
+  <path d="M 602 1781 L 796 1781 L 796 1814" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="67" y="1882" width="232" height="38" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="1905" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Đơn hàng bị hủy bỏ hoàn toàn</text>
+  <path d="M 680 1841 L 183 1841 L 183 1882" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <circle cx="183" cy="1951" r="13" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+  <circle cx="183" cy="1951" r="8" fill="#0F172A"/>
+  <path d="M 183 1920 L 183 1938" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="982" y="1996" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1098" y="2019" text-anchor="middle" font-size="11.5" font-weight="700" fill="#14532D">Phản hồi kết quả</text>
+  <text x="1098" y="2035" text-anchor="middle" font-size="11.5" font-weight="500" fill="#14532D">TRANSACTION_SUCCESS</text>
+  <path d="M 1198 1046 L 1230 1046 L 1230 1976 L 1098 1976 L 1098 1996" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="1022" y="1960" width="152" height="16" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.9"/>
+  <text x="1098" y="1972" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16A34A">[Thanh toán THÀNH CÔNG]</text>
+  <rect x="680" y="2066" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="2089" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Lưu bản ghi Payment mới</text>
+  <text x="796" y="2105" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">kèm idempotencyKey</text>
+  <path d="M 982 2023 L 796 2023 L 796 2066" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="680" y="2134" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="2157" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Cập nhật trạng thái Order</text>
+  <text x="796" y="2173" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thành &#x27;PAID&#x27;</text>
+  <path d="M 796 2120 L 796 2134" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="680" y="2202" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="2225" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Tự động cộng điểm thưởng</text>
+  <text x="796" y="2241" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">loyaltyPoints vào tài khoản khách</text>
+  <path d="M 796 2188 L 796 2202" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="680" y="2270" width="232" height="38" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="2293" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Commit Transaction &amp; trả về 200 OK</text>
+  <path d="M 796 2256 L 796 2270" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="370" y="2326" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="2349" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Hiển thị màn hình &quot;Đặt hàng &amp;</text>
+  <text x="486" y="2365" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Thanh toán thành công!&quot;</text>
+  <path d="M 680 2289 L 486 2289 L 486 2326" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="370" y="2394" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="2417" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Điều hướng sang màn hình</text>
+  <text x="486" y="2433" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Theo dõi đơn hàng (Tracking)</text>
+  <path d="M 486 2380 L 486 2394" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="1275" y="2468" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1391" y="2491" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Màn hình quầy nhận thông báo</text>
+  <text x="1391" y="2507" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">đơn hàng mới (PAID)</text>
+  <path d="M 602 2421 L 1391 2421 L 1391 2468" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="1275" y="2536" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1391" y="2559" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Bấm tiếp nhận đơn và bắt đầu</text>
+  <text x="1391" y="2575" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">pha chế</text>
+  <path d="M 1391 2522 L 1391 2536" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="680" y="2608" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="2631" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Cập nhật trạng thái Order</text>
+  <text x="796" y="2647" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thành &#x27;PREPARING&#x27;</text>
+  <path d="M 1275 2563 L 796 2563 L 796 2608" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="1275" y="2680" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1391" y="2703" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Thực hiện pha chế đồ uống</text>
+  <text x="1391" y="2719" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">theo đúng công thức</text>
+  <path d="M 912 2635 L 1391 2635 L 1391 2680" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="1275" y="2748" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1391" y="2771" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Pha chế hoàn tất, bấm xác nhận</text>
+  <text x="1391" y="2787" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">&quot;Món đã sẵn sàng&quot;</text>
+  <path d="M 1391 2734 L 1391 2748" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="680" y="2820" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="2843" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Cập nhật trạng thái Order</text>
+  <text x="796" y="2859" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thành &#x27;READY&#x27;</text>
+  <path d="M 1275 2775 L 796 2775 L 796 2820" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="370" y="2892" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="2915" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Cập nhật trạng thái đơn hàng</text>
+  <text x="486" y="2931" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thời gian thực: READY</text>
+  <path d="M 680 2847 L 486 2847 L 486 2892" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="370" y="2960" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="486" y="2983" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Hiển thị thông báo &quot;Đồ uống đã</text>
+  <text x="486" y="2999" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">xong, mời bạn đến quầy nhận!&quot;</text>
+  <path d="M 486 2946 L 486 2960" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="67" y="3032" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="3055" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Đến quầy bar xuất trình mã đơn</text>
+  <text x="183" y="3071" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">hàng và nhận nước</text>
+  <path d="M 370 2987 L 183 2987 L 183 3032" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="1275" y="3104" width="232" height="54" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1391" y="3127" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Bàn giao đồ uống cho khách</text>
+  <text x="1391" y="3143" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">và bấm &quot;Hoàn tất đơn&quot;</text>
+  <path d="M 299 3059 L 1391 3059 L 1391 3104" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="680" y="3176" width="232" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="796" y="3199" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Cập nhật trạng thái Order</text>
+  <text x="796" y="3215" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thành &#x27;COMPLETED&#x27;</text>
+  <path d="M 1275 3131 L 796 3131 L 796 3176" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="67" y="3248" width="232" height="54" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="183" y="3271" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Nhận thức uống và kết thúc</text>
+  <text x="183" y="3287" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">quy trình đặt hàng</text>
+  <path d="M 680 3203 L 183 3203 L 183 3248" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <circle cx="183" cy="3335" r="13" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+  <circle cx="183" cy="3335" r="8" fill="#0F172A"/>
+  <path d="M 183 3302 L 183 3322" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+</svg>
