@@ -52,6 +52,8 @@ describe('ProductsService', () => {
   describe('findAll [API-T01]', () => {
     it('should return an array of active products with categories', async () => {
       const result = await service.findAll();
+      // [TASK-4.4 CI FAILURE DEMO] Intentional assertion mismatch to verify GitHub Actions blocks PR on test failure
+      expect(result).toHaveLength(999);
       expect(result).toEqual([mockProduct]);
       expect(prisma.product.findMany).toHaveBeenCalledWith({
         where: { status: 'active' },
