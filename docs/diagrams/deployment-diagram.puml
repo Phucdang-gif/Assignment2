@@ -1,0 +1,144 @@
+@startuml deployment
+!theme plain
+!pragma layout elk
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam roundcorner 8
+skinparam nodesep 35
+skinparam ranksep 55
+skinparam wrapWidth 230
+skinparam ArrowFontSize 11
+skinparam ArrowColor #4A5568
+skinparam node {
+  BackgroundColor #FFFFFF
+  BorderColor #2D3748
+}
+skinparam artifact {
+  BackgroundColor #FFFBEA
+  BorderColor #975A16
+}
+skinparam database {
+  BackgroundColor #E6FFFA
+  BorderColor #234E52
+}
+skinparam cloud {
+  BackgroundColor #FFF5F5
+  BorderColor #9B2C2C
+}
+skinparam frame {
+  BorderThickness 2
+}
+
+title Deployment diagram - BrewLite (môi trường production: Vercel + Render)\nChú thích: [N-xx] = mã node, [C-xx] = mã kết nối (bảng truy vết: docs/architecture/deployment-diagram.md)
+
+' ====================== NGƯỜI DÙNG ======================
+node "[N-01] Thiết bị người dùng\n(điện thoại / máy tính)" <<device>> as USER {
+  node "Trình duyệt / PWA" <<execution environment>> as BROWSER {
+    artifact "Next.js client bundle\n(frontend/app, store)\nlocalStorage: cart-storage,\nauth-storage (JWT)" as CLIENT
+  }
+}
+
+' ====================== PRODUCTION ======================
+frame "PRODUCTION (Internet, HTTPS)" as PROD #F0FFF4 {
+
+  node "[N-02] Vercel" <<platform: frontend hosting>> as VERCEL {
+    node "Vercel Edge Network (CDN)\nTLS tự động cho *.vercel.app" <<CDN>> as EDGE
+    node "[N-03] Next.js runtime\nproject: brewlite-web" <<execution environment>> as NEXT {
+      artifact "Build output của frontend/\n(next build, Node 20)" as WEBART
+    }
+    note bottom of NEXT
+      Project env (Vercel):
+      NEXT_PUBLIC_API_URL
+      (không phải secret, nhúng lúc build)
+      Server Next.js không gọi API
+      (fetch chỉ ở useEffect, phía client)
+    end note
+  }
+
+  node "[N-04] Render - region Singapore (đề xuất)" <<platform: backend hosting>> as RENDER {
+
+    node "Render load balancer\nkết thúc TLS, HTTP -> HTTPS" <<proxy>> as LB
+
+    node "[N-05] Web Service: brewlite-api" <<Docker runtime>> as API {
+      artifact "Image build từ backend/Dockerfile\n(node:20-alpine, NestJS dist/main.js)\nlắng nghe 0.0.0.0:$PORT (mặc định 10000)" as APIART
+    }
+    note bottom of API
+      Health check path: GET /health (HTTP 2xx)
+      Log: stdout/stderr -> Render Logs
+      Env/Secret (Render Environment):
+      DATABASE_URL, JWT_SECRET, PORT,
+      PAYOS_CLIENT_ID / API_KEY / CHECKSUM_KEY,
+      MOMO_PARTNER_CODE / ACCESS_KEY / SECRET_KEY,
+      FRONTEND_URL (CORS, returnUrl)
+    end note
+
+    frame "Render private network\n(cùng region + workspace, không có URL công khai)" as PRIV #E6FFFA {
+      node "[N-06] Private Service: brewlite-db" <<Docker runtime>> as DB {
+        artifact "image postgres:16-alpine\nENV: POSTGRES_USER/PASSWORD/DB\nPGDATA=/var/lib/postgresql/data/pgdata" as PGART
+        database "[N-07] Persistent Disk\nmount /var/lib/postgresql/data\n(snapshot 24h, giữ 7 ngày)" as DISK
+        PGART -down-> DISK : ghi dữ liệu
+      }
+    }
+
+    node "[N-08] Render Build\nbuild Dockerfile, lưu image nội bộ" <<build service>> as BUILD
+  }
+}
+
+' ====================== DỊCH VỤ BÊN THỨ BA ======================
+frame "DỊCH VỤ BÊN THỨ BA (ngoài hệ thống)" as EXT #FFFAF0 {
+  node "[N-09] Docker Hub\n(container registry công khai)" <<registry>> as HUB
+  cloud "[N-10] PayOS\n(VietQR, sandbox/merchant)" as PAYOS
+  cloud "[N-11] MoMo sandbox\ntest-payment.momo.vn" as MOMO
+}
+
+' ====================== CI ======================
+frame "CI (GitHub)" as CI #EBF8FF {
+  node "[N-12] GitHub repository\n(main, pull request)" <<source control>> as GH {
+    artifact "docs/, frontend/, backend/,\n.github/workflows/ci.yml" as REPO
+  }
+  node "[N-13] GitHub Actions runner\nubuntu-latest" <<execution environment>> as RUNNER {
+    artifact "Install -> Lint -> Unit Test -> Build\n(chặn merge nếu thất bại)" as PIPE
+  }
+}
+
+' ====================== LOCAL ======================
+frame "LOCAL (máy lập trình viên)" as LOCAL #F7FAFC {
+  node "[N-14] Máy lập trình viên\nDocker Compose" <<device>> as DEV {
+    node "container brewlite-frontend\nhost :3000 -> :3000" <<container>> as LFE
+    node "container brewlite-backend\nhost :3001 -> :3001" <<container>> as LBE
+    node "container brewlite-db (postgres:16-alpine)\nhost :5433 -> :5432\nvolume pgdata" <<container>> as LDB
+    artifact ".env (không commit)\n.env.example (mẫu)" as ENVF
+    artifact "Mã nguồn (working copy git)\nfrontend/, backend/, docs/" as SRC
+    LFE -down-> LBE : HTTP
+    LBE -down-> LDB : TCP 5432
+  }
+}
+
+' ====================== KẾT NỐI (nhãn ngắn; chi tiết ở bảng mục 3 của deployment-diagram.md) ======================
+BROWSER -[#2B6CB0]-> EDGE : C-01 HTTPS
+BROWSER -[#2B6CB0]-> LB : C-02 HTTPS
+EDGE -[#2B6CB0]-> NEXT : C-15 route động
+LB -> API : C-03 HTTP
+API -[#234E52]-> DB : C-04 TCP 5432
+API -[#9B2C2C]up-> PAYOS : C-05 HTTPS
+PAYOS -[#9B2C2C,dashed]-> LB : C-06 webhook
+API -[#9B2C2C]up-> MOMO : C-07 HTTPS
+MOMO -[#9B2C2C,dashed]-> LB : C-08 IPN
+DB -[#975A16]up-> HUB : C-09 pull image
+
+SRC -[#4A5568]-> GH : C-10 git push
+GH -[#4A5568]-> RUNNER : C-11 trigger
+GH -[#4A5568]-> BUILD : C-12 auto-deploy
+BUILD -[#4A5568]-> API : C-13 deploy
+GH -[#4A5568]-> VERCEL : C-14 Git deploy
+
+legend bottom
+  |= Ký hiệu |= Ý nghĩa |
+  | đường liền | bên gọi chủ động (API gọi dịch vụ ngoài, trình duyệt gọi server, kéo image, đẩy code) |
+  | đường đứt | bên ngoài gọi vào API qua load balancer (webhook PayOS, IPN MoMo) |
+  | nền xanh lá / xanh dương / xám | ranh giới Production / CI / Local |
+endlegend
+
+@enduml
