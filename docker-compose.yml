@@ -13,16 +13,24 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./apps/api/prisma/database local/brewlite_schema.sql:/docker-entrypoint-initdb.d/brewlite_schema.sql:ro
+      - ./apps/api/prisma/database local/brewlite_seed_data.sql:/docker-entrypoint-initdb.d/brewlite_seed_data.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U brewlite"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+<<<<<<< Updated upstream
   backend:
     build:
       context: ./apps/api
     container_name: assignment2-api
+=======
+  api:
+    build: ./apps/api
+    container_name: brewlite-api
+>>>>>>> Stashed changes
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -36,17 +44,23 @@ services:
       db:
         condition: service_healthy
 
+<<<<<<< Updated upstream
   frontend:
     build:
       context: ./apps/web
     container_name: assignment2-web
+=======
+  web:
+    build: ./apps/web
+    container_name: brewlite-web
+>>>>>>> Stashed changes
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
     depends_on:
-      - backend
+      - api
 
 volumes:
   pgdata:

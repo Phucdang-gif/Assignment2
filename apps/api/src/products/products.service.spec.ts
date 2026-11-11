@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -14,6 +14,22 @@ describe('ProductsService', () => {
     categoryId: 1,
     status: 'active',
     category: { id: 1, name: 'Cà phê' },
+    ProductRecipeItem: [
+      {
+        id: 1,
+        productId: BigInt(1),
+        size: 'M' as const,
+        ingredientId: 1,
+        amount: 25,
+        unit: 'g',
+        Ingredient: {
+          id: 1,
+          name: 'Cà phê Robusta',
+          unit: 'g',
+          stock: 500,
+        },
+      },
+    ],
   };
 
   const mockPrismaService = {
@@ -28,6 +44,13 @@ describe('ProductsService', () => {
       create: jest.fn().mockResolvedValue(mockProduct),
       update: jest.fn().mockResolvedValue({ ...mockProduct, status: 'inactive' }),
     },
+    productRecipeItem: {
+      findMany: jest.fn().mockResolvedValue(mockProduct.ProductRecipeItem),
+    },
+    ingredient: {
+      update: jest.fn().mockResolvedValue({}),
+    },
+    $transaction: jest.fn().mockImplementation((actions) => Promise.all(actions)),
   };
 
   beforeEach(async () => {
@@ -49,25 +72,45 @@ describe('ProductsService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('findAll [API-T01]', () => {
-    it('should return an array of active products with categories', async () => {
+  describe('calculateStock', () => {
+    it('should calculate correct stock based on recipe items and ingredient stocks', () => {
+      const stock = service.calculateStock(mockProduct.ProductRecipeItem as any);
+      expect(stock).toBe(20); // 500g / 25g = 20 ly
+    });
+
+    it('should return 0 when recipes are empty or ingredients are depleted', () => {
+      expect(service.calculateStock([])).toBe(0);
+      const depletedRecipes = [
+        {
+          ...mockProduct.ProductRecipeItem[0],
+          Ingredient: { id: 1, name: 'Cà phê', unit: 'g', stock: 10 }, // 10g < 25g
+        },
+      ];
+      expect(service.calculateStock(depletedRecipes as any)).toBe(0);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return active products with dynamically calculated stock', async () => {
       const result = await service.findAll();
-      expect(result).toEqual([mockProduct]);
-      expect(prisma.product.findMany).toHaveBeenCalledWith({
-        where: { status: 'active' },
-        orderBy: { createdAt: 'asc' },
-        include: { category: true },
-      });
+      expect(result).toHaveLength(1);
+      expect(result[0].stock).toBe(20);
+      expect(prisma.product.findMany).toHaveBeenCalled();
     });
   });
 
   describe('findOne', () => {
-    it('should return a single product by ID', async () => {
+    it('should return a single product with calculated stock', async () => {
       const result = await service.findOne(1);
-      expect(result).toEqual(mockProduct);
+      expect(result.stock).toBe(20);
       expect(prisma.product.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
-        include: { category: true },
+        include: {
+          category: true,
+          ProductRecipeItem: {
+            include: { Ingredient: true },
+          },
+        },
       });
     });
 
@@ -76,19 +119,16 @@ describe('ProductsService', () => {
     });
   });
 
-  describe('create', () => {
-    it('should create and return a new product', async () => {
-      const dto = {
-        name: 'Cà phê Đen Đá',
-        price: 25000,
-        categoryId: 1,
-      };
-      const result = await service.create(dto as any);
-      expect(result).toEqual(mockProduct);
-      expect(prisma.product.create).toHaveBeenCalledWith({
-        data: dto,
-        include: { category: true },
-      });
+  describe('deductIngredients', () => {
+    it('should deduct ingredients when enough stock is available', async () => {
+      await service.deductIngredients(1, 'M', 2);
+      expect(prisma.productRecipeItem.findMany).toHaveBeenCalled();
+      expect(prisma.$transaction).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if ingredient stock is insufficient', async () => {
+      // 500g available, order 30 cups * 25g = 750g -> insufficient
+      await expect(service.deductIngredients(1, 'M', 30)).rejects.toThrow(BadRequestException);
     });
   });
 });

@@ -22,11 +22,6 @@ export class CreateProductDto {
   description?: string;
 
   @IsOptional()
-  @IsInt({ message: 'Số lượng tồn kho phải là số nguyên' })
-  @Min(0, { message: 'Số lượng tồn kho không được nhỏ hơn 0' })
-  stock?: number;
-
-  @IsOptional()
   @IsEnum(ProductStatus, { message: 'Trạng thái sản phẩm không hợp lệ' })
   status?: ProductStatus;
 

@@ -102,12 +102,17 @@ Phần cơ sở dữ liệu của dự án được xây dựng trên **PostgreS
 ```mermaid
 erDiagram
     CATEGORY ||--o{ PRODUCT : "chứa"
+    PRODUCT ||--|{ PRODUCTRECIPEITEM : "định mức"
+    INGREDIENT ||--o{ PRODUCTRECIPEITEM : "nguyên liệu"
     USER ||--o{ ORDER : "đặt"
+    USER ||--o{ LOYALTYTRANSACTION : "sở hữu"
+    PROMOTION ||--o{ ORDER : "áp dụng"
     ORDER ||--|{ ORDERITEM : "gồm"
     PRODUCT ||--o{ ORDERITEM : "được đặt trong"
     TOPPING ||--o{ ORDERITEMTOPPING : "được thêm vào"
     ORDERITEM ||--o{ ORDERITEMTOPPING : "chọn topping"
     ORDER ||--o{ PAYMENT : "thanh toán bằng"
+    ORDER ||--o| LOYALTYTRANSACTION : "tích điểm"
 
     CATEGORY {
         SERIAL id PK
@@ -118,7 +123,9 @@ erDiagram
 
     USER {
         BIGSERIAL id PK
+        VARCHAR fullName
         VARCHAR email UK
+        VARCHAR phone UK
         VARCHAR passwordHash
         INTEGER loyaltyPoints
         ENUM role
@@ -133,9 +140,28 @@ erDiagram
         DECIMAL price
         VARCHAR imageUrl
         TEXT description
-        INTEGER stock
         INTEGER version
         ENUM status
+        TIMESTAMPTZ createdAt
+        TIMESTAMPTZ updatedAt
+    }
+
+    INGREDIENT {
+        SERIAL id PK
+        VARCHAR name
+        VARCHAR unit
+        INTEGER stock
+        TIMESTAMPTZ createdAt
+        TIMESTAMPTZ updatedAt
+    }
+
+    PRODUCTRECIPEITEM {
+        SERIAL id PK
+        BIGINT productId FK
+        ENUM size
+        INTEGER ingredientId FK
+        INTEGER amount
+        VARCHAR unit
         TIMESTAMPTZ createdAt
         TIMESTAMPTZ updatedAt
     }
@@ -148,10 +174,27 @@ erDiagram
         TIMESTAMPTZ createdAt
     }
 
+    PROMOTION {
+        BIGSERIAL id PK
+        VARCHAR code UK
+        TEXT description
+        ENUM discountType
+        DECIMAL discountValue
+        DECIMAL minOrderValue
+        TIMESTAMPTZ startDate
+        TIMESTAMPTZ endDate
+        BOOLEAN isActive
+        TIMESTAMPTZ createdAt
+        TIMESTAMPTZ updatedAt
+    }
+
     ORDER {
         BIGSERIAL id PK
         BIGINT userId FK
+        BIGINT promotionId FK
         ENUM status
+        DECIMAL subtotal
+        DECIMAL discountAmount
         DECIMAL total
         TIMESTAMPTZ createdAt
         TIMESTAMPTZ updatedAt
@@ -163,6 +206,7 @@ erDiagram
         BIGINT productId FK
         ENUM size
         INTEGER qty
+        DECIMAL unitPrice
         DECIMAL lineTotal
     }
 
@@ -178,19 +222,37 @@ erDiagram
         VARCHAR idempotencyKey UK
         DECIMAL amount
         ENUM method
+        ENUM status
+        VARCHAR transactionRef
+        TIMESTAMPTZ createdAt
+    }
+
+    LOYALTYTRANSACTION {
+        BIGSERIAL id PK
+        BIGINT userId FK
+        BIGINT orderId FK
+        INTEGER points
+        ENUM type
+        INTEGER balanceAfter
+        VARCHAR reason
+        TIMESTAMPTZ createdAt
     }
 ```
 
-### 2. Mô tả các bảng dữ liệu & Ràng buộc toàn vẹn
+### 2. Mô tả 12 bảng dữ liệu & Ràng buộc toàn vẹn
 
 - **`Category`**: Quản lý danh mục đồ uống (Cà phê, Trà trái cây, Trà sữa, Đá xay & Khác).
-- **`User`**: Quản lý người dùng, mật khẩu băm bcrypt, phân quyền (`role`: `customer`, `barista`), điểm thưởng tích lũy (`loyaltyPoints >= 0`).
-- **`Product`**: Sản phẩm menu, liên kết `categoryId`, giá bán (`DECIMAL`), mô tả (`description`), tồn kho (`stock >= 0`), `version` (phục vụ Optimistic Locking ở Task 10), trạng thái kinh doanh (`status`: `active`, `inactive`).
+- **`User`**: Quản lý người dùng, mật khẩu băm bcrypt, phân quyền (`role`: `customer`, `barista`, `admin`), điểm thưởng tích lũy (`loyaltyPoints >= 0`).
+- **`Product`**: Sản phẩm menu, liên kết `categoryId`, giá bán (`DECIMAL`), mô tả (`description`), `version` (Optimistic Locking chống bán âm), trạng thái (`status`: `active`, `inactive`). Tồn kho thành phẩm được tính toán động theo nguyên liệu và công thức pha chế.
+- **`Ingredient`**: Kho nguyên vật liệu thô (hạt cà phê, sữa đặc, sữa tươi, siro, ly giấy,...), lưu trữ tồn kho thực tế (`stock >= 0`).
+- **`ProductRecipeItem`**: Công thức pha chế / định mức tiêu hao (BOM) cho từng kích cỡ (S, M, L), liên kết `productId` và `ingredientId`.
 - **`Topping`**: Món thêm cho ly nước (`name`, `price`, `isAvailable`).
-- **`Order`**: Đơn hàng với mã tự tăng `id`, liên kết `userId`, trạng thái theo máy trạng thái (`PENDING`, `PAID`, `PREPARING`, `READY`, `COMPLETED`, `PAYMENT_FAILED`, `CANCELLED`), tổng tiền (`total >= 0`).
-- **`OrderItem`**: Chi tiết từng món trong đơn (`orderId` ON DELETE CASCADE, `productId`, `size`, `qty > 0`, `lineTotal >= 0`).
+- **`Promotion`**: Quản lý chương trình khuyến mãi, mã ưu đãi (`code` UNIQUE), hình thức giảm giá (`PERCENTAGE`, `FIXED_AMOUNT`, `MEMBERSHIP_TIER`).
+- **`Order`**: Đơn hàng với mã tự tăng `id`, liên kết `userId` và `promotionId`, trạng thái theo máy FSM 7 bước, `subtotal`, `discountAmount`, `total >= 0`.
+- **`OrderItem`**: Chi tiết từng món trong đơn (`orderId` ON DELETE CASCADE, `productId`, `size`, `qty > 0`, `unitPrice >= 0`, `lineTotal >= 0`).
 - **`OrderItemTopping`**: Snapshot giá topping tại thời điểm đặt đơn (`priceAtTime >= 0`).
-- **`Payment`**: Giao dịch thanh toán không tiền mặt, khóa chống trùng lặp (`idempotencyKey` UNIQUE), số tiền (`amount >= 0`), phương thức (`WALLET`, `CARD`).
+- **`Payment`**: Giao dịch thanh toán không tiền mặt, khóa chống trùng lặp (`idempotencyKey` UNIQUE), số tiền (`amount >= 0`), phương thức (`WALLET`, `CARD`), trạng thái (`SUCCESS`, `FAILED`), `transactionRef`.
+- **`LoyaltyTransaction`**: Lịch sử biến động điểm thưởng (`EARN`, `REDEEM`, `ADJUST`), liên kết `userId` và `orderId`, lưu trữ `balanceAfter >= 0`.
 
 ---
 
@@ -215,14 +277,14 @@ docker compose up --build
 ### Quá trình khởi động tự động gồm:
 
 1. **Dịch vụ `db`**: Khởi chạy PostgreSQL 16 Alpine, cấu hình volume lưu trữ bền vững `pgdata` và kiểm tra sức khỏe (`healthcheck`).
-2. **Dịch vụ `backend` (`apps/api`)**: Chờ database sẵn sàng -> tự động tạo cấu trúc bảng (`npx prisma db push`) -> tự động chạy script `seed.js` để đọc và nạp toàn bộ dữ liệu từ file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) (gồm 12 món đồ uống, 3 tài khoản, topping, đơn hàng) -> khởi chạy máy chủ NestJS tại cổng `3001`.
-3. **Dịch vụ `frontend` (`apps/web`)**: Build mã nguồn Next.js đa tầng (multi-stage) -> phục vụ ứng dụng tại cổng `3000`.
+2. **Dịch vụ `api` (`apps/api`)**: Chờ database sẵn sàng -> tự động tạo cấu trúc bảng (`npx prisma db push`) -> tự động chạy script `seed.js` để đọc và nạp toàn bộ dữ liệu từ file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) (gồm 12 món đồ uống, 3 tài khoản, topping, đơn hàng, nguyên vật liệu & công thức pha chế theo size S/M/L) -> khởi chạy máy chủ NestJS tại cổng `3001`.
+3. **Dịch vụ `web` (`apps/web`)**: Build mã nguồn Next.js đa tầng (multi-stage) -> phục vụ ứng dụng tại cổng `3000`.
 
 ### Truy cập các dịch vụ:
 
-- 🌐 **Frontend Web App**: [http://localhost:3000](http://localhost:3000)
-- 🔌 **Backend REST API**: [http://localhost:3001](http://localhost:3001)
-- 🗄️ **PostgreSQL Port**: `localhost:5432`
+- 🌐 **Web App (`apps/web`)**: [http://localhost:3000](http://localhost:3000)
+- 🔌 **API Service (`apps/api`)**: [http://localhost:3001](http://localhost:3001)
+- 🗄️ **PostgreSQL Port**: `localhost:5433` (map từ 5432 của container)
 
 ### Dừng hệ thống & Reset dữ liệu:
 
@@ -248,17 +310,22 @@ Phương thức này là **tùy chọn (optional)** dành cho trường hợp b�
 
 ### Bước 1: Khởi tạo Cơ sở dữ liệu cục bộ bằng File SQL
 
-Bạn mở công cụ **pgAdmin 4**, **DBeaver** hoặc cửa sổ dòng lệnh `psql` để chạy 2 file SQL đã chuẩn bị sẵn trong thư mục `apps/api/prisma/database local/`:
+Bạn mở công cụ **pgAdmin 4**, **DBeaver** hoặc cửa sổ dòng lệnh `psql` để chạy file SQL trong thư mục `apps/api/prisma/database local/`:
 
-1. Tạo một cơ sở dữ liệu mới tên là `brewlite`.
-2. Mở file [`brewlite_schema.sql`](apps/api/prisma/database%20local/brewlite_schema.sql) và bấm thực thi (**F5**) để tạo bảng và ràng buộc.
-3. Mở file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) và bấm thực thi (**F5**) để nạp 12 món đồ uống và tài khoản mẫu.
+* **Cách 1 (Chạy 1 file duy nhất - Khuyên dùng)**: Mở file [`brewlite_init_full.sql`](apps/api/prisma/database%20local/brewlite_init_full.sql) và bấm thực thi (**F5**). File này đã gom toàn bộ tạo bảng (Schema), Enums, Ràng buộc, Dữ liệu mẫu (Seed Data) và Công thức pha chế (Recipes).
+* **Cách 2 (Chạy tách rời 2 bước)**:
+  1. Mở file [`brewlite_schema.sql`](apps/api/prisma/database%20local/brewlite_schema.sql) và bấm (**F5**) để tạo bảng và cấu trúc.
+  2. Mở file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) và bấm (**F5**) để nạp dữ liệu mẫu và công thức.
 
 _(Hoặc chạy nhanh bằng lệnh `psql`):_
 
 ```bash
-psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_schema.sql"
-psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_seed_data.sql"
+# Chạy 1 lệnh khởi tạo toàn diện:
+psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_init_full.sql"
+
+# Hoặc chạy tách rời:
+# psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_schema.sql"
+# psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_seed_data.sql"
 ```
 
 ### Bước 2: Chuẩn bị biến môi trường
