@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1202 3036" width="100%" height="100%" style="background:#ffffff; font-family:'Segoe UI', Arial, sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#16A34A"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#DC2626"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#D97706"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="112%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- TITLE HEADER -->
+  <text x="601" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#0F172A">SƠ ĐỒ HOẠT ĐỘNG (ACTIVITY DIAGRAM) - PHẦN A: KHÁM PHÁ, GIỎ HÀNG &amp; ĐẶT HÀNG</text>
+  <text x="601" y="54" text-anchor="middle" font-size="12" fill="#475569">(Phụ trách: Thành viên A | Khớp 100% với Sơ đồ tổng quát Activity-01)</text>
+
+  <!-- SWIMLANES -->
+  <rect x="36" y="74" width="360" height="2942" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="36" y="74" width="360" height="42" fill="#EBF8FF" stroke="#3B82F6" stroke-width="1.6"/>
+  <text x="216" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#1E40AF">Customer</text>
+  <rect x="396" y="74" width="390" height="2942" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="396" y="74" width="390" height="42" fill="#F0FFF4" stroke="#10B981" stroke-width="1.6"/>
+  <text x="591" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#065F46">Next.js UI</text>
+  <rect x="786" y="74" width="380" height="2942" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/>
+  <rect x="786" y="74" width="380" height="42" fill="#FEFCE8" stroke="#F59E0B" stroke-width="1.6"/>
+  <text x="976" y="100" text-anchor="middle" font-size="13" font-weight="700" fill="#92400E">NestJS API &amp; DB</text>
+
+  <!-- FLOW ELEMENTS -->
+  <circle cx="216" cy="155" r="11" fill="#0F172A"/>
+  <rect x="71" y="182" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="205" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Truy cập ứng dụng BrewLite</text>
+  <text x="216" y="221" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">(PWA / Mobile Web)</text>
+  <path d="M 216 166 L 216 182" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="254" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="277" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Gửi yêu cầu GET /products</text>
+  <path d="M 361 209 L 591 209 L 591 254" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="310" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="333" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Truy vấn danh sách đồ uống</text>
+  <text x="976" y="349" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">active từ Database</text>
+  <path d="M 736 273 L 976 273 L 976 310" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="378" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="401" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Trả về danh mục sản phẩm kèm</text>
+  <text x="976" y="417" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">số lượng tồn kho (stock)</text>
+  <path d="M 976 364 L 976 378" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="450" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="473" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Render giao diện Menu đồ uống</text>
+  <text x="591" y="489" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">(Mobile-First)</text>
+  <path d="M 831 405 L 591 405 L 591 450" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="71" y="522" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="545" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Xem danh mục và</text>
+  <text x="216" y="561" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">chọn món đồ uống</text>
+  <path d="M 446 477 L 216 477 L 216 522" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <polygon points="591,596 695,626 591,656 487,626" fill="#FEFCBF" stroke="#B7791F" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="623" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">Sản phẩm còn hàng?</text>
+  <text x="591" y="637" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">(stock &gt; 0)</text>
+  <path d="M 361 549 L 591 549 L 591 596" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="692" width="290" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="715" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Hiển thị nhãn &quot;Hết hàng&quot;</text>
+  <text x="591" y="731" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">(Vô hiệu hóa nút chọn)</text>
+  <path d="M 591 656 L 591 692" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="518" y="665" width="146" height="16" rx="4" fill="#FEF2F2" stroke="#DC2626" stroke-width="0.9"/>
+  <text x="591" y="677" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DC2626">[Hết hàng / stock = 0]</text>
+  <rect x="71" y="692" width="290" height="38" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="715" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Chọn món đồ uống khác</text>
+  <path d="M 446 719 L 361 711" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <path d="M 216 730 L 216 748" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="188" y="750" width="56" height="18" rx="9" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="216" y="762" text-anchor="middle" font-size="9.5" font-style="italic" font-weight="600" fill="#475569">detach</text>
+  <rect x="446" y="800" width="290" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="823" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Hiển thị Popup chi tiết món</text>
+  <text x="591" y="839" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">(Size, Topping)</text>
+  <path d="M 695 626 L 770 626 L 770 780 L 591 780 L 591 800" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="554" y="764" width="74" height="16" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.9"/>
+  <text x="591" y="776" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16A34A">[Còn hàng]</text>
+  <rect x="71" y="872" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="895" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Chọn kích thước (Size S / M / L)</text>
+  <path d="M 446 827 L 216 827 L 216 872" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="71" y="924" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="947" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Chọn danh sách Topping đi kèm</text>
+  <path d="M 216 910 L 216 924" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="71" y="976" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="999" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Bấm &quot;Thêm vào giỏ hàng&quot;</text>
+  <path d="M 216 962 L 216 976" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="1032" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1055" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Cập nhật giỏ hàng cục bộ (cartStore)</text>
+  <path d="M 361 995 L 591 995 L 591 1032" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="1084" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1107" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Tính lại tổng tiền:</text>
+  <text x="591" y="1123" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">sum((Giá size + Topping) * SL)</text>
+  <path d="M 591 1070 L 591 1084" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="1152" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1175" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Hiển thị thông báo &quot;Đã thêm vào giỏ hàng&quot;</text>
+  <path d="M 591 1138 L 591 1152" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="71" y="1208" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="1231" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Mở giỏ hàng kiểm tra danh sách món</text>
+  <path d="M 446 1171 L 216 1171 L 216 1208" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="71" y="1260" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="1283" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Bấm nút &quot;Tiến hành đặt hàng&quot;</text>
+  <path d="M 216 1246 L 216 1260" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <polygon points="591,1320 707,1352 591,1384 475,1352" fill="#FEFCBF" stroke="#B7791F" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1349" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">Khách hàng đã đăng nhập?</text>
+  <text x="591" y="1363" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">(Có JWT Token hợp lệ)</text>
+  <path d="M 361 1279 L 591 1279 L 591 1320" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="1420" width="290" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1443" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Lấy accessToken (Bearer JWT)</text>
+  <text x="591" y="1459" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">từ authStore</text>
+  <path d="M 591 1384 L 591 1420" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="542" y="1393" width="98" height="16" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.9"/>
+  <text x="591" y="1405" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16A34A">[Đã đăng nhập]</text>
+  <rect x="446" y="1518" width="290" height="38" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1541" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Lưu tạm trạng thái giỏ hàng</text>
+  <path d="M 707 1352 L 770 1352 L 770 1498 L 591 1498 L 591 1518" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="536" y="1482" width="110" height="16" rx="4" fill="#FFFBEB" stroke="#D97706" stroke-width="0.9"/>
+  <text x="591" y="1494" text-anchor="middle" font-size="9.5" font-weight="700" fill="#D97706">[Chưa đăng nhập]</text>
+  <rect x="446" y="1570" width="290" height="54" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1593" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Chuyển hướng (Redirect) sang</text>
+  <text x="591" y="1609" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">trang Đăng nhập / Đăng ký</text>
+  <path d="M 591 1556 L 591 1570" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="71" y="1640" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="1663" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Nhập thông tin tài khoản</text>
+  <text x="216" y="1679" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">(Email &amp; Password)</text>
+  <path d="M 446 1597 L 216 1597 L 216 1640" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="446" y="1710" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1733" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Gửi POST /auth/login hoặc</text>
+  <text x="591" y="1749" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">POST /auth/register</text>
+  <path d="M 361 1667 L 591 1667 L 591 1710" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="831" y="1780" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="1803" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Xác thực mật khẩu (bcrypt)</text>
+  <text x="976" y="1819" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">và cấp Token JWT</text>
+  <path d="M 736 1737 L 976 1737 L 976 1780" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="446" y="1850" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1873" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Lưu Token JWT vào authStore</text>
+  <path d="M 831 1807 L 591 1807 L 591 1850" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <rect x="446" y="1902" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="1925" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Tự động điều hướng quay lại</text>
+  <text x="591" y="1941" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">trang Giỏ hàng / Checkout</text>
+  <path d="M 591 1888 L 591 1902" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <polygon points="591,1978 603,1990 591,2002 579,1990" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+  <path d="M 591 1956 L 591 1978" fill="none" stroke="#D97706" stroke-width="1.6" marker-end="url(#arrow-amber)"/>
+  <path d="M 446 1447 L 410 1447 L 410 1990 L 579 1990" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="446" y="2018" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="2041" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Gửi request POST /orders</text>
+  <text x="591" y="2057" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">(kèm giỏ hàng + Bearer Token)</text>
+  <path d="M 591 2002 L 591 2018" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="2090" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2113" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Bắt đầu Database Transaction</text>
+  <text x="976" y="2129" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">($transaction)</text>
+  <path d="M 736 2045 L 976 2045 L 976 2090" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="2158" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2181" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Kiểm tra số lượng tồn kho (stock)</text>
+  <text x="976" y="2197" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">của từng món</text>
+  <path d="M 976 2144 L 976 2158" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <polygon points="976,2232 1082,2262 976,2292 870,2262" fill="#FEFCBF" stroke="#B7791F" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2259" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">Tồn kho đáp ứng đủ</text>
+  <text x="976" y="2273" text-anchor="middle" font-size="10.5" font-weight="700" fill="#744210">số lượng yêu cầu?</text>
+  <path d="M 976 2212 L 976 2232" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="2328" width="290" height="38" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2351" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Rollback Database Transaction</text>
+  <path d="M 976 2292 L 976 2328" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="891" y="2301" width="170" height="16" rx="4" fill="#FEF2F2" stroke="#DC2626" stroke-width="0.9"/>
+  <text x="976" y="2313" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DC2626">[Hết hàng / Thiếu tồn kho]</text>
+  <rect x="831" y="2380" width="290" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2403" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Ném lỗi 400 Bad Request /</text>
+  <text x="976" y="2419" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">409 Conflict</text>
+  <path d="M 976 2366 L 976 2380" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="446" y="2380" width="290" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="2403" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Hiển thị Toast: &quot;Sản phẩm không</text>
+  <text x="591" y="2419" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">đủ tồn kho, vui lòng chọn lại!&quot;</text>
+  <path d="M 831 2407 L 736 2407" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="71" y="2380" width="290" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="2403" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">Quay lại Giỏ hàng để</text>
+  <text x="216" y="2419" text-anchor="middle" font-size="11.5" font-weight="500" fill="#991B1B">điều chỉnh số lượng</text>
+  <path d="M 446 2407 L 361 2407" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <path d="M 216 2434 L 216 2452" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrow-red)"/>
+  <rect x="188" y="2454" width="56" height="18" rx="9" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="216" y="2466" text-anchor="middle" font-size="9.5" font-style="italic" font-weight="600" fill="#475569">detach</text>
+  <rect x="831" y="2488" width="290" height="54" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2511" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Áp dụng Optimistic Lock (version)</text>
+  <text x="976" y="2527" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">&amp; Trừ tồn kho tạm thời</text>
+  <path d="M 1082 2262 L 1150 2262 L 1150 2468 L 976 2468 L 976 2488" fill="none" stroke="#16A34A" stroke-width="1.6" marker-end="url(#arrow-green)"/>
+  <rect x="930" y="2452" width="92" height="16" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.9"/>
+  <text x="976" y="2464" text-anchor="middle" font-size="9.5" font-weight="700" fill="#16A34A">[Đủ số lượng]</text>
+  <rect x="831" y="2556" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2579" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Tạo bản ghi Order mới với</text>
+  <text x="976" y="2595" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">trạng thái &#x27;PENDING&#x27;</text>
+  <path d="M 976 2542 L 976 2556" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="2624" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2647" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Tạo các bản ghi OrderItem</text>
+  <text x="976" y="2663" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">và OrderItemTopping</text>
+  <path d="M 976 2610 L 976 2624" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="2692" width="290" height="38" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2715" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Commit Transaction thành công</text>
+  <path d="M 976 2678 L 976 2692" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="831" y="2744" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="976" y="2767" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Trả về { orderId, total,</text>
+  <text x="976" y="2783" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">status: &#x27;PENDING&#x27; }</text>
+  <path d="M 976 2730 L 976 2744" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="446" y="2816" width="290" height="54" rx="8" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="591" y="2839" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">Nhận orderId và chuyển hướng</text>
+  <text x="591" y="2855" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">sang màn hình Thanh toán</text>
+  <path d="M 831 2771 L 591 2771 L 591 2816" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="71" y="2890" width="290" height="54" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="216" y="2913" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1E293B">Đơn hàng PENDING sẵn sàng</text>
+  <text x="216" y="2929" text-anchor="middle" font-size="11.5" font-weight="500" fill="#1E293B">thanh toán</text>
+  <path d="M 446 2843 L 216 2843 L 216 2890" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="361" y1="2917" x2="441" y2="2921" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <polygon points="441,2884 729,2884 741,2896 741,2958 441,2958" fill="#FFFBEB" stroke="#D97706" stroke-width="1.2" filter="url(#shadow)"/>
+  <polyline points="729,2884 729,2896 741,2896" fill="#FDE68A" stroke="#D97706" stroke-width="1.2"/>
+  <text x="451" y="2900" font-size="10.5" font-weight="700" fill="#92400E">ĐIỂM GIAO THOA (HANDSHAKE):</text>
+  <text x="451" y="2916" font-size="10" fill="#78350F">- Hoàn tất phần việc của Thành viên A</text>
+  <text x="451" y="2930" font-size="10" fill="#78350F">- Dữ liệu bàn giao: orderId, total, JWT</text>
+  <text x="451" y="2944" font-size="10" fill="#78350F">- Trạng thái Order trong DB: PENDING</text>
+  <circle cx="216" cy="2981" r="13" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+  <circle cx="216" cy="2981" r="8" fill="#0F172A"/>
+  <path d="M 216 2944 L 216 2968" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+</svg>
