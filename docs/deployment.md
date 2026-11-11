@@ -26,7 +26,14 @@ Mô hình triển khai của **BrewLite** tách biệt rõ ràng thành **3 ranh
 
 ## 2. Sơ Đồ Triển Khai UML (UML Deployment Diagram)
 
-> Tệp nguồn PlantUML được lưu trữ tại: [`docs/diagrams/deployment.puml`](diagrams/deployment.puml)
+> **Tệp nguồn PlantUML & Vector SVG**:
+> - PlantUML chi tiết ([N-xx] Node & [C-xx] Connection): [`docs/diagrams/deployment-diagram.puml`](diagrams/deployment-diagram.puml)
+> - PlantUML kiến trúc rút gọn: [`docs/diagrams/deployment.puml`](diagrams/deployment.puml)
+> - Ảnh vector chất lượng cao: [`docs/diagrams/deployment-diagram.svg`](diagrams/deployment-diagram.svg)
+
+![Sơ Đồ Triển Khai Hệ Thống BrewLite](diagrams/deployment-diagram.svg)
+
+### 2.1. Sơ đồ luồng kết nối tương tác (Interactive Mermaid Flowchart)
 
 ```mermaid
 flowchart TB
