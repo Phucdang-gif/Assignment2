@@ -1,0 +1,99 @@
+@startuml usecase-general
+!theme plain
+skinparam packageStyle rectangle
+skinparam roundcorner 10
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 12
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #2D3748
+    ArrowColor #4A5568
+}
+
+skinparam actor {
+    BackgroundColor #EDF2F7
+    BorderColor #2B6CB0
+}
+
+title SƠ ĐỒ USE-CASE TỔNG QUÁT HỆ THỐNG BREWLITE
+
+' Định nghĩa 4 Actor đều là dạng người que (stick figure)
+actor "Khách hàng\n(Customer)" as Customer #EBF8FF
+actor "Nhân viên quầy\n(Barista)" as Barista #F0FFF4
+actor "Quản lý cửa hàng\n(Store Manager)" as Manager #FEFCBF
+actor "Cổng thanh toán\n(Payment Service)" as PaymentService #FFF1F2
+
+rectangle "Hệ thống Đặt đồ uống BrewLite" as BrewLiteSystem #F8FAFC {
+
+  package "Phân hệ Khách hàng (Ordering Flow)" {
+    usecase "UC-01: Xem menu đồ uống" as UC_Menu
+    usecase "UC-02: Tìm kiếm & lọc đồ uống" as UC_Search
+    usecase "UC-03: Xem chi tiết món" as UC_Detail
+    usecase "UC-04: Tùy biến Size & Topping" as UC_Customize
+    usecase "UC-05: Quản lý giỏ hàng" as UC_Cart
+    usecase "UC-06: Đặt hàng mới" as UC_Order
+    usecase "UC-07: Thanh toán trực tuyến" as UC_Payment
+    usecase "UC-08: Theo dõi trạng thái đơn" as UC_Tracking
+    usecase "UC-09: Xem lịch sử & tích điểm" as UC_History
+  }
+
+  package "Phân hệ Xác thực (Authentication)" {
+    usecase "UC-10: Đăng ký tài khoản" as UC_Register
+    usecase "UC-11: Đăng nhập cấp JWT" as UC_Login
+  }
+
+  package "Phân hệ Pha chế (Barista Operations)" {
+    usecase "UC-12: Tiếp nhận đơn đã thanh toán" as UC_ReceiveOrder
+    usecase "UC-13: Cập nhật tiến độ pha chế" as UC_UpdateStatus
+  }
+
+  package "Phân hệ Quản trị (Store Management)" {
+    usecase "UC-14: Bật/tắt món & topping" as UC_ManageItems
+    usecase "UC-15: Xem báo cáo đơn & doanh thu" as UC_Report
+  }
+
+  ' Các quan hệ Include / Extend trong hệ thống
+  UC_Search .> UC_Menu : <<extend>>
+  UC_Customize .> UC_Detail : <<extend>>
+  UC_Order .> UC_Cart : <<include>>
+  UC_Payment .> UC_Order : <<include>>
+
+  ' QUY TẮC ĐĂNG NHẬP:
+  ' - UC-05 (Giỏ hàng) và UC-06 (Đặt hàng) KHÔNG cần đăng nhập
+  ' - UC-07 (Thanh toán) BẮT BUỘC cần đăng nhập trước khi thanh toán
+  ' - UC-13 (Cập nhật tiến độ pha chế) BẮT BUỘC Barista phải đăng nhập
+  UC_Payment .> UC_Login : <<include>>
+  UC_UpdateStatus .> UC_Login : <<include>>
+  UC_History .> UC_Login : <<include>>
+
+  UC_UpdateStatus .> UC_ReceiveOrder : <<include>>
+}
+
+' Tương tác của Khách hàng
+Customer --> UC_Menu
+Customer --> UC_Detail
+Customer --> UC_Cart
+Customer --> UC_Order
+Customer --> UC_Payment
+Customer --> UC_Tracking
+Customer --> UC_History
+Customer --> UC_Register
+Customer --> UC_Login
+
+' Tương tác của Barista
+Barista --> UC_Login
+Barista --> UC_ReceiveOrder
+Barista --> UC_UpdateStatus
+
+' Tương tác của Quản lý cửa hàng
+Manager --> UC_Login
+Manager --> UC_ManageItems
+Manager --> UC_Report
+
+' Tương tác với Cổng thanh toán (Actor người que)
+UC_Payment --> PaymentService : <<interact>>
+
+@enduml
