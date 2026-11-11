@@ -1,0 +1,32 @@
+@startuml c4-backend-components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram for NestJS Backend (Task 3.1)
+
+Container(web_app, "Next.js Frontend (PWA)", "Next.js 14 / Zustand Store", "Giao diện khách hàng và barista")
+ContainerDb(db, "PostgreSQL Database", "PostgreSQL", "Bảng Users, Products, Orders, Payments...")
+System_Ext(mock_pay, "Mock Payment Provider", "VietQR / Wallet / Card Mock")
+
+Container_Boundary(api_boundary, "NestJS Modular Backend API") {
+    Component(auth_mod, "AuthModule", "NestJS Controller & Service, Passport, JwtStrategy", "Xử lý đăng ký, đăng nhập bcrypt, cấp phát và xác thực JWT token.")
+    Component(products_mod, "Products & Toppings Module", "NestJS Controller & Service", "Quản lý danh mục đồ uống, giá theo size, trạng thái còn/hết topping.")
+    Component(orders_mod, "OrdersModule", "NestJS Controller & Service", "Xử lý tạo đơn hàng, tính tiền, kiểm tra tồn kho và quản lý vòng đời đơn.")
+    Component(payments_mod, "PaymentsModule", "NestJS Controller & Service", "Xử lý thanh toán an toàn, kiểm tra Idempotency-Key và đối soát.")
+    Component(prisma_mod, "PrismaModule", "PrismaClient Singleton Service", "Tầng kết nối và truy vấn cơ sở dữ liệu, quản lý transaction ACID.")
+    Component(config_mod, "ConfigModule & Health", "NestJS ConfigService, Terminus Health", "Nạp biến môi trường .env, cung cấp endpoint GET /api/health.")
+}
+
+Rel(web_app, auth_mod, "POST /api/auth/login, register", "JSON / REST")
+Rel(web_app, products_mod, "GET /api/products, toppings", "JSON / REST")
+Rel(web_app, orders_mod, "POST /api/orders, GET /api/orders", "JSON / REST (JWT)")
+Rel(web_app, payments_mod, "POST /api/payments", "JSON / REST (JWT + Idempotency-Key)")
+
+Rel(auth_mod, prisma_mod, "Tìm và tạo User", "Prisma Client")
+Rel(products_mod, prisma_mod, "Query Products & Toppings", "Prisma Client")
+Rel(orders_mod, prisma_mod, "Chạy $transaction tạo Order, giảm tồn kho Product", "Prisma Client")
+Rel(payments_mod, prisma_mod, "Lưu Payment record, update Order status", "Prisma Client")
+Rel(payments_mod, mock_pay, "Thực hiện thanh toán mô phỏng", "HTTP/REST")
+Rel(prisma_mod, db, "Đọc/Ghi dữ liệu", "TCP/Postgres Port 5432")
+@enduml

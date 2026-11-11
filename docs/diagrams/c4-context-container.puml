@@ -1,0 +1,25 @@
+@startuml c4-context-container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context & Container Diagram for BrewLite System (Task 3.1)
+
+Person(customer, "Khách hàng (Customer)", "Người dùng truy cập ứng dụng để xem menu, đặt đồ uống và thanh toán trực tuyến qua điện thoại.")
+Person(barista, "Nhân viên (Barista / Staff)", "Nhân viên quầy pha chế tiếp nhận đơn hàng, cập nhật trạng thái làm món và quản lý tồn kho topping.")
+
+System_Boundary(c1, "BrewLite Coffee Ordering System") {
+    Container(web_app, "Web Application / PWA", "Next.js 14, React, Tailwind CSS, Zustand", "Cung cấp giao diện Mobile-first đặt món, giỏ hàng và màn hình theo dõi đơn thời gian thực cho khách hàng và barista.")
+    Container(api_app, "Backend API Application", "NestJS, TypeScript, Node.js", "Cung cấp toàn bộ RESTful API, xác thực JWT, xử lý nghiệp vụ đơn hàng, kiểm tra Idempotency Key và giao dịch tồn kho.")
+    ContainerDb(rel_db, "Relational Database", "PostgreSQL 15+", "Lưu trữ dữ liệu có cấu trúc: Users, Products, Toppings, Orders, OrderItems, Payments. Quản lý schema bằng Prisma Migration.")
+}
+
+System_Ext(payment_gateway, "Dịch vụ thanh toán mô phỏng (Mock Gateway)", "Cung cấp API giả lập trừ tiền thẻ/ví và sinh mã chuyển khoản VietQR tự động.")
+
+Rel(customer, web_app, "Duyệt menu, thêm giỏ hàng, đặt đơn & thanh toán", "HTTPS / trình duyệt di động")
+Rel(barista, web_app, "Xem danh sách đơn pha chế, đổi trạng thái đơn", "HTTPS / trình duyệt máy tính hoặc tablet")
+
+Rel(web_app, api_app, "Gửi yêu cầu REST API (JSON payload, JWT Header)", "JSON / HTTPS trên Port 3001")
+Rel(api_app, rel_db, "Đọc/ghi dữ liệu, thực hiện transaction & optimistic lock", "Prisma Client / TCP Port 5432")
+Rel(api_app, payment_gateway, "Gửi thông tin giao dịch, kiểm tra Idempotency Key", "REST API / HTTP")
+@enduml
