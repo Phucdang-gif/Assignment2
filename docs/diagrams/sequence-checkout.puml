@@ -80,7 +80,7 @@ else Token hợp lệ
             API -> DB : Tìm Payment theo idempotencyKey
             DB --> API : Kết quả tra cứu
 
-            alt idempotencyKey đã tồn tại, COMPLETED (A2 - client gửi lại / bấm 2 lần)
+            alt idempotencyKey đã tồn tại trong DB (A2 - client gửi lại / bấm 2 lần)
                 API --> UI : 200 OK (kết quả giao dịch cũ)\nKHÔNG gọi Payment Service, KHÔNG trừ tiền lần 2
                 UI --> C : Thông báo thanh toán thành công (kết quả cũ)
             else idempotencyKey chưa tồn tại
@@ -91,7 +91,7 @@ else Token hợp lệ
                     deactivate PAY
                     API -> DB : BEGIN transaction
                     activate DB
-                    API -> DB : Lưu Payment (idempotencyKey, COMPLETED)\nUPDATE Order -> PAID\nUPDATE User.loyaltyPoints += floor(total / 10000)
+                    API -> DB : Lưu Payment (idempotencyKey, amount, method)\nUPDATE Order -> PAID\nUPDATE User.loyaltyPoints += floor(total / 10000)
                     API -> DB : COMMIT
                     DB --> API : OK
                     deactivate DB

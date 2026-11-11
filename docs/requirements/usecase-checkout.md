@@ -248,7 +248,7 @@ Dưới đây là bảng đặc tả chi tiết cho toàn bộ 8 Use-Case trong 
 
 ### 5.2. Luồng thay thế (Alternative Flows)
 - **A1 - Đổi phương thức thanh toán**: Tại Bước 3, khách chuyển từ `WALLET` sang `CARD`. UI hiển thị form thẻ mô phỏng.
-- **A2 - Idempotency Retry (Mạng lag/khách bấm 2 lần)**: Tại Bước 9, NestJS API phát hiện `idempotencyKey` đã tồn tại trong DB với trạng thái `COMPLETED` $\rightarrow$ Trả về ngay kết quả giao dịch cũ với `200 OK`, không gọi Cổng thanh toán và không trừ tiền lần 2.
+- **A2 - Idempotency Retry (Mạng lag/khách bấm 2 lần)**: Tại Bước 9, NestJS API phát hiện `idempotencyKey` đã tồn tại trong DB (giao dịch đã ghi nhận thành công trước đó) $\rightarrow$ Trả về ngay kết quả giao dịch cũ với `200 OK`, không gọi Cổng thanh toán và không trừ tiền lần 2.
 
 ### 5.3. Luồng ngoại lệ (Exception Flows)
 - **E1 - Giỏ hàng rỗng**: UI phát hiện `items.length === 0` $\rightarrow$ Khóa nút thanh toán và báo "Giỏ hàng rỗng".

@@ -359,13 +359,13 @@ Dòng sự kiện chính &
 \hline
 Dòng sự kiện phụ & 
 \begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt,parsep=0pt,partopsep=0pt]
-    \item \textbf{3a. Khóa đã tồn tại với trạng thái \texttt{COMPLETED}:}
+    \item \textbf{3a. Khóa đã tồn tại trong CSDL (giao dịch thành công trước đó):}
     \begin{enumerate}[itemsep=1pt]
         \item Hệ thống nhận diện đây là yêu cầu gửi lại (retry do mạng lag).
         \item Hệ thống lập tức ngắt luồng gọi sang Cổng thanh toán (chặn hoàn toàn việc trừ tiền lần 2).
         \item Hệ thống lấy dữ liệu kết quả thanh toán trước đó trong CSDL và phản hồi ngay HTTP 200 OK kèm thông tin giao dịch cũ.
     \end{enumerate}
-    \item \textbf{3b. Khóa đã tồn tại với trạng thái \texttt{PROCESSING}:} Hệ thống trả về HTTP 409 Conflict thông báo giao dịch đang được xử lý, đề nghị khách hàng chờ kết quả.
+    \item \textbf{3b. Khóa đang được xử lý đồng thời (Concurrent Request):} Hệ thống trả về HTTP 409 Conflict thông báo giao dịch đang được xử lý, đề nghị khách hàng chờ kết quả.
 \end{itemize} \\
 \hline
 Tiền điều kiện & Yêu cầu thanh toán gửi đến hệ thống có đính kèm tham số \texttt{idempotencyKey}. \\
@@ -517,8 +517,8 @@ Luồng chính gồm 8 giai đoạn phân định rõ giữa các thành phần 
 
 \subsection{Các luồng thay thế (Alternative Flows)}
 \begin{itemize}[leftmargin=*,itemsep=3pt]
-    \item \textbf{A1 -- Thay đổi phương thức thanh toán:} Tại Bước 3, khách hàng có thể chuyển đổi giữa Ví điện tử (\texttt{VietQR}) và (\texttt{Momo}).
-    \item \textbf{A2 -- Xử lý gửi lại với IMomodempotency Key (Chống trừ tiền trùng):} Trường hợp mạng lag khách hàng bấm 2 lần liên tiếp, hoặc Client retry gửi lại cùng một \texttt{idempotencyKey}. Tại Bước 7, NestJS API phát hiện key đã tồn tại với trạng thái \texttt{COMPLETED} $\rightarrow$ Hệ thống không gọi cổng thanh toán lần 2 và không trừ tiền lần 2, mà trả về ngay dữ liệu kết quả cũ kèm HTTP \texttt{200 OK}.
+    \item \textbf{A1 -- Thay đổi phương thức thanh toán:} Tại Bước 3, khách hàng có thể chuyển đổi giữa Ví điện tử (\texttt{WALLET}) và Thẻ (\texttt{CARD}).
+    \item \textbf{A2 -- Xử lý gửi lại với Idempotency Key (Chống trừ tiền trùng):} Trường hợp mạng lag khách hàng bấm 2 lần liên tiếp, hoặc Client retry gửi lại cùng một \texttt{idempotencyKey}. Tại Bước 7, NestJS API phát hiện key đã tồn tại với trạng thái \texttt{COMPLETED} $\rightarrow$ Hệ thống không gọi cổng thanh toán lần 2 và không trừ tiền lần 2, mà trả về ngay dữ liệu kết quả cũ kèm HTTP \texttt{200 OK}.
 \end{itemize}
 
 \subsection{Các luồng ngoại lệ (Exception Flows)}

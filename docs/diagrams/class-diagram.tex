@@ -47,12 +47,12 @@
 % Tiêu đề tài liệu
 \begin{center}
     {\LARGE \textbf{\textcolor{brandblue}{THIẾT KẾ SƠ ĐỒ LỚP MIỀN NGHIỆP VỤ}}}\\[0.3cm]
-    {\large \textbf{(Domain Class Diagram -- UML 2.5 Specification)}}\\[0.4cm]
+    {\large \textbf{(Domain Class Diagram)}}\\[0.4cm]
     \begin{tcolorbox}[colback=lightgray,colframe=brandblue,arc=3mm,width=0.95\textwidth]
         \small
         \textbf{Dự án:} Hệ thống Đặt đồ uống trực tuyến BrewLite\\
         \textbf{Học phần:} Công nghệ Phần mềm (Software Engineering) -- Assignment 2\\
-        \textbf{Mã nhiệm vụ:} Task 2.3 \hfill \textbf{Mã truy vết:} Class-01\\
+        \textbf{Nhiệm vụ:} Task 2.3 \hfill \textbf{Mã truy vết:} Class-01\\
         \textbf{Tệp nguồn PlantUML:} \href{run:class-diagram.puml}{\texttt{docs/diagrams/class-diagram.puml}}\\
         \textbf{Tệp ảnh vector SVG:} \href{run:class-diagram.svg}{\texttt{docs/diagrams/class-diagram.svg}}
     \end{tcolorbox}
@@ -62,7 +62,7 @@
 
 \section{Tổng quan mục tiêu \& Tiêu chí nghiệm thu}
 
-Tài liệu này hiện thực hóa Task 2.3 của đồ án BrewLite, xây dựng sơ đồ lớp ở mức Domain Model (mô hình miền nghiệp vụ). Sơ đồ mô tả cấu trúc dữ liệu tĩnh, các thực thể kinh doanh, mối quan hệ cấu trúc, ràng buộc đa số (multiplicity), và các kiểu liệt kê trạng thái (enumerations).
+Tài liệu này hiện thực hóa Task 2.3 của đồ án BrewLite, xây dựng sơ đồ lớp ở mức Domain Model (mô hình miền nghiệp vụ). Sơ đồ mô tả cấu trúc dữ liệu tĩnh, các thực thể kinh doanh, mối quan hệ cấu trúc, ràng buộc đa số (multiplicity), và các kiểu liệt kê trạng thái (enumerations), đồng bộ tuyệt đối với mô hình dữ liệu thực tế tại \texttt{api/prisma/seed.js} và \texttt{schema.prisma}.
 
 \section{Sơ đồ Lớp miền nghiệp vụ (Domain Class Diagram)}
 
@@ -78,7 +78,7 @@ Sơ đồ được thiết kế bằng ngôn ngữ mô hình hóa PlantUML chu�
             \vspace{0.5cm}
             \textbf{Sơ đồ Lớp Miền Nghiệp Vụ BrewLite (Class-01)}\\[0.2cm]
             \textit{(Tệp đồ họa vector sắc nét lưu tại: \texttt{docs/diagrams/class-diagram.svg})}\\[0.2cm]
-            Mô hình hóa 10 thực thể miền, 8 Enumerations trạng thái, cùng các quan hệ Composition và Association hoàn chỉnh.
+            Mô hình hóa 10 thực thể miền, 7 Enumerations trạng thái, cùng các quan hệ Composition và Association hoàn chỉnh.
             \vspace{0.5cm}
         \end{minipage}}
     }
@@ -88,7 +88,7 @@ Sơ đồ được thiết kế bằng ngôn ngữ mô hình hóa PlantUML chu�
 
 \section{Đặc tả chi tiết các Lớp Miền Nghiệp Vụ (Domain Entities)}
 
-Hệ thống bao gồm **10 thực thể** (đáp ứng trọn vẹn 7 thực thể bắt buộc của đề bài cùng 3 thực thể hỗ trợ danh mục và topping theo mã nguồn thực tế):
+Hệ thống bao gồm \textbf{10 thực thể} (đáp ứng trọn vẹn 7 thực thể bắt buộc của đề bài cùng 3 thực thể hỗ trợ danh mục và topping theo mã nguồn thực tế):
 
 \vspace{0.2cm}
 \noindent
@@ -131,7 +131,7 @@ Quản lý tài khoản, mã hóa mật khẩu \texttt{bcrypt} và tích điểm
 
 \textbf{2} & \textbf{Product}\newline\textit{(Bắt buộc)} & 
 \texttt{id: BigInt [PK]}\newline
-\texttt{categoryId: Int [FK]}\newline
+\texttt{categoryId: Int [FK, Null]}\newline
 \texttt{name: String}\newline
 \texttt{price: Decimal(12,2)}\newline
 \texttt{imageUrl, description: String}\newline
@@ -149,10 +149,8 @@ Quản lý tồn kho đồ uống; kiểm soát tranh chấp bằng khóa lạc 
 \textbf{3} & \textbf{Order}\newline\textit{(Bắt buộc)} & 
 \texttt{id: BigInt [PK]}\newline
 \texttt{userId: BigInt [FK]}\newline
-\texttt{promotionId: BigInt [FK, Null]}\newline
 \texttt{status: order\_status = PENDING}\newline
-\texttt{subtotal, total: Decimal(12,2)}\newline
-\texttt{discountAmount: Decimal(12,2)}\newline
+\texttt{total: Decimal(12,2) = 0}\newline
 \texttt{createdAt, updatedAt: DateTime} & 
 \texttt{calculateTotal(): Decimal}\newline
 \texttt{applyPromotion(promo): Void}\newline
@@ -167,7 +165,7 @@ Thực thi máy trạng thái 7 bước, tính tổng tiền và hoàn trả kho
 \texttt{productId: BigInt [FK]}\newline
 \texttt{size: product\_size = M}\newline
 \texttt{qty: Int >= 1}\newline
-\texttt{unitPrice, lineTotal: Decimal(12,2)} & 
+\texttt{lineTotal: Decimal(12,2)} & 
 \texttt{calculateLineTotal(): Decimal}\newline
 Từng dòng món đặt trong đơn hàng kèm cấu hình dung tích kích cỡ. \\
 \hline
@@ -177,10 +175,7 @@ Từng dòng món đặt trong đơn hàng kèm cấu hình dung tích kích c�
 \texttt{orderId: BigInt [FK]}\newline
 \texttt{idempotencyKey: String [Unique]}\newline
 \texttt{amount: Decimal(12,2)}\newline
-\texttt{method: payment\_method}\newline
-\texttt{status: payment\_status}\newline
-\texttt{transactionRef: String}\newline
-\texttt{createdAt: DateTime} & 
+\texttt{method: payment\_method} & 
 \texttt{processPayment(): Boolean}\newline
 \texttt{isIdempotentDuplicate(key): Boolean}\newline
 Xử lý trừ tiền trực tuyến mô phỏng, bảo đảm chống trừ tiền trùng bằng khóa Idempotency duy nhất. \\
@@ -196,7 +191,7 @@ Xử lý trừ tiền trực tuyến mô phỏng, bảo đảm chống trừ ti�
 \texttt{isActive: Boolean = true} & 
 \texttt{isValid(now, orderVal): Boolean}\newline
 \texttt{computeDiscount(subtotal): Decimal}\newline
-Quản lý mã giảm giá và chiết khấu ưu đãi theo hạng thành viên (Bạc, Vàng, Kim Cương). \\
+Quản lý mã giảm giá và chiết khấu ưu đãi theo hạng thành viên. \\
 \hline
 
 \textbf{7} & \textbf{LoyaltyTransaction}\newline\textit{(Bắt buộc)} & 
@@ -217,7 +212,7 @@ Lưu vết chi tiết lịch sử cộng/trừ điểm thưởng thành viên (t
 \texttt{name: String [Unique]}\newline
 \texttt{createdAt, updatedAt: DateTime} & 
 \texttt{getActiveProducts(): List<Product>}\newline
-Phân nhóm thực đơn (Cà phê, Trà sữa, Freeze). \\
+Phân nhóm thực đơn (Cà phê, Trà trái cây, Trà sữa, Đá xay). \\
 \hline
 
 \textbf{9} & \textbf{Topping} & 
@@ -227,7 +222,7 @@ Phân nhóm thực đơn (Cà phê, Trà sữa, Freeze). \\
 \texttt{isAvailable: Boolean = true}\newline
 \texttt{createdAt: DateTime} & 
 \texttt{toggleAvailability(status): Void}\newline
-Nguyên liệu thêm kèm (trân châu, thạch, kem cheese). \\
+Nguyên liệu thêm kèm (trân châu, kem cheese, thạch dừa). \\
 \hline
 
 \textbf{10} & \textbf{OrderItemTopping} & 
@@ -244,11 +239,11 @@ Liên kết trung gian lưu vết giá topping tại thời điểm khách đặ
 \noindent
 \small
 \renewcommand{\arraystretch}{1.3}
-\begin{xltabular}{\textwidth}{|c|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}X|}
-\caption{Danh mục 8 Kiểu Liệt Kê (Domain Enumerations)} \label{tab:enums} \\
+\begin{xltabular}{\textwidth}{|c|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}X|}
+\caption{Danh mục 7 Kiểu Liệt Kê Chuẩn Hóa Theo CSDL} \label{tab:enums} \\
 \hline
 \rowcolor{tableheader}
-\textbf{STT} & \textbf{Tên Enum} & \textbf{Các giá trị hợp lệ} & \textbf{Ý nghĩa \& Phạm vi áp dụng} \\
+\textbf{STT} & \textbf{Tên Enum} & \textbf{Các giá trị hợp lệ} & \textbf{Ý nghĩa \& Nguồn kiểm chứng} \\
 \hline
 \endfirsthead
 
@@ -264,21 +259,19 @@ Liên kết trung gian lưu vết giá topping tại thời điểm khách đặ
 \hline
 \endlastfoot
 
-\textbf{1} & \texttt{order\_status} & \texttt{PENDING}, \texttt{PAID}, \texttt{PREPARING}, \texttt{READY}, \texttt{COMPLETED}, \texttt{PAYMENT\_FAILED}, \texttt{CANCELLED} & Vòng đời 7 trạng thái của đơn hàng theo máy trạng thái FSM. \\
+\textbf{1} & \texttt{user\_role} & \texttt{customer}, \texttt{barista} & Phân quyền truy cập người dùng trong hệ thống (RBAC) theo \texttt{seed\_data.sql}. \\
 \hline
-\textbf{2} & \texttt{payment\_method} & \texttt{WALLET}, \texttt{CARD} & Phương thức thanh toán mô phỏng (Ví điện tử hoặc Thẻ). \\
+\textbf{2} & \texttt{order\_status} & \texttt{PENDING}, \texttt{PAID}, \texttt{PREPARING}, \texttt{READY}, \texttt{COMPLETED}, \texttt{PAYMENT\_FAILED}, \texttt{CANCELLED} & Vòng đời 7 trạng thái của đơn hàng theo máy trạng thái FSM. \\
 \hline
-\textbf{3} & \texttt{payment\_status} & \texttt{SUCCESS}, \texttt{FAILED} & Kết quả xử lý trừ tiền từ cổng thanh toán mô phỏng. \\
+\textbf{3} & \texttt{payment\_method} & \texttt{WALLET}, \texttt{CARD} & Phương thức thanh toán mô phỏng (Ví điện tử hoặc Thẻ). \\
 \hline
 \textbf{4} & \texttt{product\_size} & \texttt{S}, \texttt{M}, \texttt{L} & Kích cỡ đồ uống (Size S cơ sở, M $+5.000$đ, L $+10.000$đ). \\
 \hline
 \textbf{5} & \texttt{ProductStatus} & \texttt{active}, \texttt{inactive} & Trạng thái kinh doanh bật/tắt của món đồ uống. \\
 \hline
-\textbf{6} & \texttt{user\_role} & \texttt{customer}, \texttt{barista}, \texttt{admin} & Phân quyền truy cập người dùng trong hệ thống (RBAC). \\
+\textbf{6} & \texttt{discount\_type} & \texttt{PERCENTAGE}, \texttt{FIXED\_AMOUNT}, \texttt{MEMBERSHIP\_TIER} & Phân loại hình thức chiết khấu khuyến mãi (Domain). \\
 \hline
-\textbf{7} & \texttt{discount\_type} & \texttt{PERCENTAGE}, \texttt{FIXED\_AMOUNT}, \texttt{MEMBERSHIP\_TIER} & Phân loại hình thức chiết khấu khuyến mãi. \\
-\hline
-\textbf{8} & \texttt{loyalty\_type} & \texttt{EARN}, \texttt{REDEEM}, \texttt{ADJUST} & Bản chất giao dịch điểm thưởng (Tích điểm khi đơn PAID, Đổi điểm thưởng). \\
+\textbf{7} & \texttt{loyalty\_type} & \texttt{EARN}, \texttt{REDEEM}, \texttt{ADJUST} & Bản chất giao dịch điểm thưởng (Tích điểm khi đơn PAID, Đổi điểm thưởng). \\
 \hline
 \end{xltabular}
 
@@ -287,12 +280,14 @@ Liên kết trung gian lưu vết giá topping tại thời điểm khách đặ
 Các mối quan hệ cấu trúc tuân thủ nghiêm ngặt ngữ nghĩa UML 2.5:
 
 \begin{itemize}[leftmargin=*,itemsep=3pt]
-    \item \textbf{\texttt{Category} $1$ -- $0..*$ \texttt{Product} (Association):} Một danh mục chứa từ 0 đến nhiều sản phẩm. Một sản phẩm thuộc về một danh mục duy nhất.
-    \item \textbf{\texttt{User} $1$ -- $0..*$ \texttt{Order} (Association):} Một khách hàng có thể khởi tạo 0 hoặc nhiều đơn hàng.
+    \item \textbf{\texttt{Category} $0..1$ -- $0..*$ \texttt{Product} (Association):} Một sản phẩm có thể thuộc về $0$ hoặc $1$ danh mục (\texttt{categoryId} nullable). Một danh mục chứa từ $0$ đến nhiều sản phẩm.
+    \item \textbf{\texttt{OrderItem} $0..*$ -- $1$ \texttt{Product} (Association):} Mỗi dòng chi tiết đơn hàng tham chiếu đến duy nhất 1 sản phẩm xác định.
+    \item \textbf{\texttt{User} $1$ -- $0..*$ \texttt{Order} (Association):} Một khách hàng có thể khởi tạo $0$ hoặc nhiều đơn hàng.
     \item \textbf{\texttt{Order} $1$ *-- $1..*$ \texttt{OrderItem} (Composition -- Hợp thành sống còn):} Mỗi đơn hàng bắt buộc phải có từ 1 đến nhiều món. Khi đơn hàng bị hủy bỏ triệt để khỏi hệ thống, các \texttt{OrderItem} con tự động bị xóa theo (\texttt{onDelete: Cascade}).
-    \item \textbf{\texttt{OrderItem} $1$ *-- $0..*$ \texttt{OrderItemTopping} (Composition):} Mỗi món đồ uống có thể chọn từ 0 đến nhiều loại topping đi kèm.
-    \item \textbf{\texttt{Order} $1$ -- $0..*$ \texttt{Payment} (Association):} Một đơn hàng liên kết với các lượt thanh toán. Cho phép lưu vết các lượt thanh toán thất bại (\texttt{PAYMENT\_FAILED}) trước khi có 1 lần thanh toán thành công (\texttt{PAID}).
-    \item \textbf{\texttt{Promotion} $0..1$ -- $0..*$ \texttt{Order} (Association):} Một đơn hàng có thể không áp dụng hoặc áp dụng tối đa một mã ưu đãi/chiết khấu thành viên.
+    \item \textbf{\texttt{OrderItem} $1$ *-- $0..*$ \texttt{OrderItemTopping} (Composition):} Mỗi món đồ uống có thể chọn từ 0 đến nhiều loại topping đi kèm (\texttt{onDelete: Cascade}).
+    \item \textbf{\texttt{Topping} $1$ <-- $0..*$ \texttt{OrderItemTopping} (Association):} Một loại topping có thể được chọn trong nhiều mục đặt hàng.
+    \item \textbf{\texttt{Order} $1$ -- $0..*$ \texttt{Payment} (Association):} Một đơn hàng liên kết với các lượt thanh toán qua khóa ngoại \texttt{orderId}.
+    \item \textbf{\texttt{Promotion} $0..1$ ..> $0..*$ \texttt{Order} (Dependency):} Một đơn hàng có thể không áp dụng hoặc áp dụng tối đa một mã ưu đãi/chiết khấu thành viên.
     \item \textbf{\texttt{User} $1$ -- $0..*$ \texttt{LoyaltyTransaction} (Association):} Một tài khoản khách hàng sở hữu toàn bộ lịch sử các giao dịch điểm tích lũy.
     \item \textbf{\texttt{Order} $0..1$ -- $0..1$ \texttt{LoyaltyTransaction} (Association):} Mỗi đơn hàng thanh toán thành công (\texttt{PAID}) phát sinh duy nhất một giao dịch cộng điểm thưởng ($10.000\text{đ} = 1\text{ điểm}$).
 \end{itemize}
@@ -323,13 +318,15 @@ Các mối quan hệ cấu trúc tuân thủ nghiêm ngặt ngữ nghĩa UML 2.5
 \hline
 \endlastfoot
 
-\textbf{1} & \textbf{Cơ sở dữ liệu}\newline\path{schema.prisma} & Khóa chính, khóa ngoại, kiểu dữ liệu, trường khóa lạc quan, trường chống trùng thanh toán. & 
+\textbf{1} & \textbf{Cơ sở dữ liệu \& Seed}\newline\path{api/prisma/seed.js}\newline\path{schema.prisma} & Khóa chính, khóa ngoại, kiểu dữ liệu, enum vai trò, bảng thanh toán. & 
 Trùng khớp 100\% các kiểu: \texttt{BigInt}, \texttt{Decimal(12,2)}, \texttt{DateTime}.\newline
 Trường \texttt{Product.version} thực thi Optimistic Concurrency Control.\newline
-Trường \texttt{Payment.idempotencyKey} gán thuộc tính \texttt{[Unique]}. \\
+Trường \texttt{Payment.idempotencyKey} gán thuộc tính \texttt{[Unique]}.\newline
+Chuẩn hóa enum \texttt{user\_role} (\texttt{customer}, \texttt{barista}).\newline
+Bảng \texttt{Payment} chỉ giữ các trường thực tế, trạng thái giao dịch đặt tại \texttt{Order.status}. \\
 \hline
 
-\textbf{2} & \textbf{Đặc tả yêu cầu (SRS)}\newline\path{srs.md} & Các mã chức năng: FR-01, FR-02, FR-03, FR-05, FR-06, FR-07, FR-08, FR-10, FR-11. & 
+\textbf{2} & \textbf{Đặc tả yêu cầu (SRS)}\newline\path{srs.md} & Các mã chức năng: FR-01, FR-02, FR-03, FR-05, FR-06, FR-07, FR-08, FR-11. & 
 FR-01/02 qua \texttt{Product}, \texttt{Category}, \texttt{Topping}.\newline
 FR-03 qua \texttt{OrderItem}.\newline
 FR-05 qua \texttt{Order.status = PENDING}.\newline
