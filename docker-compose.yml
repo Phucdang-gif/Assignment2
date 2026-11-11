@@ -1,7 +1,9 @@
+name: assignment2
+
 services:
   db:
     image: postgres:16-alpine
-    container_name: brewlite-db
+    container_name: assignment2-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: brewlite
@@ -20,8 +22,7 @@ services:
   backend:
     build:
       context: ./apps/api
-      dockerfile: Dockerfile
-    container_name: brewlite-backend
+    container_name: assignment2-api
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -38,8 +39,7 @@ services:
   frontend:
     build:
       context: ./apps/web
-      dockerfile: Dockerfile
-    container_name: brewlite-frontend
+    container_name: assignment2-web
     restart: unless-stopped
     ports:
       - "3000:3000"
