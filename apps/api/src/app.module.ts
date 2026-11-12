@@ -5,6 +5,10 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { ToppingsModule } from './toppings/toppings.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -12,6 +16,10 @@ import { ProductsModule } from './products/products.module';
     PrismaModule,
     CategoriesModule,
     ProductsModule,
+    UsersModule,
+    AuthModule,
+    ToppingsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

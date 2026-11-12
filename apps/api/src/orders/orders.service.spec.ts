@@ -1,0 +1,402 @@
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { order_status } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
+import { OrdersService } from './orders.service';
+
+describe('OrdersService', () => {
+  let service: OrdersService;
+  let mockPrisma: any;
+  let mockUsersService: any;
+
+  beforeEach(async () => {
+    mockPrisma = {
+      order: {
+        findMany: jest.fn().mockResolvedValue([]),
+        findUnique: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+      product: {
+        findUnique: jest.fn(),
+        updateMany: jest.fn(),
+        update: jest.fn(),
+      },
+      ingredient: {
+        update: jest.fn(),
+      },
+      productRecipeItem: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      topping: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      $queryRaw: jest.fn(),
+      $transaction: jest.fn(async (cb) => {
+        if (typeof cb === 'function') {
+          return cb(mockPrisma);
+        }
+        return cb;
+      }),
+    };
+
+    mockUsersService = {
+      findOne: jest.fn().mockResolvedValue({ id: 1, email: 'test@brewlite.com', loyaltyPoints: 0 }),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        OrdersService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: UsersService, useValue: mockUsersService },
+      ],
+    }).compile();
+
+    service = module.get<OrdersService>(OrdersService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('findBaristaQueue (Quyền xem đơn trong Barista Dashboard)', () => {
+    it('Khách hàng (customer) chỉ xem được danh sách đơn hàng của chính mình', async () => {
+      const customerId = 10;
+      mockUsersService.findOne.mockResolvedValue({
+        id: customerId,
+        email: 'customer@brewlite.com',
+        role: 'customer',
+      });
+      mockPrisma.order.findMany.mockResolvedValue([
+        { id: BigInt(1), userId: BigInt(customerId), status: order_status.PAID },
+      ]);
+
+      await service.findBaristaQueue(customerId);
+
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(customerId);
+      expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: BigInt(customerId),
+          }),
+        }),
+      );
+    });
+
+    it('Barista có thể xem toàn bộ đơn hàng trong hàng đợi (không bị giới hạn bởi userId)', async () => {
+      const baristaId = 2;
+      mockUsersService.findOne.mockResolvedValue({
+        id: baristaId,
+        email: 'barista@brewlite.com',
+        role: 'barista',
+      });
+      mockPrisma.order.findMany.mockResolvedValue([
+        { id: BigInt(1), userId: BigInt(10), status: order_status.PAID },
+        { id: BigInt(2), userId: BigInt(20), status: order_status.PREPARING },
+      ]);
+
+      await service.findBaristaQueue(baristaId);
+
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(baristaId);
+      expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({
+            userId: expect.anything(),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('baristaUpdateStatus (Quyền chỉnh sửa trạng thái đơn hàng)', () => {
+    it('Khách hàng không có quyền chỉnh sửa trạng thái đơn hàng -> ném ForbiddenException', async () => {
+      const customerId = 10;
+      mockUsersService.findOne.mockResolvedValue({
+        id: customerId,
+        email: 'customer@brewlite.com',
+        role: 'customer',
+      });
+
+      await expect(
+        service.baristaUpdateStatus(1, order_status.PREPARING, customerId),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it('Barista có quyền cập nhật trạng thái đơn hàng -> cập nhật thành công', async () => {
+      const baristaId = 2;
+      mockUsersService.findOne.mockResolvedValue({
+        id: baristaId,
+        email: 'barista@brewlite.com',
+        role: 'barista',
+      });
+
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(1),
+        status: order_status.PAID,
+        OrderItem: [],
+        Payment: [],
+      });
+
+      mockPrisma.order.update.mockResolvedValue({
+        id: BigInt(1),
+        status: order_status.PREPARING,
+      });
+
+      const updated = await service.baristaUpdateStatus(
+        1,
+        order_status.PREPARING,
+        baristaId,
+      );
+
+      expect(updated.status).toBe(order_status.PREPARING);
+      expect(mockPrisma.order.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('findOne (Quyền xem chi tiết đơn hàng / Lịch sử đơn)', () => {
+    it('Khách hàng xem đơn hàng của chính mình -> thành công', async () => {
+      const customerId = 10;
+      const orderId = 101;
+
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(orderId),
+        userId: BigInt(customerId),
+        status: order_status.PAID,
+        OrderItem: [],
+        Payment: [],
+      });
+
+      const order = await service.findOne(orderId, customerId);
+
+      expect(order).toBeDefined();
+      expect(Number(order.userId)).toBe(customerId);
+    });
+
+    it('Khách hàng xem đơn hàng của người khác -> ném ForbiddenException', async () => {
+      const currentCustomerId = 10;
+      const otherCustomerId = 99;
+      const orderId = 102;
+
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(orderId),
+        userId: BigInt(otherCustomerId),
+        status: order_status.PAID,
+        OrderItem: [],
+        Payment: [],
+      });
+
+      mockUsersService.findOne.mockResolvedValue({
+        id: currentCustomerId,
+        email: 'customer@brewlite.com',
+        role: 'customer',
+      });
+
+      await expect(
+        service.findOne(orderId, currentCustomerId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('Barista có thể xem chi tiết đơn hàng của bất kỳ khách hàng nào để xử lý pha chế', async () => {
+      const baristaId = 2;
+      const customerId = 99;
+      const orderId = 103;
+
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(orderId),
+        userId: BigInt(customerId),
+        status: order_status.PREPARING,
+        OrderItem: [],
+        Payment: [],
+      });
+
+      mockUsersService.findOne.mockResolvedValue({
+        id: baristaId,
+        email: 'barista@brewlite.com',
+        role: 'barista',
+      });
+
+      const order = await service.findOne(orderId, baristaId);
+
+      expect(order).toBeDefined();
+      expect(Number(order.id)).toBe(orderId);
+    });
+  });
+
+  describe('getOrderStatuses', () => {
+    it('lấy danh sách các trạng thái đơn hàng từ database enum', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([
+        {
+          enum_range: [
+            'PENDING',
+            'PAID',
+            'PREPARING',
+            'READY',
+            'COMPLETED',
+            'PAYMENT_FAILED',
+            'CANCELLED',
+          ],
+        },
+      ]);
+
+      const statuses = await service.getOrderStatuses();
+      expect(statuses).toEqual([
+        'PENDING',
+        'PAID',
+        'PREPARING',
+        'READY',
+        'COMPLETED',
+        'PAYMENT_FAILED',
+        'CANCELLED',
+      ]);
+    });
+  });
+
+  describe('create (API tạo đơn hàng & Optimistic Lock - FR-05)', () => {
+    it('đặt hàng khi còn đủ tồn kho: trừ tồn kho và tăng version thành công trong transaction', async () => {
+      const product = {
+        id: BigInt(1),
+        name: 'Cà phê sữa',
+        price: 35000,
+        stock: 10,
+        version: 0,
+        status: 'active',
+      };
+
+      mockPrisma.product.findUnique.mockResolvedValue(product);
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.order.create.mockResolvedValue({ id: BigInt(201), total: 70000 });
+
+      const result = await service.create(
+        {
+          items: [{ productId: 1, size: 'M', qty: 2, price: 35000 }],
+        },
+        1,
+      );
+
+      expect(result.orderId).toBeDefined();
+      expect(mockPrisma.product.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: product.id,
+          version: product.version,
+          stock: { gte: 2 },
+        },
+        data: {
+          stock: { decrement: 2 },
+          version: { increment: 1 },
+        },
+      });
+      expect(mockPrisma.order.create).toHaveBeenCalled();
+    });
+
+    it('từ chối đặt hàng khi số lượng yêu cầu vượt quá tồn kho (BadRequestException)', async () => {
+      const product = {
+        id: BigInt(1),
+        name: 'Cà phê sữa',
+        price: 35000,
+        stock: 1,
+        version: 0,
+        status: 'active',
+      };
+
+      mockPrisma.product.findUnique.mockResolvedValue(product);
+
+      await expect(
+        service.create(
+          {
+            items: [{ productId: 1, size: 'M', qty: 2, price: 35000 }],
+          },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('mô phỏng race condition: Optimistic Lock phát hiện version mismatch và ném ConflictException khi hết retry', async () => {
+      const product = {
+        id: BigInt(1),
+        name: 'Cà phê sữa',
+        price: 35000,
+        stock: 10,
+        version: 0,
+        status: 'active',
+      };
+
+      mockPrisma.product.findUnique.mockResolvedValue(product);
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 0 }); // version mismatch!
+
+      await expect(
+        service.create(
+          {
+            items: [{ productId: 1, size: 'M', qty: 1, price: 35000 }],
+          },
+          2,
+        ),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('tự động giảm đúng 10% cho khách hàng hạng Vàng (loyaltyPoints >= 50)', async () => {
+      mockUsersService.findOne.mockResolvedValue({ id: 1, email: 'gold@brewlite.com', loyaltyPoints: 50 });
+      const product = {
+        id: BigInt(1),
+        name: 'Cà phê sữa',
+        price: 50000,
+        stock: 10,
+        version: 0,
+        status: 'active',
+      };
+
+      mockPrisma.product.findUnique.mockResolvedValue(product);
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.order.create.mockImplementation((args: any) => ({
+        id: BigInt(301),
+        total: args.data.total,
+      }));
+
+      const result = await service.create(
+        {
+          items: [{ productId: 1, size: 'M', qty: 1, price: 50000 }],
+        },
+        1,
+      );
+
+      expect(result.rawTotal).toBe(50000);
+      expect(result.discount).toBe(5000);
+      expect(result.total).toBe(45000);
+      expect(result.membershipTier).toBe('Vàng');
+    });
+
+    it('kiểm tra tồn kho theo nguyên liệu (ProductRecipeItem & Ingredient): chặn khi không đủ nguyên liệu', async () => {
+      const product = {
+        id: BigInt(1),
+        name: 'Trà đào',
+        price: 40000,
+        version: 0,
+        status: 'active',
+      };
+
+      mockPrisma.product.findUnique.mockResolvedValue(product);
+      mockPrisma.productRecipeItem.findMany.mockResolvedValue([
+        {
+          productId: BigInt(1),
+          size: 'M',
+          ingredientId: 10,
+          amount: 50,
+          unit: 'ml',
+          Ingredient: { id: 10, name: 'Siro đào', stock: 20, unit: 'ml' }, // chỉ còn 20ml, cần 50ml
+        },
+      ]);
+
+      await expect(
+        service.create(
+          {
+            items: [{ productId: 1, size: 'M', qty: 1, price: 40000 }],
+          },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+});
