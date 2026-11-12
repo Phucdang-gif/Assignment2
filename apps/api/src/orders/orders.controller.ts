@@ -12,6 +12,7 @@ import {
 import { order_status } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
 
 @Controller('api/orders')
@@ -28,6 +29,12 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get()
+  findAll(@Request() req: { user: { userId: number; email: string } }) {
+    return this.ordersService.findAllByUser(Number(req.user.userId));
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   findMyOrders(@Request() req: { user: { userId: number; email: string } }) {
     return this.ordersService.findAllByUser(Number(req.user.userId));
@@ -39,6 +46,20 @@ export class OrdersController {
     @Request() req: { user: { userId: number; email: string; role?: string } },
   ) {
     return this.ordersService.findBaristaQueue(Number(req.user.userId));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  updateOrderStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateOrderStatusDto: UpdateOrderStatusDto,
+    @Request() req: { user: { userId: number; email: string } },
+  ) {
+    return this.ordersService.baristaUpdateStatus(
+      id,
+      updateOrderStatusDto.status,
+      Number(req.user.userId),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
