@@ -65,12 +65,7 @@ class Product {
     + price: Decimal(12,2)
     + imageUrl: String
     + description: String
-<<<<<<< Updated upstream
-    + stock: Int = 0
     + version: Int = 0 {Optimistic Lock}
-=======
-    + version: Int = 0
->>>>>>> Stashed changes
     + status: ProductStatus = active
     + createdAt: DateTime
     + updatedAt: DateTime
@@ -92,7 +87,7 @@ class Topping {
 }
 
 class Ingredient {
-    + id: Int
+    + id: Int [PK]
     + name: String
     + unit: String
     + stock: Int = 0
@@ -105,10 +100,10 @@ class Ingredient {
 }
 
 class ProductRecipeItem {
-    + id: Int
-    + productId: BigInt
+    + id: Int [PK]
+    + productId: BigInt [FK]
     + size: product_size
-    + ingredientId: Int
+    + ingredientId: Int [FK]
     + amount: Int
     + unit: String
     + createdAt: DateTime
@@ -118,20 +113,13 @@ class ProductRecipeItem {
 }
 
 class Order {
-<<<<<<< Updated upstream
     + id: BigInt [PK]
     + userId: BigInt [FK]
+    + promotionId: BigInt [FK, Nullable]
     + status: order_status = PENDING
-    + total: Decimal(12,2) = 0
-=======
-    + id: BigInt
-    + userId: BigInt
-    + promotionId: BigInt 
-    + status: order_status = PENDING
-    + subtotal: Decimal(12,2)
+    + subtotal: Decimal(12,2) = 0
     + discountAmount: Decimal(12,2) = 0
-    + total: Decimal(12,2)
->>>>>>> Stashed changes
+    + total: Decimal(12,2) = 0
     + createdAt: DateTime
     + updatedAt: DateTime
     --
@@ -147,6 +135,7 @@ class OrderItem {
     + productId: BigInt [FK]
     + size: product_size = M
     + qty: Int >= 1
+    + unitPrice: Decimal(12,2) = 0
     + lineTotal: Decimal(12,2)
     --
     + calculateLineTotal(): Decimal
@@ -164,12 +153,9 @@ class Payment {
     + idempotencyKey: String [Unique, UUIDv4]
     + amount: Decimal(12,2)
     + method: payment_method
-<<<<<<< Updated upstream
-=======
     + status: payment_status = SUCCESS
     + transactionRef: String
     + createdAt: DateTime
->>>>>>> Stashed changes
     --
     + processPayment(): Boolean
     + isIdempotentDuplicate(key: String): Boolean
@@ -185,11 +171,8 @@ class Promotion {
     + startDate: DateTime
     + endDate: DateTime
     + isActive: Boolean = true
-<<<<<<< Updated upstream
-=======
     + createdAt: DateTime
     + updatedAt: DateTime
->>>>>>> Stashed changes
     --
     + isValid(now: DateTime, orderVal: Decimal): Boolean
     + computeDiscount(subtotal: Decimal): Decimal
@@ -215,6 +198,7 @@ class LoyaltyTransaction {
 enum "<<enumeration>>\nuser_role" as user_role {
     customer
     barista
+    admin
 }
 
 enum "<<enumeration>>\norder_status" as order_status {
@@ -230,6 +214,11 @@ enum "<<enumeration>>\norder_status" as order_status {
 enum "<<enumeration>>\npayment_method" as payment_method {
     WALLET
     CARD
+}
+
+enum "<<enumeration>>\npayment_status" as payment_status {
+    SUCCESS
+    FAILED
 }
 
 enum "<<enumeration>>\nproduct_size" as product_size {
@@ -286,6 +275,7 @@ Order ..> order_status : status
 OrderItem ..> product_size : size
 ProductRecipeItem ..> product_size : size
 Payment ..> payment_method : method
+Payment ..> payment_status : status
 Promotion ..> discount_type : discountType
 LoyaltyTransaction ..> loyalty_type : type
 
