@@ -399,4 +399,177 @@ describe('OrdersService', () => {
       ).rejects.toThrow(BadRequestException);
     });
   });
+
+  describe('Order State Machine (assertTransition & updateStatus - FR-07 & FR-08)', () => {
+    it('cho phép chuỗi chuyển đổi trạng thái hợp lệ chuẩn: PENDING -> PAID -> PREPARING -> READY -> COMPLETED', () => {
+      expect(() =>
+        service.assertTransition(order_status.PENDING, order_status.PAID),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.PAID, order_status.PREPARING),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.PREPARING, order_status.READY),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.READY, order_status.COMPLETED),
+      ).not.toThrow();
+    });
+
+    it('cho phép các nhánh ngoại lệ: thanh toán lỗi và hủy đơn', () => {
+      expect(() =>
+        service.assertTransition(order_status.PENDING, order_status.PAYMENT_FAILED),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.PAYMENT_FAILED, order_status.PENDING),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.PENDING, order_status.CANCELLED),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.PAYMENT_FAILED, order_status.CANCELLED),
+      ).not.toThrow();
+
+      expect(() =>
+        service.assertTransition(order_status.PAID, order_status.CANCELLED),
+      ).not.toThrow();
+    });
+
+    it('CHẶN chuyển đổi sai: PENDING -> COMPLETED (nhảy cóc bước pha chế)', () => {
+      expect(() =>
+        service.assertTransition(order_status.PENDING, order_status.COMPLETED),
+      ).toThrow(BadRequestException);
+    });
+
+    it('CHẶN chuyển đổi sai: PENDING -> READY hoặc PAID -> COMPLETED', () => {
+      expect(() =>
+        service.assertTransition(order_status.PENDING, order_status.READY),
+      ).toThrow(BadRequestException);
+
+      expect(() =>
+        service.assertTransition(order_status.PAID, order_status.COMPLETED),
+      ).toThrow(BadRequestException);
+    });
+
+    it('CHẶN chuyển đổi sai từ trạng thái kết thúc: COMPLETED -> PENDING và CANCELLED -> PAID', () => {
+      expect(() =>
+        service.assertTransition(order_status.COMPLETED, order_status.PENDING),
+      ).toThrow(BadRequestException);
+
+      expect(() =>
+        service.assertTransition(order_status.CANCELLED, order_status.PAID),
+      ).toThrow(BadRequestException);
+    });
+
+    it('thực thi chuyển trạng thái tuần tự trên đơn hàng qua updateStatus: PAID -> PREPARING -> READY -> COMPLETED', async () => {
+      const orderId = 501;
+      let currentStatus: order_status = order_status.PAID;
+
+      mockPrisma.order.findUnique.mockImplementation(async () => ({
+        id: BigInt(orderId),
+        userId: BigInt(10),
+        status: currentStatus,
+        OrderItem: [],
+        Payment: [],
+      }));
+
+      mockPrisma.order.update.mockImplementation(async (args: any) => {
+        currentStatus = args.data.status;
+        return {
+          id: BigInt(orderId),
+          userId: BigInt(10),
+          status: currentStatus,
+          OrderItem: [],
+          Payment: [],
+        };
+      });
+
+      const step1 = await service.updateStatus(orderId, order_status.PREPARING);
+      expect(step1.status).toBe(order_status.PREPARING);
+
+      const step2 = await service.updateStatus(orderId, order_status.READY);
+      expect(step2.status).toBe(order_status.READY);
+
+      const step3 = await service.updateStatus(orderId, order_status.COMPLETED);
+      expect(step3.status).toBe(order_status.COMPLETED);
+    });
+  });
+
+  describe('findAllByUser & cancelOrder (Lịch sử đơn hàng & Hoàn kho - FR-07 & FR-10)', () => {
+    it('lấy danh sách lịch sử đơn hàng lọc đúng theo userId và sắp xếp mới nhất trước', async () => {
+      const userId = 15;
+      const mockOrders = [
+        {
+          id: BigInt(2),
+          userId: BigInt(userId),
+          status: order_status.COMPLETED,
+          total: 55000,
+          OrderItem: [],
+        },
+        {
+          id: BigInt(1),
+          userId: BigInt(userId),
+          status: order_status.PAID,
+          total: 35000,
+          OrderItem: [],
+        },
+      ];
+      mockPrisma.order.findMany.mockResolvedValue(mockOrders);
+
+      const result = await service.findAllByUser(userId);
+
+      expect(result).toHaveLength(2);
+      expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: BigInt(userId) },
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
+    });
+
+    it('hủy đơn PENDING hoàn trả nguyên liệu và cập nhật trạng thái sang CANCELLED', async () => {
+      const userId = 15;
+      const orderId = 601;
+
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(orderId),
+        userId: BigInt(userId),
+        status: order_status.PENDING,
+        OrderItem: [
+          {
+            id: BigInt(1),
+            productId: BigInt(1),
+            size: 'M',
+            qty: 2,
+            Product: { id: BigInt(1), stock: 8 },
+          },
+        ],
+        Payment: [],
+      });
+
+      mockPrisma.productRecipeItem.findMany.mockResolvedValue([
+        { productId: BigInt(1), size: 'M', ingredientId: 5, amount: 30 },
+      ]);
+
+      mockPrisma.order.update.mockResolvedValue({
+        id: BigInt(orderId),
+        userId: BigInt(userId),
+        status: order_status.CANCELLED,
+      });
+
+      const cancelled = await service.cancelOrder(orderId, userId);
+
+      expect(cancelled.status).toBe(order_status.CANCELLED);
+      expect(mockPrisma.ingredient.update).toHaveBeenCalledWith({
+        where: { id: 5 },
+        data: { stock: { increment: 60 } },
+      });
+    });
+  });
 });
