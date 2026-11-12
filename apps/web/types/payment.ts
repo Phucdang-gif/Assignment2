@@ -20,7 +20,7 @@ export interface PaymentRecord {
 
 export interface PaymentResponse {
   payment: PaymentRecord;
-  order: any;
+  order: unknown;
   pointsEarned?: number;
   idempotent?: boolean;
   message?: string;

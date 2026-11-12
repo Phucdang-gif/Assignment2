@@ -127,7 +127,7 @@ export default function CheckoutPage() {
     clearActiveCart,
   } = useCartStore();
 
-  const { token, user, logout } = useAuthStore();
+  const { token, user } = useAuthStore();
 
   const [hasHydrated, setHasHydrated] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
@@ -285,9 +285,11 @@ export default function CheckoutPage() {
       }
     }
 
-    restoreCheckoutToCart
-      ? restoreCheckoutToCart()
-      : useCartStore.getState().restoreCheckoutToCart?.();
+    if (restoreCheckoutToCart) {
+      restoreCheckoutToCart();
+    } else {
+      useCartStore.getState().restoreCheckoutToCart?.();
+    }
     router.push("/cart?reason=timeout");
   }, [createdOrderData?.id, token, restoreCheckoutToCart, router]);
 
@@ -342,8 +344,8 @@ export default function CheckoutPage() {
       isPayingRef.current = true;
       setIsPaying(true);
 
-      let orderId = createdOrderData?.id || useCartStore.getState().pendingOrderId;
-      let payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : grandTotal;
+      const orderId = createdOrderData?.id || useCartStore.getState().pendingOrderId;
+      const payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : grandTotal;
 
       if (!orderId) {
         alert("Phiên thanh toán không tồn tại hoặc đã hết hạn. Vui lòng quay lại giỏ hàng!");
@@ -413,9 +415,11 @@ export default function CheckoutPage() {
         return;
       }
 
-      clearCheckoutItems
-        ? clearCheckoutItems()
-        : useCartStore.getState().clearCheckoutItems?.();
+      if (clearCheckoutItems) {
+        clearCheckoutItems();
+      } else {
+        useCartStore.getState().clearCheckoutItems?.();
+      }
       clearActiveCart();
       router.push(`/orders/${orderId}`);
     } catch (error) {
@@ -455,7 +459,7 @@ export default function CheckoutPage() {
             setShowMomoModal(false);
             clearCheckoutItems();
             clearActiveCart();
-            window.location.href = `/orders/${createdOrderData.id}?status=PAID`;
+            router.push(`/orders/${createdOrderData.id}?status=PAID`);
           }
         }
       } catch (err) {
@@ -529,9 +533,9 @@ export default function CheckoutPage() {
       setShowMomoModal(false);
       clearCheckoutItems();
       clearActiveCart();
-      window.location.href = `/orders/${targetOrderId}?status=PAID`;
-    } catch (err: any) {
-      alert(err.message || "Lỗi xác nhận thanh toán MoMo");
+      router.push(`/orders/${targetOrderId}?status=PAID`);
+    } catch (err: unknown) {
+      alert((err as Error)?.message || "Lỗi xác nhận thanh toán MoMo");
     } finally {
       setIsPaying(false);
     }

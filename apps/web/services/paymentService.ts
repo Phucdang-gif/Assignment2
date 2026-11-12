@@ -29,7 +29,7 @@ export async function processPayment(
 /**
  * Tra cứu trạng thái thanh toán của đơn hàng
  */
-export async function getPaymentStatus(orderId: number): Promise<any> {
+export async function getPaymentStatus(orderId: number): Promise<unknown> {
   return fetchApi(`/payments/status/${orderId}`, {
     method: 'GET',
   });
@@ -38,7 +38,7 @@ export async function getPaymentStatus(orderId: number): Promise<any> {
 /**
  * Lấy danh sách giao dịch thanh toán theo đơn hàng
  */
-export async function getPaymentsByOrder(orderId: number): Promise<any> {
+export async function getPaymentsByOrder(orderId: number): Promise<unknown> {
   return fetchApi(`/payments/order/${orderId}`, {
     method: 'GET',
   });
