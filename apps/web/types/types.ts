@@ -13,6 +13,7 @@ export interface Product {
   imageUrl: string;
   description?: string;
   stock?: number;
+  sizeStock?: Record<ProductSizeKey, number>;
   categoryId?: number;
   category?: Category | null;
 }

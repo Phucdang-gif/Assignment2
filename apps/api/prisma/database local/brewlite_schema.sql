@@ -1,3 +1,5 @@
+SET client_encoding = 'UTF8';
+
 -- ==============================================================================
 -- BREWLITE - TẬP LỆNH KHỞI TẠO CẤU TRÚC CƠ SỞ DỮ LIỆU (DATABASE SCHEMA)
 -- Hệ quản trị CSDL: PostgreSQL 16+
