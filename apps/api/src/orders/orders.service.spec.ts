@@ -342,7 +342,7 @@ describe('OrdersService', () => {
       const product = {
         id: BigInt(1),
         name: 'Cà phê sữa',
-        price: 50000,
+        price: 45000,
         stock: 10,
         version: 0,
         status: 'active',
@@ -366,6 +366,55 @@ describe('OrdersService', () => {
       expect(result.discount).toBe(5000);
       expect(result.total).toBe(45000);
       expect(result.membershipTier).toBe('Vàng');
+    });
+
+    it('chống giả mạo giá từ Client: tự tính giá chuẩn từ Database (Product.price + Size + Topping) ngay cả khi Client gửi price = 1', async () => {
+      const product = {
+        id: BigInt(1),
+        name: 'Cà phê sữa',
+        price: 30000,
+        stock: 10,
+        version: 0,
+        status: 'active',
+      };
+
+      mockPrisma.product.findUnique.mockResolvedValue(product);
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.topping.findMany.mockResolvedValue([
+        { id: 1, name: 'Trân châu trắng', price: 8000 },
+      ]);
+      mockPrisma.order.create.mockImplementation((args: any) => ({
+        id: BigInt(305),
+        total: args.data.total,
+      }));
+
+      const result = await service.create(
+        {
+          items: [
+            {
+              productId: 1,
+              size: 'L', // +10.000đ
+              qty: 2,
+              price: 1, // Client cố tình sửa giá thành 1đ
+              toppings: ['Trân châu trắng'], // +8.000đ
+            },
+          ],
+        },
+        1,
+      );
+
+      // Giá chuẩn 1 ly = 30.000 (gốc) + 10.000 (Size L) + 8.000 (Topping) = 48.000đ
+      // 2 ly = 96.000đ
+      expect(result.rawTotal).toBe(96000);
+      expect(result.total).toBe(96000);
+      expect(mockPrisma.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            subtotal: 96000,
+            total: 96000,
+          }),
+        }),
+      );
     });
 
     it('kiểm tra tồn kho theo nguyên liệu (ProductRecipeItem & Ingredient): chặn khi không đủ nguyên liệu', async () => {

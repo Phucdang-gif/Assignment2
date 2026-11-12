@@ -31,12 +31,13 @@ export class OrdersService {
     return Object.values(order_status);
   }
 
-  async create(createOrderDto: CreateOrderDto, userId: number) {
-    const rawTotal = createOrderDto.items.reduce(
-      (sum, item) => sum + item.price * item.qty,
-      0,
-    );
+  private static readonly SIZE_SURCHARGE: Record<string, number> = {
+    S: 0,
+    M: 5000,
+    L: 10000,
+  };
 
+  async create(createOrderDto: CreateOrderDto, userId: number) {
     let loyaltyPoints = 0;
     try {
       const user = await this.usersService.findOne(userId);
@@ -61,9 +62,6 @@ export class OrdersService {
       membershipTier = 'Bạc';
     }
 
-    const discountAmount = Math.round((rawTotal * discountPercent) / 100);
-    const finalTotal = Math.max(0, rawTotal - discountAmount);
-
     const recentPendingOrder = await this.prisma.order.findFirst({
       where: {
         userId: BigInt(userId) as any,
@@ -76,12 +74,14 @@ export class OrdersService {
     });
 
     if (recentPendingOrder) {
+      const recentSubtotal = Number((recentPendingOrder as any).subtotal ?? recentPendingOrder.total);
+      const recentDiscount = Number((recentPendingOrder as any).discountAmount ?? 0);
       return {
         message: 'Tạo đơn hàng thành công',
         orderId: Number(recentPendingOrder.id),
         total: Number(recentPendingOrder.total),
-        rawTotal,
-        discount: discountAmount,
+        rawTotal: recentSubtotal,
+        discount: recentDiscount,
         loyaltyPoints,
         membershipTier,
       };
@@ -158,11 +158,16 @@ export class OrdersService {
     const maxRetries = 3;
     let attempts = 0;
     let order: any = null;
+    let computedRawTotal = 0;
+    let computedTotalDiscount = 0;
+    let computedFinalTotal = 0;
 
     while (attempts < maxRetries) {
       attempts++;
       try {
         order = await this.prisma.$transaction(async (tx) => {
+          const productsMap = new Map<number, any>();
+
           for (const item of createOrderDto.items) {
             const product = await tx.product.findUnique({
               where: { id: BigInt(item.productId) as any },
@@ -171,6 +176,8 @@ export class OrdersService {
             if (!product) {
               throw new NotFoundException(`Sản phẩm #${item.productId} không tồn tại`);
             }
+
+            productsMap.set(Number(item.productId), product);
 
             // Kiểm tra và trừ tồn kho theo nguyên vật liệu (ProductRecipeItem & Ingredient)
             if ((tx as any).productRecipeItem) {
@@ -238,8 +245,41 @@ export class OrdersService {
             const dbToppings = await (tx as any).topping.findMany({
               where: { name: { in: Array.from(allToppingNames) } },
             });
-            dbToppings.forEach((t: any) => toppingsMap.set(t.name, { id: t.id, price: t.price }));
+            dbToppings.forEach((t: any) =>
+              toppingsMap.set(t.name, { id: t.id, price: Number(t.price) }),
+            );
           }
+
+          // Tính đơn giá từng món trực tiếp từ Database (Product.price + phụ thu Size + Topping.price)
+          // Tuyệt đối không tin tưởng giá (item.price) từ phía Client gửi lên
+          const enrichedItems = createOrderDto.items.map((item) => {
+            const product = productsMap.get(Number(item.productId));
+            const basePrice = Number(product.price);
+            const sizeExtra =
+              OrdersService.SIZE_SURCHARGE[String(item.size).toUpperCase()] ?? 0;
+            const itemToppings = (item.toppings || [])
+              .map((name) => toppingsMap.get(name))
+              .filter(Boolean);
+            const toppingsExtra = itemToppings.reduce(
+              (sum, t) => sum + Number(t!.price),
+              0,
+            );
+            const serverUnitPrice = basePrice + sizeExtra + toppingsExtra;
+            const serverLineTotal = serverUnitPrice * item.qty;
+
+            return {
+              item,
+              itemToppings,
+              serverUnitPrice,
+              serverLineTotal,
+            };
+          });
+
+          const rawTotal = enrichedItems.reduce(
+            (sum, entry) => sum + entry.serverLineTotal,
+            0,
+          );
+          const discountAmount = Math.round((rawTotal * discountPercent) / 100);
 
           let promotionId: bigint | null = null;
           let promoDiscount = 0;
@@ -261,27 +301,25 @@ export class OrdersService {
           }
 
           const totalDiscount = Math.min(rawTotal, discountAmount + promoDiscount);
-          const computedFinalTotal = Math.max(0, rawTotal - totalDiscount);
+          computedRawTotal = rawTotal;
+          computedTotalDiscount = totalDiscount;
+          computedFinalTotal = Math.max(0, rawTotal - totalDiscount);
 
           return tx.order.create({
             data: {
               userId: BigInt(userId) as any,
               status: order_status.PENDING,
-              subtotal: rawTotal,
-              discountAmount: totalDiscount,
+              subtotal: computedRawTotal,
+              discountAmount: computedTotalDiscount,
               total: computedFinalTotal,
               ...(promotionId ? { promotionId } : {}),
               OrderItem: {
-                create: createOrderDto.items.map((item) => {
-                  const itemToppings = (item.toppings || [])
-                    .map((name) => toppingsMap.get(name))
-                    .filter(Boolean);
-
-                  return {
+                create: enrichedItems.map(
+                  ({ item, itemToppings, serverUnitPrice, serverLineTotal }) => ({
                     size: item.size as any,
                     qty: item.qty,
-                    unitPrice: item.price,
-                    lineTotal: item.price * item.qty,
+                    unitPrice: serverUnitPrice,
+                    lineTotal: serverLineTotal,
                     Product: {
                       connect: { id: BigInt(item.productId) as any },
                     },
@@ -295,8 +333,8 @@ export class OrdersService {
                           },
                         }
                       : {}),
-                  };
-                }),
+                  }),
+                ),
               },
             },
           });
@@ -315,9 +353,9 @@ export class OrdersService {
     return {
       message: 'Tạo đơn hàng thành công',
       orderId: order.id,
-      total: finalTotal,
-      rawTotal,
-      discount: discountAmount,
+      total: computedFinalTotal,
+      rawTotal: computedRawTotal,
+      discount: computedTotalDiscount,
       loyaltyPoints,
       discountPercent,
       membershipTier,
