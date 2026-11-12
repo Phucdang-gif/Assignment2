@@ -15,10 +15,11 @@ export class OrderItemDto {
   @Min(1)
   qty: number;
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
-  price: number;
+  price?: number;
 
   @IsOptional()
   @IsArray()
