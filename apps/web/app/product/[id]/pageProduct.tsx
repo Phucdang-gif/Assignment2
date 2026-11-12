@@ -44,7 +44,13 @@ export default function ProductDetailPage() {
     subMessage?: string;
   } | null>(null);
 
-  const maxStock = product?.stock !== undefined ? Math.max(0, Number(product.stock)) : 999;
+  const maxStock = useMemo(() => {
+    if (!product) return 999;
+    if (product.sizeStock && product.sizeStock[selectedSize] !== undefined) {
+      return Math.max(0, Number(product.sizeStock[selectedSize]));
+    }
+    return product.stock !== undefined ? Math.max(0, Number(product.stock)) : 999;
+  }, [product, selectedSize]);
   const alreadyInCart = useMemo(() => {
     if (!product) return 0;
     return cartItems
@@ -304,6 +310,9 @@ export default function ProductDetailPage() {
                     const priceDiff = SIZE_PRICES[size];
                     const displayPrice = Number(product.price) + priceDiff;
 
+                    const sizeStockVal = product.sizeStock?.[size];
+                    const isSizeEmpty = sizeStockVal !== undefined && sizeStockVal <= 0;
+
                     return (
                       <button
                         key={size}
@@ -312,13 +321,18 @@ export default function ProductDetailPage() {
                         className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
                           isSelected
                             ? "bg-[#3E2723] text-white border-[#3E2723] shadow-md shadow-[#3E2723]/20"
+                            : isSizeEmpty
+                            ? "bg-gray-100 text-gray-400 border-gray-200 opacity-60"
                             : "bg-[#FDFBF7] text-[#5C4D44] border-[#E8DFD8] hover:bg-[#F5F0E6] hover:border-[#8D6E63]"
                         }`}
                       >
-                        <div className="font-extrabold text-base">{size}</div>
+                        <div className="font-extrabold text-base flex items-center justify-center gap-1">
+                          <span>{size}</span>
+                          {isSizeEmpty && <span className="text-[10px] text-red-500 font-semibold">(Hết)</span>}
+                        </div>
                         <div
                           className={`text-xs mt-0.5 ${
-                            isSelected ? "text-white/80" : "text-[#8D6E63]"
+                            isSelected ? "text-white/80" : isSizeEmpty ? "text-gray-400" : "text-[#8D6E63]"
                           }`}
                         >
                           {displayPrice.toLocaleString("vi-VN")}đ

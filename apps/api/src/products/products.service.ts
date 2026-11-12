@@ -96,9 +96,15 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException(`Không tìm thấy sản phẩm với ID: ${id}`);
     }
+    const recipes = product.ProductRecipeItem as any;
     return {
       ...product,
-      stock: this.calculateStock(product.ProductRecipeItem as any),
+      stock: this.calculateStock(recipes),
+      sizeStock: {
+        S: this.calculateStock(recipes, 'S'),
+        M: this.calculateStock(recipes, 'M'),
+        L: this.calculateStock(recipes, 'L'),
+      },
     };
   }
 

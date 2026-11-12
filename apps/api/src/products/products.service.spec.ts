@@ -100,9 +100,11 @@ describe('ProductsService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a single product with calculated stock', async () => {
+    it('should return a single product with calculated stock and sizeStock', async () => {
       const result = await service.findOne(1);
       expect(result.stock).toBe(20);
+      expect(result.sizeStock).toBeDefined();
+      expect(result.sizeStock.M).toBe(20);
       expect(prisma.product.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         include: {

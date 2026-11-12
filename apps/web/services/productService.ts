@@ -52,6 +52,7 @@ export async function fetchProductById(id: string): Promise<Product | null> {
     imageUrl,
     description: p.description || "Chưa có mô tả cho sản phẩm này.",
     stock: p.stock !== undefined ? Number(p.stock) : 0,
+    sizeStock: (p as any).sizeStock ? (p as any).sizeStock : undefined,
     categoryId: p.categoryId ? Number(p.categoryId) : undefined,
     category: p.category ? { id: Number(p.category.id), name: p.category.name } : null,
   };
