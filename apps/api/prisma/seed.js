@@ -62,6 +62,10 @@ async function main() {
   console.log('=== BẮT ĐẦU SEED DỮ LIỆU TỪ FILE SQL CHO BREWLITE ===');
 
   const forceSeed = process.env.RUN_SEED === 'true' || process.env.FORCE_SEED === 'true';
+
+  // Đảm bảo cấu trúc cột description trong bảng Product luôn tồn tại đồng bộ với schema.prisma
+  await prisma.$executeRawUnsafe('ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "description" TEXT;');
+
   const existingProducts = await prisma.product.count();
   const existingUsers = await prisma.user.count();
 
