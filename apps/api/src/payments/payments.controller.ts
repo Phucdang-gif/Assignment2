@@ -18,6 +18,7 @@ import { VerifyPayOSDto } from './dto/verify-payos.dto';
 import { CreatePayOSLinkDto } from './dto/create-payos-link.dto';
 import { CreateMomoLinkDto } from './dto/create-momo-link.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { StaffOnly } from '../auth/roles.guard';
 
 type AuthReq = { user: { userId: number } };
 
@@ -58,6 +59,7 @@ export class PaymentsController {
     return this.paymentsService.handlePayOSWebhook(body);
   }
 
+  @StaffOnly()
   @Post('payos-confirm-url')
   @UsePipes(new ValidationPipe({ whitelist: false, forbidNonWhitelisted: false }))
   confirmPayOSWebhookUrl(@Body() body: { webhookUrl: string }) {

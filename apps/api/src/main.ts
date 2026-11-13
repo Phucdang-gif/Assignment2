@@ -14,9 +14,18 @@ async function bootstrap() {
       transform: true,            // tự ép kiểu theo DTO
     }),
   );
+  const rawCorsOrigins = process.env.CORS_ORIGIN?.trim();
+  const allowedOrigins = rawCorsOrigins
+    ? rawCorsOrigins
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    : [];
+
   app.enableCors({
-    origin: true,
+    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
   });
   const port = process.env.PORT || 3001;
   await app.listen(port, '0.0.0.0');

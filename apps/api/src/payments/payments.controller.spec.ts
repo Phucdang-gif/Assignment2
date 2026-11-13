@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { UsersService } from '../users/users.service';
 
 describe('PaymentsController (Security & Guards)', () => {
   let controller: PaymentsController;
@@ -25,6 +27,10 @@ describe('PaymentsController (Security & Guards)', () => {
         {
           provide: PaymentsService,
           useValue: mockPaymentsService,
+        },
+        {
+          provide: UsersService,
+          useValue: { findOne: jest.fn() },
         },
       ],
     }).compile();
@@ -64,5 +70,11 @@ describe('PaymentsController (Security & Guards)', () => {
 
     const ipnGuards = Reflect.getMetadata('__guards__', controller.handleMomoIPN);
     expect(ipnGuards).toBeUndefined();
+  });
+
+  it('route cấu hình payos-confirm-url phải được bảo vệ bởi StaffOnly (JwtAuthGuard + RolesGuard)', () => {
+    const confirmUrlGuards = Reflect.getMetadata('__guards__', controller.confirmPayOSWebhookUrl);
+    expect(confirmUrlGuards).toBeDefined();
+    expect(confirmUrlGuards).toEqual(expect.arrayContaining([JwtAuthGuard, RolesGuard]));
   });
 });
