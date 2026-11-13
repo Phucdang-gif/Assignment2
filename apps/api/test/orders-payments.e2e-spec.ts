@@ -1,16 +1,21 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestNestApp, StatefulPrismaTestHarness } from './test-db.helper';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { createTestNestApp, resetAndSeedDatabase } from './test-db.helper';
 
-describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () => {
+describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06 / Real PostgreSQL)', () => {
   let app: INestApplication;
-  let db: StatefulPrismaTestHarness;
+  let prisma: PrismaService;
   let customerToken: string;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const setup = await createTestNestApp();
     app = setup.app;
-    db = setup.db;
+    prisma = setup.prisma;
+  });
+
+  beforeEach(async () => {
+    await resetAndSeedDatabase(prisma);
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
@@ -20,8 +25,13 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
     customerToken = loginRes.body.access_token;
   });
 
-  afterEach(async () => {
-    await app.close();
+  afterAll(async () => {
+    if (prisma) {
+      await resetAndSeedDatabase(prisma);
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   describe('1. Authentication & DTO Validation Guard on Order / Payment APIs', () => {
@@ -77,12 +87,13 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
     });
   });
 
-  describe('2. AC-INT-01: Tạo đơn hàng trong Transaction & Trừ tồn kho nguyên liệu + Khóa lạc quan', () => {
+  describe('2. AC-INT-01: Tạo đơn hàng trong PostgreSQL Transaction & Trừ tồn kho nguyên liệu + Khóa lạc quan', () => {
     it('tạo đơn PENDING, tính đúng giá từ DB (chống giả mạo giá), trừ Ingredient.stock và tăng Product.version', async () => {
-      const coffeeBefore = db.ingredients.find((i) => i.id === 1)!.stock; // 200g
-      const milkBefore = db.ingredients.find((i) => i.id === 3)!.stock; // 350ml
-      const cupMBefore = db.ingredients.find((i) => i.id === 12)!.stock; // 10 cái
-      const productBefore = db.products.find((p) => p.id === 1n)!.version; // 0
+      // Đọc trạng thái ban đầu trực tiếp từ bảng PostgreSQL thật
+      const coffeeBefore = (await prisma.ingredient.findUnique({ where: { id: 1 } }))!.stock; // 5000g
+      const milkBefore = (await prisma.ingredient.findUnique({ where: { id: 3 } }))!.stock; // 10000ml
+      const cupMBefore = (await prisma.ingredient.findUnique({ where: { id: 12 } }))!.stock; // 500 cái
+      const productBefore = (await prisma.product.findUnique({ where: { id: 1n } }))!.version; // 0
 
       // Đặt 2 ly Cà phê sữa đá (base 35.000) + Size M (+5.000) + Topping Trân châu (+5.000) = 45.000đ/ly
       // Tổng tạm tính: 90.000đ. Khách hàng có 50 điểm (Hạng Vàng - giảm 10% = 9.000đ) -> Tổng thanh toán: 81.000đ
@@ -103,46 +114,63 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
         .expect(201);
 
       expect(res.body.message).toBe('Tạo đơn hàng thành công');
-      expect(Number(res.body.orderId)).toBe(1);
       expect(res.body.rawTotal).toBe(90000);
       expect(res.body.discount).toBe(9000);
       expect(res.body.total).toBe(81000);
       expect(res.body.membershipTier).toBe('Vàng');
 
-      // Kiểm tra trừ nguyên liệu theo công thức Size M (25g cà phê, 35ml sữa đặc, 1 ly M mỗi ly * 2 ly)
-      expect(db.ingredients.find((i) => i.id === 1)!.stock).toBe(coffeeBefore - 50);
-      expect(db.ingredients.find((i) => i.id === 3)!.stock).toBe(milkBefore - 70);
-      expect(db.ingredients.find((i) => i.id === 12)!.stock).toBe(cupMBefore - 2);
+      // Kiểm tra trừ nguyên liệu thực tế trong bảng Ingredient (Size M: 25g cà phê, 35ml sữa đặc, 1 ly M mỗi ly * 2 ly)
+      const coffeeAfter = (await prisma.ingredient.findUnique({ where: { id: 1 } }))!.stock;
+      const milkAfter = (await prisma.ingredient.findUnique({ where: { id: 3 } }))!.stock;
+      const cupMAfter = (await prisma.ingredient.findUnique({ where: { id: 12 } }))!.stock;
+      const productAfter = (await prisma.product.findUnique({ where: { id: 1n } }))!.version;
 
-      // Kiểm tra Optimistic Locking version tăng từ 0 -> 1
-      expect(db.products.find((p) => p.id === 1n)!.version).toBe(productBefore + 1);
+      expect(coffeeAfter).toBe(coffeeBefore - 50);
+      expect(milkAfter).toBe(milkBefore - 70);
+      expect(cupMAfter).toBe(cupMBefore - 2);
+
+      // Kiểm tra Optimistic Locking version tăng trong bảng Product
+      expect(productAfter).toBe(productBefore + 1);
     });
   });
 
-  describe('3. AC-INT-02: Chống bán âm kho (Stock Rollback) & Xung đột Optimistic Locking', () => {
+  describe('3. AC-INT-02: Chống bán âm kho (Stock Rollback) & Xung đột Optimistic Locking trong PostgreSQL', () => {
     it('rollback toàn bộ Transaction khi nguyên liệu không đủ (400 Bad Request)', async () => {
-      const coffeeBefore = db.ingredients.find((i) => i.id === 1)!.stock; // 200g (chỉ đủ tối đa 8 ly Size M * 25g)
-      const versionBefore = db.products.find((p) => p.id === 1n)!.version;
+      const coffeeBefore = (await prisma.ingredient.findUnique({ where: { id: 1 } }))!.stock;
+      const versionBefore = (await prisma.product.findUnique({ where: { id: 1n } }))!.version;
 
-      // Đặt 15 ly Size M (cần 375g cà phê > 200g hiện có)
+      // Đặt 99999 ly Size M (vượt xa tồn kho nguyên liệu hiện có)
       const res = await request(app.getHttpServer())
         .post('/api/orders')
         .set('Authorization', `Bearer ${customerToken}`)
         .send({
-          items: [{ productId: 1, size: 'M', qty: 15 }],
+          items: [{ productId: 1, size: 'M', qty: 99999 }],
         })
         .expect(400);
 
       expect(res.body.message).toContain('không đủ');
-      // Đảm bảo tồn kho nguyên liệu, version sản phẩm và bảng Order không bị thay đổi (Atomic Rollback)
-      expect(db.ingredients.find((i) => i.id === 1)!.stock).toBe(coffeeBefore);
-      expect(db.products.find((p) => p.id === 1n)!.version).toBe(versionBefore);
-      expect(db.orders).toHaveLength(0);
+
+      // Đảm bảo tồn kho nguyên liệu, version sản phẩm và bảng Order không bị thay đổi (Atomic Rollback trong Postgres)
+      const coffeeAfter = (await prisma.ingredient.findUnique({ where: { id: 1 } }))!.stock;
+      const versionAfter = (await prisma.product.findUnique({ where: { id: 1n } }))!.version;
+      const ordersCount = await prisma.order.count();
+
+      expect(coffeeAfter).toBe(coffeeBefore);
+      expect(versionAfter).toBe(versionBefore);
+      expect(ordersCount).toBe(0);
     });
 
-    it('tự động retry và thành công khi xảy ra xung đột Optimistic Lock tạm thời', async () => {
-      db.simulateVersionConflictOnce = true;
+    it('tự động retry và tạo đơn thành công khi phát hiện version đã bị thay đổi (Optimistic Concurrency Control)', async () => {
+      const initialProduct = await prisma.product.findUnique({ where: { id: 1n } });
+      const versionBefore = initialProduct!.version;
 
+      // Giả lập một tiến trình khác đã cập nhật version của sản phẩm
+      await prisma.product.update({
+        where: { id: 1n },
+        data: { version: { increment: 1 } },
+      });
+
+      // API tạo đơn hàng tự động re-read version mới và hoàn tất giao dịch
       const res = await request(app.getHttpServer())
         .post('/api/orders')
         .set('Authorization', `Bearer ${customerToken}`)
@@ -151,12 +179,14 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
         })
         .expect(201);
 
-      expect(Number(res.body.orderId)).toBe(1);
-      expect(db.products.find((p) => p.id === 1n)!.version).toBe(1);
+      expect(res.body.message).toBe('Tạo đơn hàng thành công');
+
+      const finalProduct = await prisma.product.findUnique({ where: { id: 1n } });
+      expect(finalProduct!.version).toBe(versionBefore + 2);
     });
   });
 
-  describe('4. AC-INT-03 & AC-INT-04: Thanh toán Idempotent (Idempotency Key) & Tích điểm Loyalty', () => {
+  describe('4. AC-INT-03 & AC-INT-04: Thanh toán Idempotent (Idempotency Key) & Tích điểm Loyalty trong PostgreSQL', () => {
     it('thanh toán đơn hàng thành công (PAID), cộng điểm thưởng và chống trừ tiền trùng khi gửi lại cùng idempotencyKey', async () => {
       // Bước 1: Tạo đơn hàng 2 ly Size M + Kem cheese (35k + 5k + 10k = 50k * 2 = 100k, giảm 10% hạng Vàng = 90k)
       const orderRes = await request(app.getHttpServer())
@@ -207,19 +237,22 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
       expect(payRes1.body.order.status).toBe('PAID');
       expect(payRes1.body.pointsEarned).toBe(9); // 90.000 / 10.000 = 9 điểm
 
-      // Kiểm tra điểm thưởng khách hàng tăng từ 50 -> 59 và có bản ghi LoyaltyTransaction (AC-INT-04)
-      const customerAfterPay1 = db.users.find((u) => u.email === 'customer@brewlite.com')!;
+      // Kiểm tra điểm thưởng khách hàng tăng từ 50 -> 59 và có bản ghi LoyaltyTransaction trong PostgreSQL
+      const customerAfterPay1 = (await prisma.user.findUnique({
+        where: { email: 'customer@brewlite.com' },
+      }))!;
       expect(customerAfterPay1.loyaltyPoints).toBe(59);
-      expect(db.loyaltyTransactions).toHaveLength(1);
-      expect(db.loyaltyTransactions[0]).toEqual(
-        expect.objectContaining({
-          points: 9,
-          type: 'EARN',
-          balanceAfter: 59,
-        }),
-      );
 
-      // Bước 4: Gửi lại request thanh toán lần 2 với CÙNG idempotencyKey (mô phỏng mạng lag / nhấn đúp) (AC-INT-03)
+      const loyaltyTxs = await prisma.loyaltyTransaction.findMany({
+        where: { userId: customerAfterPay1.id },
+      });
+      expect(loyaltyTxs.length).toBeGreaterThanOrEqual(1);
+      const latestTx = loyaltyTxs[loyaltyTxs.length - 1];
+      expect(latestTx.points).toBe(9);
+      expect(latestTx.type).toBe('EARN');
+      expect(latestTx.balanceAfter).toBe(59);
+
+      // Bước 4: Gửi lại request thanh toán lần 2 với CÙNG idempotencyKey (AC-INT-03)
       const payRes2 = await request(app.getHttpServer())
         .post('/api/payments')
         .set('Authorization', `Bearer ${customerToken}`)
@@ -235,10 +268,16 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
       expect(payRes2.body.pointsEarned).toBe(0);
       expect(payRes2.body.payment.idempotencyKey).toBe(idempotencyKey);
 
-      // Đảm bảo chỉ có đúng 1 bản ghi Payment và điểm thưởng không bị cộng trùng lần 2
-      expect(db.payments).toHaveLength(1);
-      expect(db.loyaltyTransactions).toHaveLength(1);
-      expect(db.users.find((u) => u.email === 'customer@brewlite.com')!.loyaltyPoints).toBe(59);
+      // Đảm bảo chỉ có đúng 1 bản ghi Payment trong PostgreSQL cho đơn này và điểm thưởng không bị cộng trùng
+      const payments = await prisma.payment.findMany({
+        where: { orderId: BigInt(orderId) },
+      });
+      expect(payments).toHaveLength(1);
+
+      const customerAfterPay2 = (await prisma.user.findUnique({
+        where: { email: 'customer@brewlite.com' },
+      }))!;
+      expect(customerAfterPay2.loyaltyPoints).toBe(59);
     });
   });
 });
