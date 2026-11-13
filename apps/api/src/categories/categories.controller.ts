@@ -2,11 +2,13 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from 
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { StaffOnly } from '../auth/roles.guard';
 
 @Controller('api/categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @StaffOnly()
   @Post()
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
@@ -22,11 +24,13 @@ export class CategoriesController {
     return this.categoriesService.findOne(id);
   }
 
+  @StaffOnly()
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
   }
 
+  @StaffOnly()
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.categoriesService.remove(id);

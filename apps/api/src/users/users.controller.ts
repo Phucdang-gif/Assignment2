@@ -1,13 +1,27 @@
 import {
-  Body, Controller, Delete, Get, HttpCode, HttpStatus,
-  Param, ParseIntPipe, Patch, Post, Query,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard, Roles, STAFF_ROLES } from '../auth/roles.guard';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(...STAFF_ROLES)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

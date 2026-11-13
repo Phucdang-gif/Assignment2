@@ -80,10 +80,10 @@ describe('UsersService', () => {
       });
     });
 
-    it('tự động gán role barista nếu email chứa barista hoặc staff', async () => {
+    it('không tự động gán role barista dù email chứa barista hoặc staff (luôn tạo user customer mặc định)', async () => {
       mockPrismaService.user.create.mockResolvedValue({
         ...mockUser,
-        role: 'barista',
+        role: 'customer',
       });
 
       await service.create({
@@ -94,9 +94,12 @@ describe('UsersService', () => {
       });
 
       expect(mockPrismaService.user.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          role: 'barista',
-        }),
+        data: {
+          fullName: 'Nhân viên Barista',
+          email: 'barista@brewlite.com',
+          phone: '0907654321',
+          passwordHash: 'hashed_password_123',
+        },
         select: expect.any(Object),
       });
     });

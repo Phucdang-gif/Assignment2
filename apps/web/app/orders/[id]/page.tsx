@@ -118,7 +118,7 @@ function OrderConfirmationContent() {
       const data: OrderDetail = await res.json();
 
       if (user && Number(data.userId) !== Number(user.id)) {
-        const isStaff = user.role === 'barista' || user.email?.toLowerCase().includes('barista');
+        const isStaff = user.role === 'barista' || user.role === 'admin';
         if (!isStaff) {
           setError('Khách hàng chỉ có quyền xem đơn mình đã mua, không có quyền xem lịch sử đơn của người khác.');
           setOrder(null);

@@ -22,7 +22,6 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
   async create(dto: CreateUserDto) {
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const isBaristaEmail = dto.email.toLowerCase().includes('barista') || dto.email.toLowerCase().includes('staff');
     try {
       return await this.prisma.user.create({
         data: {
@@ -30,7 +29,6 @@ export class UsersService {
           fullName: dto.fullName, 
           phone: dto.phone,
           passwordHash,
-          ...(isBaristaEmail ? { role: 'barista' as any } : {}),
         },
         select: userSelect,
       });
