@@ -435,7 +435,7 @@ export class OrdersService {
 
     if (Number(order.userId) !== userId) {
       const user = await this.usersService.findOne(userId);
-      const isStaff = user && ((user as any).role === 'barista' || (user as any).email?.includes('barista'));
+      const isStaff = user && (user as any).role === 'barista';
       if (!isStaff) {
         throw new ForbiddenException('Bạn không có quyền hủy đơn hàng này');
       }
@@ -568,12 +568,7 @@ export class OrdersService {
       const isOwner = Number(order.userId) === userId;
       if (!isOwner) {
         const user = await this.usersService.findOne(userId);
-        const isStaff =
-          user &&
-          ((user as any).role === 'barista' ||
-            (user as any).email?.toLowerCase().includes('barista') ||
-            (user as any).email?.toLowerCase().includes('staff') ||
-            (user as any).email?.toLowerCase().includes('admin'));
+        const isStaff = user && (user as any).role === 'barista';
 
         if (!isStaff) {
           throw new ForbiddenException(
@@ -655,12 +650,7 @@ export class OrdersService {
     if (userId) {
       try {
         const user = await this.usersService.findOne(userId);
-        const isBarista =
-          user &&
-          ((user as any).role === 'barista' ||
-            (user as any).email?.toLowerCase().includes('barista') ||
-            (user as any).email?.toLowerCase().includes('staff') ||
-            (user as any).email?.toLowerCase().includes('admin'));
+        const isBarista = user && (user as any).role === 'barista';
 
         if (!isBarista) {
           isCustomer = true;
@@ -715,12 +705,7 @@ export class OrdersService {
 
   async baristaUpdateStatus(orderId: number, newStatus: string, userId: number) {
     const user = await this.usersService.findOne(userId);
-    const isBarista =
-      user &&
-      ((user as any).role === 'barista' ||
-        (user as any).email?.toLowerCase().includes('barista') ||
-        (user as any).email?.toLowerCase().includes('staff') ||
-        (user as any).email?.toLowerCase().includes('admin'));
+    const isBarista = user && (user as any).role === 'barista';
 
     if (!isBarista) {
       throw new ForbiddenException('Khách hàng không có quyền chỉnh sửa trạng thái đơn hàng');

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { order_status } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard, Roles } from '../auth/roles.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
@@ -49,7 +50,8 @@ export class OrdersController {
     return this.ordersService.findBaristaQueue(Number(req.user.userId));
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('barista', 'admin')
   @Patch(':id/status')
   updateOrderStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -63,7 +65,8 @@ export class OrdersController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('barista', 'admin')
   @Patch('barista/:id/prepare')
   prepareOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -76,7 +79,8 @@ export class OrdersController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('barista', 'admin')
   @Patch('barista/:id/ready')
   readyOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -89,7 +93,8 @@ export class OrdersController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('barista', 'admin')
   @Patch('barista/:id/complete')
   completeOrder(
     @Param('id', ParseIntPipe) id: number,

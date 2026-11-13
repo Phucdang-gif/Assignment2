@@ -75,11 +75,7 @@ export default function BaristaDashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
-  const isBarista = Boolean(
-    user?.role === 'barista' ||
-      user?.email?.toLowerCase().includes('barista') ||
-      user?.email?.toLowerCase().includes('staff'),
-  );
+  const isBarista = Boolean(user?.role === 'barista');
 
   const fetchQueue = useCallback(
     async (isSilent = false) => {
