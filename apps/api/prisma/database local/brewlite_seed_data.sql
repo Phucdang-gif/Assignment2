@@ -249,7 +249,16 @@ INSERT INTO "Promotion" (id, code, description, "discountType", "discountValue",
     (1, 'WELCOME10', 'Giảm 10% cho đơn hàng đầu tiên', 'PERCENTAGE', 10.00, 30000.00, now() - interval '30 day', now() + interval '90 day', true, now(), now()),
     (2, 'GIAM20K',   'Giảm trực tiếp 20.000đ cho đơn từ 100.000đ', 'FIXED_AMOUNT', 20000.00, 100000.00, now() - interval '30 day', now() + interval '90 day', true, now(), now()),
     (3, 'VIPGOLD',   'Chiết khấu 15% cho thành viên hạng Vàng', 'MEMBERSHIP_TIER', 15.00, 50000.00, now() - interval '30 day', now() + interval '90 day', true, now(), now())
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+    code = EXCLUDED.code,
+    description = EXCLUDED.description,
+    "discountType" = EXCLUDED."discountType",
+    "discountValue" = EXCLUDED."discountValue",
+    "minOrderValue" = EXCLUDED."minOrderValue",
+    "startDate" = EXCLUDED."startDate",
+    "endDate" = EXCLUDED."endDate",
+    "isActive" = EXCLUDED."isActive",
+    "updatedAt" = now();
 
 -- 8. Đơn đặt hàng (Order)
 INSERT INTO "Order" (id, "userId", "promotionId", status, subtotal, "discountAmount", total, "createdAt", "updatedAt") VALUES

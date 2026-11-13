@@ -142,11 +142,11 @@ export class PaymentsService implements OnModuleInit {
       return { payment, order: updatedOrder };
     });
 
-    // Cộng điểm thưởng tích lũy: mỗi 10.000đ tích 1 điểm
+    // Cộng điểm thưởng tích lũy: mỗi 10.000đ tích 1 điểm và lưu vết LoyaltyTransaction
     const pointsEarned = Math.floor(payAmount / 10000);
     if (pointsEarned > 0 && order.userId) {
       try {
-        await this.prisma.user.update({
+        const updatedUser = await this.prisma.user.update({
           where: { id: order.userId },
           data: {
             loyaltyPoints: {
@@ -154,6 +154,18 @@ export class PaymentsService implements OnModuleInit {
             },
           },
         });
+        if ((this.prisma as any).loyaltyTransaction) {
+          await (this.prisma as any).loyaltyTransaction.create({
+            data: {
+              userId: order.userId,
+              orderId: BigInt(orderId),
+              points: pointsEarned,
+              type: 'EARN',
+              balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
+              reason: `Tích điểm thanh toán đơn hàng #${orderId}`,
+            },
+          });
+        }
       } catch (err) {
         console.warn('[Payments] Lỗi tích điểm thưởng cho người dùng:', err);
       }
@@ -691,10 +703,22 @@ export class PaymentsService implements OnModuleInit {
       const pointsEarned = Math.floor(Number(amount) / 10000);
       if (pointsEarned > 0 && order.userId) {
         try {
-          await this.prisma.user.update({
+          const updatedUser = await this.prisma.user.update({
             where: { id: order.userId },
             data: { loyaltyPoints: { increment: pointsEarned } },
           });
+          if ((this.prisma as any).loyaltyTransaction) {
+            await (this.prisma as any).loyaltyTransaction.create({
+              data: {
+                userId: order.userId,
+                orderId: BigInt(orderId),
+                points: pointsEarned,
+                type: 'EARN',
+                balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
+                reason: `Tích điểm thanh toán MoMo đơn hàng #${orderId}`,
+              },
+            });
+          }
         } catch (err) {
           console.error('Lỗi cộng điểm tích lũy:', err);
         }

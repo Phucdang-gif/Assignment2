@@ -77,8 +77,8 @@ Phân rã hệ thống BrewLite thành các ứng dụng và kho dữ liệu th�
 
 | Container | Công nghệ | Nhiệm vụ chính | Giao thức / Port |
 | :--- | :--- | :--- | :--- |
-| **Web Application (PWA)** | Next.js 14 (React, TypeScript, TailwindCSS) | Giao diện người dùng Mobile-first, hiển thị danh mục, giỏ hàng, tạo mã QR thanh toán, giao diện tiếp nhận đơn cho Barista. | HTTP/HTTPS (Port 3000) |
-| **API Application** | NestJS 10 (Node.js, TypeScript, Express) | Cung cấp RESTful API, xác thực JWT, xử lý logic nghiệp vụ, quản lý transaction cơ sở dữ liệu. | HTTP/HTTPS (Port 3001 / 5000) |
+| **Web Application (Mobile-first Web)** | Next.js 16 (React 19, TypeScript, TailwindCSS 4) | Giao diện người dùng Mobile-first, hiển thị danh mục, giỏ hàng, voucher, tạo mã QR thanh toán, giao diện tiếp nhận đơn cho Barista. | HTTP/HTTPS (Port 3000) |
+| **API Application** | NestJS 12 (Node.js 24, TypeScript, Express) | Cung cấp RESTful API (`/api/*`, `/health`), xác thực JWT, xử lý logic nghiệp vụ, quản lý transaction cơ sở dữ liệu. | HTTP/HTTPS (Port 3001) |
 | **Database** | PostgreSQL 15+ | Lưu trữ quan hệ: Users, Products, Toppings, Orders, OrderItems, Payments, Categories. | TCP/IP (Port 5432) |
 | **Mock Payment Service** | NestJS Payment Subsystem / Mock Gateway | Giả lập quá trình sinh mã QR, xác nhận thanh toán tức thì và đối soát Idempotency Key. | HTTP Internal/External |
 
@@ -107,21 +107,21 @@ Backend được xây dựng theo mô hình **Modular Monolith** với các modu
 
 ## 3. Các thành phần kỹ thuật chi tiết
 
-### 3.1. Frontend: Next.js Mobile-First & PWA
-* **Thiết kế Mobile-First**: Giao diện tối ưu hóa trải nghiệm một tay trên thiết bị di động, hỗ trợ vuốt chạm, sticky footer cho giỏ hàng và thanh toán nhanh.
-* **Progressive Web App (PWA)**: Có tệp `manifest.json` và Service Worker cho phép người dùng cài đặt icon ứng dụng lên màn hình chính điện thoại (Add to Home Screen), tối ưu hóa bộ nhớ đệm hình ảnh món ăn để tải trang dưới 1.5 giây.
-* **State Management**: Sử dụng Zustand lưu trữ trạng thái giỏ hàng (`useCartStore`) phía client, đồng bộ với `LocalStorage` giúp không bị mất đơn khi refresh trang.
+### 3.1. Frontend: Next.js Mobile-First Web
+* **Thiết kế Mobile-First**: Giao diện tối ưu hóa trải nghiệm một tay trên thiết bị di động (kèm thanh điều hướng dưới `MobileBottomNav`), bố cục responsive cho màn hình nhỏ và desktop.
+* **Kiến trúc ứng dụng App Router**: Kết hợp Next.js 16 App Router và Tailwind CSS 4, phân tách các màn hình chức năng (`/`, `/product/[id]`, `/cart`, `/checkout`, `/orders`, `/orders/[id]`, `/barista`, `/login`, `/register`, `not-found.tsx`).
+* **State Management**: Sử dụng Zustand lưu trữ trạng thái giỏ hàng (`useCartStore`) và phiên đăng nhập (`useAuthStore`) phía client, đồng bộ với `LocalStorage` giúp không bị mất đơn khi refresh trang.
 
 ### 3.2. Backend: NestJS Modular Monolith
 * **Dependency Injection (DI)**: Tất cả service và repository được quản lý qua Nest IoC Container, giúp việc viết Mock Unit Test và Integration Test trở nên độc lập và dễ dàng.
 * **Data Transfer Object (DTO) & Validation**: Sử dụng `class-validator` và `ValidationPipe` toàn cục (`transform: true, whitelist: true, forbidNonWhitelisted: true`) để lọc sạch payload dữ liệu trước khi đi vào logic xử lý.
 
 ### 3.3. Cơ sở dữ liệu PostgreSQL & Cơ chế Migration (Prisma ORM)
-* **Schema as Code**: Toàn bộ cấu trúc cơ sở dữ liệu được định nghĩa duy nhất tại `backend/prisma/schema.prisma`.
+* **Schema as Code**: Toàn bộ cấu trúc cơ sở dữ liệu được định nghĩa duy nhất tại `apps/api/prisma/schema.prisma`.
 * **Cơ chế Migration tự động**:
   * Phát triển local: Sử dụng `prisma migrate dev --name <migration_name>` tạo các tệp SQL migration có đánh số thứ tự thời gian trong thư mục `prisma/migrations`.
   * Môi trường CI/Production: Tự động chạy `prisma migrate deploy` trước khi ứng dụng khởi chạy để đồng bộ schema mà không làm mất dữ liệu.
-* **Khóa lạc quan (Optimistic Concurrency Control)**: Bảng `Product` lưu trường `version Int @default(0)`. Khi đơn hàng được tạo, câu truy vấn cập nhật kho kiểm tra điều kiện `WHERE id = :id AND version = :currentVersion`. Nếu phiên bản thay đổi (do khách khác mua trước), giao dịch bị rollback và yêu cầu người dùng thử lại.
+* **Khóa lạc quan (Optimistic Concurrency Control) & Tồn kho nguyên liệu**: Bảng `Product` lưu trường `version Int @default(0)`, còn số lượng tồn kho được quản lý theo định mức công thức `ProductRecipeItem` và `Ingredient.stock`. Khi đơn hàng được tạo, hệ thống kiểm tra và trừ `Ingredient.stock` đồng thời cập nhật `Product.version` với điều kiện `WHERE id = :id AND version = :currentVersion`. Nếu phiên bản thay đổi (do khách khác mua trước), giao dịch bị rollback và yêu cầu người dùng thử lại.
 
 ### 3.4. Dịch vụ thanh toán mô phỏng (Payment Simulation) & Idempotency Key
 * **Cơ chế Idempotency Key**:
@@ -131,7 +131,7 @@ Backend được xây dựng theo mô hình **Modular Monolith** với các modu
 
 ### 3.5. Logging, Health Check & Quản lý cấu hình
 * **Quản lý cấu hình**: Dùng `@nestjs/config` nạp cấu hình tập trung từ biến môi trường (`.env`), kiểm soát qua tệp mẫu `.env.example`.
-* **Health Check Endpoint**: Cung cấp đường dẫn `GET /api/health` trả về trạng thái hoạt động của Service và kết nối Database (kiểm tra `SELECT 1` tới PostgreSQL).
+* **Health Check Endpoint**: Cung cấp đường dẫn `GET /health` trả về trạng thái hoạt động của Service (`status`, `service`, `timestamp`, `uptime`).
 * **Logging**: Chuẩn hóa log theo cấu trúc: `[Timestamp] [LogLevel] [Context] Message`, hỗ trợ truy vết lỗi và theo dõi các giao dịch thanh toán quan trọng.
 
 ---

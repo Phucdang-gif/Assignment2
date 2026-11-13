@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -122,6 +123,14 @@ export class OrdersController {
   @Get('statuses')
   getOrderStatuses() {
     return this.ordersService.getOrderStatuses();
+  }
+
+  @Get('voucher/:code')
+  validateVoucher(
+    @Param('code') code: string,
+    @Query('subtotal') subtotal?: string,
+  ) {
+    return this.ordersService.validateVoucher(code, Number(subtotal || 0));
   }
 
   @UseGuards(JwtAuthGuard)

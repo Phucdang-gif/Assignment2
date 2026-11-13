@@ -161,6 +161,14 @@ export class OrdersService {
     let computedRawTotal = 0;
     let computedTotalDiscount = 0;
     let computedFinalTotal = 0;
+    let appliedVoucher: {
+      id: number;
+      code: string;
+      description: string | null;
+      discountType: string;
+      discountValue: number;
+      discountAmount: number;
+    } | null = null;
 
     while (attempts < maxRetries) {
       attempts++;
@@ -283,6 +291,7 @@ export class OrdersService {
 
           let promotionId: bigint | null = null;
           let promoDiscount = 0;
+          appliedVoucher = null;
           if (createOrderDto.voucherCode && (tx as any).promotion) {
             const promo = await (tx as any).promotion.findUnique({
               where: { code: createOrderDto.voucherCode.trim().toUpperCase() },
@@ -291,11 +300,19 @@ export class OrdersService {
             if (promo && promo.isActive && now >= promo.startDate && now <= promo.endDate) {
               if (rawTotal >= Number(promo.minOrderValue || 0)) {
                 promotionId = promo.id;
-                if (promo.discountType === 'PERCENTAGE') {
+                if (promo.discountType === 'PERCENTAGE' || promo.discountType === 'MEMBERSHIP_TIER') {
                   promoDiscount = Math.round((rawTotal * Number(promo.discountValue)) / 100);
                 } else {
                   promoDiscount = Number(promo.discountValue);
                 }
+                appliedVoucher = {
+                  id: Number(promo.id),
+                  code: promo.code,
+                  description: promo.description ?? null,
+                  discountType: promo.discountType,
+                  discountValue: Number(promo.discountValue),
+                  discountAmount: promoDiscount,
+                };
               }
             }
           }
@@ -359,7 +376,57 @@ export class OrdersService {
       loyaltyPoints,
       discountPercent,
       membershipTier,
-      voucher: null,
+      voucher: appliedVoucher,
+    };
+  }
+
+  async validateVoucher(code: string, subtotal = 0) {
+    const cleanCode = (code || '').trim().toUpperCase();
+    if (!cleanCode) {
+      throw new BadRequestException('Vui lòng nhập mã giảm giá');
+    }
+
+    if (!(this.prisma as any).promotion) {
+      throw new BadRequestException('Hệ thống khuyến mãi tạm thời không khả dụng');
+    }
+
+    const promo = await (this.prisma as any).promotion.findUnique({
+      where: { code: cleanCode },
+    });
+
+    if (!promo || !promo.isActive) {
+      throw new BadRequestException(`Mã giảm giá "${cleanCode}" không tồn tại hoặc đã ngừng áp dụng`);
+    }
+
+    const now = new Date();
+    if (now < new Date(promo.startDate) || now > new Date(promo.endDate)) {
+      throw new BadRequestException(`Mã giảm giá "${cleanCode}" đã hết hạn hoặc chưa đến thời gian áp dụng`);
+    }
+
+    const minOrderValue = Number(promo.minOrderValue || 0);
+    if (subtotal > 0 && subtotal < minOrderValue) {
+      throw new BadRequestException(
+        `Đơn hàng cần đạt tối thiểu ${minOrderValue.toLocaleString('vi-VN')}đ để áp dụng mã "${cleanCode}"`,
+      );
+    }
+
+    const discountValue = Number(promo.discountValue || 0);
+    const discountAmount =
+      subtotal > 0
+        ? promo.discountType === 'PERCENTAGE' || promo.discountType === 'MEMBERSHIP_TIER'
+          ? Math.round((subtotal * discountValue) / 100)
+          : Math.min(subtotal, discountValue)
+        : 0;
+
+    return {
+      valid: true,
+      id: Number(promo.id),
+      code: promo.code,
+      description: promo.description ?? null,
+      discountType: promo.discountType,
+      discountValue,
+      minOrderValue,
+      discountAmount,
     };
   }
 
