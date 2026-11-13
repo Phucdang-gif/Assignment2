@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { createTestNestApp, resetTestDatabase } from './test-db.helper';
+import { createTestNestApp, resetAndSeedDatabase } from './test-db.helper';
 
 describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06 / Real PostgreSQL)', () => {
   let app: INestApplication;
@@ -15,7 +15,7 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06 / Real P
   });
 
   beforeEach(async () => {
-    await resetTestDatabase(prisma);
+    await resetAndSeedDatabase(prisma);
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
@@ -27,7 +27,7 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06 / Real P
 
   afterAll(async () => {
     if (prisma) {
-      await resetTestDatabase(prisma);
+      await resetAndSeedDatabase(prisma);
     }
     if (app) {
       await app.close();

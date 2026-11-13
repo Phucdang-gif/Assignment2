@@ -98,18 +98,24 @@ export async function ensureSeedData(prisma: PrismaService): Promise<void> {
 }
 
 /**
- * Đặt lại trạng thái dữ liệu kiểm thử trong PostgreSQL:
- * - Dọn sạch các đơn hàng, thanh toán và điểm thưởng tạm thời sinh ra trong quá trình test
+ * Đặt lại trạng thái và nạp dữ liệu kiểm thử trong PostgreSQL:
+ * - Truncate các bảng Order, Payment, LoyaltyTransaction với RESTART IDENTITY CASCADE
+ * - Dọn sạch các tài khoản người dùng test tạo động trong quá trình chạy E2E
  * - Khôi phục điểm thưởng người dùng kiểm thử về mặc định (50 điểm cho customer@brewlite.com)
  * - Khôi phục định mức tồn kho nguyên vật liệu và version sản phẩm về trạng thái gốc
+ * - Đảm bảo dữ liệu danh mục, sản phẩm, công thức luôn sẵn sàng
  */
-export async function resetTestDatabase(prisma: PrismaService): Promise<void> {
-  // 1. Dọn sạch các bảng liên quan đến Order & Payment
-  await prisma.orderItemTopping.deleteMany({});
-  await prisma.orderItem.deleteMany({});
-  await prisma.payment.deleteMany({});
-  await prisma.loyaltyTransaction.deleteMany({});
-  await prisma.order.deleteMany({});
+export async function resetAndSeedDatabase(prisma: PrismaService): Promise<void> {
+  // 1. Truncate các bảng liên quan đến Order & Payment và khởi tạo lại auto-increment ID
+  await prisma.$executeRawUnsafe(`
+    TRUNCATE TABLE 
+      "OrderItemTopping", 
+      "OrderItem", 
+      "Payment", 
+      "LoyaltyTransaction", 
+      "Order" 
+    RESTART IDENTITY CASCADE;
+  `);
 
   // 2. Xóa các tài khoản người dùng test tạo động trong quá trình chạy E2E
   await prisma.user.deleteMany({
@@ -154,7 +160,13 @@ export async function resetTestDatabase(prisma: PrismaService): Promise<void> {
   await prisma.product.updateMany({
     data: { version: 0 },
   });
+
+  // 6. Đảm bảo dữ liệu mẫu tối thiểu
+  await ensureSeedData(prisma);
 }
+
+// Alias tương thích ngược cho resetTestDatabase
+export const resetTestDatabase = resetAndSeedDatabase;
 
 export interface TestNestAppContext {
   app: INestApplication;

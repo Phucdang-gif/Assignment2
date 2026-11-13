@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { createTestNestApp, resetTestDatabase } from './test-db.helper';
+import { createTestNestApp, resetAndSeedDatabase } from './test-db.helper';
 
 describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01 / Real PostgreSQL)', () => {
   let app: INestApplication;
@@ -14,12 +14,12 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01 
   });
 
   beforeEach(async () => {
-    await resetTestDatabase(prisma);
+    await resetAndSeedDatabase(prisma);
   });
 
   afterAll(async () => {
     if (prisma) {
-      await resetTestDatabase(prisma);
+      await resetAndSeedDatabase(prisma);
     }
     if (app) {
       await app.close();

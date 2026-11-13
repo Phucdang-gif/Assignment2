@@ -61,6 +61,15 @@ function splitSqlStatements(sql) {
 async function main() {
   console.log('=== BẮT ĐẦU SEED DỮ LIỆU TỪ FILE SQL CHO BREWLITE ===');
 
+  const forceSeed = process.env.RUN_SEED === 'true' || process.env.FORCE_SEED === 'true';
+  const existingProducts = await prisma.product.count();
+  const existingUsers = await prisma.user.count();
+
+  if (!forceSeed && existingProducts > 0 && existingUsers > 0) {
+    console.log(`ℹ️ Database đã có dữ liệu (${existingProducts} sản phẩm, ${existingUsers} người dùng). Bỏ qua seed để tránh ghi đè dữ liệu khi container khởi động lại.`);
+    return;
+  }
+
   const seedFilePath = path.join(__dirname, 'database local', 'brewlite_seed_data.sql');
 
   if (!fs.existsSync(seedFilePath)) {
