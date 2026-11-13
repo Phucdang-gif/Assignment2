@@ -23,6 +23,8 @@ describe('AppController', () => {
       const health = appController.getHealth();
       expect(health.status).toBe('ok');
       expect(health).toHaveProperty('timestamp');
+      expect(health).toHaveProperty('uptime');
+      expect(health.info).toEqual({ database: { status: 'up' } });
     });
   });
 });

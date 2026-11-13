@@ -5,7 +5,6 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('ProductsService', () => {
   let service: ProductsService;
-  let prisma: PrismaService;
 
   const mockProduct = {
     id: BigInt(1),
@@ -65,7 +64,6 @@ describe('ProductsService', () => {
     }).compile();
 
     service = module.get<ProductsService>(ProductsService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -95,7 +93,7 @@ describe('ProductsService', () => {
       const result = await service.findAll();
       expect(result).toHaveLength(1);
       expect(result[0].stock).toBe(20);
-      expect(prisma.product.findMany).toHaveBeenCalled();
+      expect(mockPrismaService.product.findMany).toHaveBeenCalled();
     });
   });
 
@@ -105,7 +103,7 @@ describe('ProductsService', () => {
       expect(result.stock).toBe(20);
       expect(result.sizeStock).toBeDefined();
       expect(result.sizeStock.M).toBe(20);
-      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.product.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         include: {
           category: true,
@@ -124,8 +122,8 @@ describe('ProductsService', () => {
   describe('deductIngredients', () => {
     it('should deduct ingredients when enough stock is available', async () => {
       await service.deductIngredients(1, 'M', 2);
-      expect(prisma.productRecipeItem.findMany).toHaveBeenCalled();
-      expect(prisma.$transaction).toHaveBeenCalled();
+      expect(mockPrismaService.productRecipeItem.findMany).toHaveBeenCalled();
+      expect(mockPrismaService.$transaction).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException if ingredient stock is insufficient', async () => {

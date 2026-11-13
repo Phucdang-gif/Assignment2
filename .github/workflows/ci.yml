@@ -65,7 +65,11 @@ jobs:
       - name: Run Unit Tests
         run: npm test -- --passWithNoTests
 
-      # Step 5: Build
+      # Step 5: Integration & E2E Tests (Task 5.2)
+      - name: Run Integration & E2E Tests
+        run: npm run test:e2e
+
+      # Step 6: Build
       - name: Build NestJS application
         run: npm run build
 
@@ -99,7 +103,11 @@ jobs:
       - name: Run Lint (ESLint)
         run: npm run lint
 
-      # Step 3: Build
+      # Step 3: Frontend E2E & State Tests
+      - name: Run Frontend Tests
+        run: npm test
+
+      # Step 4: Build
       - name: Build Next.js application
         run: npm run build
         env:
