@@ -43,20 +43,20 @@ flowchart LR
         direction TB
         A1["Xem Menu & Tìm kiếm đồ uống"]
         A2["Tùy chọn Size (S/M/L) & Topping"]
-        A3["Quản lý giỏ hàng & Tính tổng tiền"]
+        A3["Quản lý giỏ hàng, Voucher & Tính tổng tiền"]
         A4["Xác thực người dùng (JWT, Role Customer/Barista)"]
         A5["Đặt hàng & Giao dịch thanh toán mô phỏng"]
-        A6["Kiểm soát tồn kho & Khóa lạc quan (Optimistic Lock)"]
+        A6["Kiểm soát tồn kho nguyên liệu & Khóa lạc quan (Optimistic Lock)"]
         A7["Theo dõi trạng thái đơn hàng & Tích điểm thành viên"]
     end
 
     subgraph OUT_OF_SCOPE["Ngoài phạm vi (Out-of-Scope)"]
         direction TB
-        B1["Cổng thanh toán thực tế (VNPAY / MoMo live)"]
+        B1["Cổng thanh toán thương mại live (VNPAY / MoMo Production)"]
         B2["Tích hợp đơn vị vận chuyển ngoài (Grab / ShopeeFood)"]
         B3["Hệ thống phần cứng máy in nhiệt / Két tiền"]
         B4["Quản lý phân ca làm việc & Chấm công nhân viên"]
-        B5["Hệ thống khuyến mãi phức tạp đa tầng voucher"]
+        B5["Hệ thống khuyến mãi đa tầng phức tạp / Chiến dịch đối tác"]
     end
 ```
 
@@ -65,7 +65,7 @@ flowchart LR
 #### A. Phạm vi cốt lõi (MVP - Minimum Viable Product - Sprint 1)
 - **Danh mục đồ uống (Menu Browsing)**: 
   - Khách hàng xem danh sách đồ uống kèm hình ảnh, giá cơ bản, mô tả và tình trạng còn hàng.
-  - Xem chi tiết từng món (`GET /products`, `GET /products/:id`).
+  - Xem chi tiết từng món (`GET /api/products`, `GET /api/products/:id`).
   - Giao diện đáp ứng (Responsive) theo quy trình Mobile-First, xử lý đầy đủ trạng thái: Loading, Empty data, Error.
 - **Dữ liệu mẫu & Quản lý Schema**: 
   - Tạo cấu trúc bảng ban đầu và nạp dữ liệu mẫu (Database Seeding) cho sản phẩm và người dùng.
