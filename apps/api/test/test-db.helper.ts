@@ -72,13 +72,6 @@ function splitSqlStatements(sql: string): string[] {
  * Nếu chưa có dữ liệu (bảng User hoặc Product rỗng), nạp tự động từ brewlite_seed_data.sql.
  */
 export async function ensureSeedData(prisma: PrismaService): Promise<void> {
-  // Đảm bảo cấu trúc cột description trong bảng Product luôn tồn tại đồng bộ với schema.prisma
-  await prisma.$executeRawUnsafe('ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "description" TEXT;');
-
-  // Đảm bảo kiểu dữ liệu INTEGER cho stock trong Ingredient và amount trong ProductRecipeItem đồng bộ với schema.prisma
-  await prisma.$executeRawUnsafe('ALTER TABLE "Ingredient" ALTER COLUMN "stock" TYPE INTEGER USING stock::integer;');
-  await prisma.$executeRawUnsafe('ALTER TABLE "ProductRecipeItem" ALTER COLUMN "amount" TYPE INTEGER USING amount::integer;');
-
   const productCount = await prisma.product.count();
   const userCount = await prisma.user.count();
   const ingredientCount = await prisma.ingredient.count();

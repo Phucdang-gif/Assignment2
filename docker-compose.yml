@@ -32,7 +32,7 @@ services:
       DATABASE_URL: postgresql://brewlite:brewlite123@db:5432/brewlite?schema=public
       JWT_SECRET: brewlite-super-secret-key-change-in-production
       PORT: 3001
-      RUN_SEED: "true"
+      RUN_SEED: "${RUN_SEED:-false}"
     depends_on:
       db:
         condition: service_healthy

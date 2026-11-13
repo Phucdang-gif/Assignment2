@@ -285,6 +285,16 @@ describe('BrewLite Real End-to-End (E2E) Ordering & Fulfillment Flow (TASK-5.2)'
     }
 
     // Nếu không thể kết nối tới PostgreSQL (ví dụ chạy trên môi trường CI frontend độc lập không có DB service)
+    if (process.env.E2E_REQUIRE_REAL_API === 'true') {
+      if (serverProcess) {
+        serverProcess.kill();
+        serverProcess = null;
+      }
+      throw new Error(
+        `[E2E] E2E_REQUIRE_REAL_API=true nhưng không thể kết nối backend + PostgreSQL tại ${BASE_URL}`,
+      );
+    }
+
     console.warn(`[E2E] Không thể khởi động backend với PostgreSQL cục bộ. Kích hoạt Embedded HTTP Mock Server...`);
     if (serverProcess) {
       serverProcess.kill();
