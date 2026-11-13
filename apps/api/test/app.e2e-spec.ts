@@ -1,19 +1,29 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestNestApp, StatefulPrismaTestHarness } from './test-db.helper';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { createTestNestApp, resetTestDatabase } from './test-db.helper';
 
-describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)', () => {
+describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01 / Real PostgreSQL)', () => {
   let app: INestApplication;
-  let db: StatefulPrismaTestHarness;
+  let prisma: PrismaService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const setup = await createTestNestApp();
     app = setup.app;
-    db = setup.db;
+    prisma = setup.prisma;
   });
 
-  afterEach(async () => {
-    await app.close();
+  beforeEach(async () => {
+    await resetTestDatabase(prisma);
+  });
+
+  afterAll(async () => {
+    if (prisma) {
+      await resetTestDatabase(prisma);
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   it('GET /health và GET /api/health trả về 200 OK và trạng thái sức khỏe hệ thống', async () => {
@@ -60,11 +70,10 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)
     const detailRes = await request(app.getHttpServer())
       .get('/api/products/1')
       .expect(200);
-    expect(detailRes.body.sizeStock).toEqual({
-      S: 10,
-      M: 8,
-      L: 5,
-    });
+    expect(detailRes.body.sizeStock.S).toBeGreaterThan(0);
+    expect(detailRes.body.sizeStock.M).toBeGreaterThan(0);
+    expect(detailRes.body.sizeStock.L).toBeGreaterThan(0);
+    const sizeLBefore = detailRes.body.sizeStock.L;
 
     const toppingsRes = await request(app.getHttpServer())
       .get('/api/toppings')
@@ -103,7 +112,7 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)
       .get('/api/orders/voucher/WELCOME10?subtotal=110000')
       .expect(200);
     expect(voucherRes.body.valid).toBe(true);
-    expect(voucherRes.body.discountAmount).toBe(10000);
+    expect(voucherRes.body.discountAmount).toBe(11000);
 
     const createOrderRes = await request(app.getHttpServer())
       .post('/api/orders')
@@ -123,14 +132,14 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)
 
     const orderId = Number(createOrderRes.body.orderId);
     expect(createOrderRes.body.rawTotal).toBe(110000);
-    expect(createOrderRes.body.discount).toBe(10000);
-    expect(createOrderRes.body.total).toBe(100000);
+    expect(createOrderRes.body.discount).toBe(11000);
+    expect(createOrderRes.body.total).toBe(99000);
 
-    // Kiểm tra tồn kho Size L đã giảm từ 5 -> 3 sau khi giữ kho
+    // Kiểm tra tồn kho Size L đã giảm đúng 2 ly sau khi giữ kho
     const detailAfterOrder = await request(app.getHttpServer())
       .get('/api/products/1')
       .expect(200);
-    expect(detailAfterOrder.body.sizeStock.L).toBe(3);
+    expect(detailAfterOrder.body.sizeStock.L).toBe(sizeLBefore - 2);
 
     // =========================================================================
     // BƯỚC 5: Thanh toán đơn hàng bằng Ví điện tử với Idempotency Key (FR-06)
@@ -141,14 +150,14 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)
       .set('Authorization', `Bearer ${buyerToken}`)
       .send({
         orderId,
-        amount: 100000,
+        amount: 99000,
         method: 'WALLET',
         idempotencyKey,
       })
       .expect(201);
 
     expect(paymentRes.body.order.status).toBe('PAID');
-    expect(paymentRes.body.pointsEarned).toBe(10); // 100.000đ -> +10 điểm
+    expect(paymentRes.body.pointsEarned).toBe(9); // 99.000đ -> +9 điểm
 
     // Kiểm tra trạng thái đơn hàng tại trang xác nhận /orders/:id
     const orderDetailRes = await request(app.getHttpServer())
@@ -214,12 +223,13 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)
       .get('/api/auth/me')
       .set('Authorization', `Bearer ${buyerToken}`)
       .expect(200);
-    expect(meRes.body.loyaltyPoints).toBe(10);
+    expect(meRes.body.loyaltyPoints).toBe(9);
 
     // =========================================================================
     // BƯỚC 7: Hủy đơn hàng PENDING và hoàn trả tồn kho (Stock Rollback - FR-10)
     // =========================================================================
-    const stockBeforeCancelOrder = db.ingredients.find((i) => i.id === 1)!.stock;
+    const ingredientBeforeCancel = await prisma.ingredient.findUnique({ where: { id: 1 } });
+    const stockBeforeCancelOrder = ingredientBeforeCancel!.stock;
     const secondOrderRes = await request(app.getHttpServer())
       .post('/api/orders')
       .set('Authorization', `Bearer ${buyerToken}`)
@@ -228,13 +238,15 @@ describe('BrewLite End-to-End Ordering & Fulfillment Flow (TASK-5.2 / AC-E2E-01)
       })
       .expect(201);
     const secondOrderId = Number(secondOrderRes.body.orderId);
-    expect(db.ingredients.find((i) => i.id === 1)!.stock).toBe(stockBeforeCancelOrder - 40);
+    const ingredientDuringPending = await prisma.ingredient.findUnique({ where: { id: 1 } });
+    expect(ingredientDuringPending!.stock).toBe(stockBeforeCancelOrder - 40);
 
     const cancelRes = await request(app.getHttpServer())
       .patch(`/api/orders/${secondOrderId}/cancel`)
       .set('Authorization', `Bearer ${buyerToken}`)
       .expect(200);
     expect(cancelRes.body.status).toBe('CANCELLED');
-    expect(db.ingredients.find((i) => i.id === 1)!.stock).toBe(stockBeforeCancelOrder);
+    const ingredientAfterCancel = await prisma.ingredient.findUnique({ where: { id: 1 } });
+    expect(ingredientAfterCancel!.stock).toBe(stockBeforeCancelOrder);
   });
 });
