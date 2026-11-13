@@ -79,6 +79,8 @@ jobs:
 
       # Step 7: Root E2E Flow Test (Task 5.2)
       - name: Run Root E2E Ordering Flow Test
+        env:
+          E2E_REQUIRE_REAL_API: "true"
         run: node ../../tests/e2e/ordering-flow.e2e.test.mjs
 
   # ============================================================
