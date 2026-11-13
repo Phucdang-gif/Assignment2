@@ -52,6 +52,9 @@ describe('PaymentsService', () => {
     user: {
       update: jest.fn(),
     },
+    loyaltyTransaction: {
+      create: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
