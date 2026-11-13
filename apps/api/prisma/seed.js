@@ -65,11 +65,15 @@ async function main() {
 
   // Đảm bảo cấu trúc cột description trong bảng Product luôn tồn tại đồng bộ với schema.prisma
   await prisma.$executeRawUnsafe('ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "description" TEXT;');
+  await prisma.$executeRawUnsafe('ALTER TABLE "Ingredient" ALTER COLUMN "stock" TYPE INTEGER USING stock::integer;');
+  await prisma.$executeRawUnsafe('ALTER TABLE "ProductRecipeItem" ALTER COLUMN "amount" TYPE INTEGER USING amount::integer;');
 
   const existingProducts = await prisma.product.count();
   const existingUsers = await prisma.user.count();
+  const existingIngredients = await prisma.ingredient.count();
+  const existingRecipes = await prisma.productRecipeItem.count();
 
-  if (!forceSeed && existingProducts > 0 && existingUsers > 0) {
+  if (!forceSeed && existingProducts > 0 && existingUsers > 0 && existingIngredients > 0 && existingRecipes > 0) {
     console.log(`ℹ️ Database đã có dữ liệu (${existingProducts} sản phẩm, ${existingUsers} người dùng). Bỏ qua seed để tránh ghi đè dữ liệu khi container khởi động lại.`);
     return;
   }

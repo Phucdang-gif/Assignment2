@@ -75,10 +75,16 @@ export async function ensureSeedData(prisma: PrismaService): Promise<void> {
   // Đảm bảo cấu trúc cột description trong bảng Product luôn tồn tại đồng bộ với schema.prisma
   await prisma.$executeRawUnsafe('ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "description" TEXT;');
 
+  // Đảm bảo kiểu dữ liệu INTEGER cho stock trong Ingredient và amount trong ProductRecipeItem đồng bộ với schema.prisma
+  await prisma.$executeRawUnsafe('ALTER TABLE "Ingredient" ALTER COLUMN "stock" TYPE INTEGER USING stock::integer;');
+  await prisma.$executeRawUnsafe('ALTER TABLE "ProductRecipeItem" ALTER COLUMN "amount" TYPE INTEGER USING amount::integer;');
+
   const productCount = await prisma.product.count();
   const userCount = await prisma.user.count();
+  const ingredientCount = await prisma.ingredient.count();
+  const recipeCount = await prisma.productRecipeItem.count();
 
-  if (productCount > 0 && userCount > 0) {
+  if (productCount > 0 && userCount > 0 && ingredientCount > 0 && recipeCount > 0) {
     return;
   }
 
@@ -153,10 +159,9 @@ export async function resetAndSeedDatabase(prisma: PrismaService): Promise<void>
   };
 
   for (const [idStr, stock] of Object.entries(initialStocks)) {
-    await prisma.ingredient.updateMany({
-      where: { id: Number(idStr) },
-      data: { stock },
-    });
+    await prisma.$executeRawUnsafe(
+      `UPDATE "Ingredient" SET stock = ${stock} WHERE id = ${Number(idStr)};`
+    );
   }
 
   // 5. Khôi phục version sản phẩm về 0
