@@ -47,6 +47,7 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
     it('chặn thanh toán khi idempotencyKey không đúng chuẩn UUID v4 hoặc phương thức không hợp lệ (400 Bad Request)', async () => {
       await request(app.getHttpServer())
         .post('/api/payments')
+        .set('Authorization', `Bearer ${customerToken}`)
         .send({
           orderId: 1,
           amount: 35000,
@@ -57,6 +58,7 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
 
       await request(app.getHttpServer())
         .post('/api/payments')
+        .set('Authorization', `Bearer ${customerToken}`)
         .send({
           orderId: 1,
           amount: 35000,
@@ -64,6 +66,14 @@ describe('Orders & Payments Integration Tests (TASK-5.2 / FR-05 & FR-06)', () =>
           idempotencyKey: '550e8400-e29b-41d4-a716-446655440000',
         })
         .expect(400);
+    });
+
+    it('chặn thanh toán khi không có JWT (401)', async () => {
+      await request(app.getHttpServer())
+        .post('/api/payments')
+        .send({ orderId: 1, amount: 35000, method: 'WALLET',
+                idempotencyKey: '550e8400-e29b-41d4-a716-446655440000' })
+        .expect(401);
     });
   });
 

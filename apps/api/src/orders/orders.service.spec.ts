@@ -155,6 +155,10 @@ describe('OrdersService', () => {
       expect(updated.status).toBe(order_status.PREPARING);
       expect(mockPrisma.order.update).toHaveBeenCalled();
     });
+
+    it('cho phép admin cập nhật trạng thái đơn như barista', async () => {
+      mockUsersService.findOne.mockResolvedValue({ id: 9, role: 'admin' });
+    });
   });
 
   describe('findOne (Quyền xem chi tiết đơn hàng / Lịch sử đơn)', () => {

@@ -17,11 +17,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard, Roles } from '../auth/roles.guard';
+import { RolesGuard, Roles, STAFF_ROLES } from '../auth/roles.guard';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('barista', 'admin')
+@Roles(...STAFF_ROLES)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

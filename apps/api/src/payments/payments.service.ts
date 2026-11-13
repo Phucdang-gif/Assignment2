@@ -3,11 +3,13 @@ import {
   Injectable,
   NotFoundException,
   OnModuleInit,
+  ForbiddenException,
 } from '@nestjs/common';
 import { order_status, payment_method, payment_status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { VerifyPayOSDto } from './dto/verify-payos.dto';
+import { isStaffRole } from '../auth/roles.guard';
 import * as crypto from 'crypto';
 
 let PayOSConstructor: any = null;
@@ -230,6 +232,25 @@ export class PaymentsService implements OnModuleInit {
     // 3. Tiến hành xử lý thanh toán mô phỏng an toàn
     return this.markOrderAsPaid(orderId, amount, idempotencyKey, method);
   }
+
+  /** Chỉ chủ đơn (hoặc nhân viên nếu allowStaff=true) mới được thao tác */
+async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
+  const order = await this.prisma.order.findUnique({
+    where: { id: BigInt(orderId) },
+    select: { userId: true },
+  });
+  if (!order) throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
+  if (Number(order.userId) === userId) return;
+
+  if (allowStaff) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: BigInt(userId) },
+      select: { role: true },
+    });
+    if (isStaffRole(user?.role)) return;
+  }
+  throw new ForbiddenException('Bạn không có quyền với đơn hàng này');
+}
 
   /**
    * Lấy lịch sử giao dịch thanh toán theo đơn hàng

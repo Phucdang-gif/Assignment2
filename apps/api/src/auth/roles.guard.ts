@@ -4,12 +4,20 @@ import {
   ForbiddenException,
   Injectable,
   SetMetadata,
+  applyDecorators,
+  UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UsersService } from '../users/users.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
+
+export const STAFF_ROLES = ['barista', 'admin'] as const;
+
+export const isStaffRole = (role?: string | null): boolean =>
+  !!role && (STAFF_ROLES as readonly string[]).includes(role);
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -50,3 +58,6 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
+
+export const StaffOnly = () =>
+  applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...STAFF_ROLES));
