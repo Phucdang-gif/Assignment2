@@ -77,6 +77,10 @@ jobs:
       - name: Build NestJS application
         run: npm run build
 
+      # Step 7: Root E2E Flow Test (Task 5.2)
+      - name: Run Root E2E Ordering Flow Test
+        run: node ../../tests/e2e/ordering-flow.e2e.test.mjs
+
   # ============================================================
   # JOB 2: Frontend (Next.js) — Install → Lint → Build
   # ============================================================

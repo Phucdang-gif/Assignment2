@@ -278,7 +278,14 @@ describe('BrewLite Real End-to-End (E2E) Ordering & Fulfillment Flow (TASK-5.2)'
       }
     });
 
-    const isReady = await waitForServer(BASE_URL, 6000);
+    serverProcess.stderr.on('data', (d) => {
+      const str = d.toString();
+      if (str.trim()) {
+        console.warn(`[Backend Subprocess Error] ${str.trim()}`);
+      }
+    });
+
+    const isReady = await waitForServer(BASE_URL, 15000);
     if (isReady) {
       console.log(`[E2E] Khởi động backend thực tế thành công! Bắt đầu kiểm thử chuỗi API qua PostgreSQL.`);
       return;
