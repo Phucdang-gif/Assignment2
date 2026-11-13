@@ -12,6 +12,9 @@ export class AppService {
       service: 'BrewLite API',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      info: {
+        database: { status: 'up' },
+      },
     };
   }
 }

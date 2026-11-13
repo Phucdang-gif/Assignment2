@@ -573,19 +573,22 @@ Hệ thống đã triển khai đầy đủ 4 tiêu chí cốt lõi của Task 1
    - Điểm tích lũy không bị trừ khi giảm giá, giúp khách hàng duy trì và thăng hạng.
    - Khi đơn chuyển sang `PAID`, hệ thống tự động tích lũy thêm điểm thưởng theo tỷ lệ 1 điểm / 10.000đ vào tài khoản khách hàng.
 
-### 🏃 Chạy kiểm thử tự động (Unit Tests)
+### 🏃 Chạy kiểm thử tự động (Unit, Integration & E2E Tests - Task 5.2)
 
-Toàn bộ 28 tests trong hệ thống (bao gồm 14 tests dành riêng cho Task 10) đều đã sẵn sàng:
+Hệ thống bao phủ đầy đủ 3 tầng kiểm thử (Unit Test, Integration Test và End-to-End Test):
 
 ```bash
-cd backend
+# 1. Chạy toàn bộ Unit Tests tại Backend (76 test cases qua 8 suites)
+cd apps/api
 npm test
-```
 
-Hoặc chỉ chạy riêng bộ test kiểm chứng Task 10:
+# 2. Chạy Integration Tests (tạo đơn / thanh toán) & E2E Tests luồng đặt món hoàn chỉnh
+cd apps/api
+npm run test:e2e
 
-```bash
-npm test -- src/orders/orders.task10.spec.ts
+# 3. Chạy kiểm thử luồng Giỏ hàng & Checkout phía Frontend
+cd apps/web
+npm test
 ```
 
 ---
