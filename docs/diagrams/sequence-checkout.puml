@@ -28,91 +28,92 @@ participant "NestJS API" as API
 database "Database\n(PostgreSQL/Prisma)" as DB
 participant "Payment Service\n(PayOS / MoMo)" as PAY
 
-== 1. Bắt đầu thanh toán & kiểm tra JWT ==
-C -> UI : Bấm "Tiến hành thanh toán"
+== 1. Bắt đầu đặt hàng & kiểm tra JWT ==
+C -> UI : Bấm "Thanh toán" tại /cart\n(có thể nhập mã voucher)
 activate UI
-UI -> UI : Kiểm tra giỏ hàng & JWT trong LocalStorage
+UI -> UI : Kiểm tra giỏ hàng & JWT trong useAuthStore
 alt Giỏ hàng rỗng (E1)
-    UI --> C : Khóa nút, báo "Giỏ hàng rỗng"
+    UI --> C : Hiển thị giỏ hàng trống
 else Chưa đăng nhập / không có token (E2)
-    UI --> C : Chuyển hướng /login?redirect=/checkout\n(giữ giỏ hàng ở LocalStorage)
+    UI --> C : Chuyển hướng /login?redirect=/cart\n(giữ giỏ hàng ở LocalStorage)
 else Giỏ hàng hợp lệ và có token
-    UI --> C : Hiển thị trang Checkout (tóm tắt, giảm giá theo điểm)
-end
+    UI -> API : GET /api/orders/voucher/:code?subtotal=... (nếu có mã)
+    API --> UI : Chiết khấu voucher (nếu hợp lệ)
 
-C -> UI : Chọn phương thức, bấm "Xác nhận thanh toán"
-UI -> UI : Sinh idempotencyKey (UUID v4)
+    == 2. Tạo đơn hàng (Transaction) ==
+    UI -> API : POST /api/orders\n(Bearer JWT, items, voucherCode)
+    activate API
+    API -> API : JwtAuthGuard: verify chữ ký & hạn token (exp)
+    alt Token không hợp lệ / hết hạn (HTTP 401)
+        API --> UI : 401 Unauthorized
+        UI --> C : Xóa token, chuyển hướng /login?redirect=/cart
+    else Token hợp lệ
+        API -> API : Gắn userId vào Request.user\nValidate DTO & tính lại giá từ DB
+        alt Dữ liệu không hợp lệ (HTTP 400)
+            API --> UI : 400 Bad Request (chi tiết lỗi)
+            UI --> C : Hiển thị lỗi, giữ nguyên giỏ hàng
+        else Dữ liệu hợp lệ
+            API -> DB : BEGIN prisma.$transaction
+            activate DB
+            API -> DB : Đọc công thức ProductRecipeItem,\ntồn kho nguyên liệu (Ingredient), version sản phẩm
+            DB --> API : recipe, Ingredient.stock, Product.version
+            alt Thiếu nguyên liệu hoặc xung đột version (E3)
+                API -> DB : ROLLBACK
+                DB --> API : Đã hoàn tác toàn bộ
+                deactivate DB
+                API --> UI : 400 / 409 "Nguyên liệu không đủ hoặc xung đột"
+                UI --> C : Cảnh báo banner đỏ, yêu cầu chỉnh giỏ hàng
+            else Đủ nguyên liệu tồn kho
+                API -> DB : UPDATE ingredient SET stock = stock - needed\nUPDATE products SET version = version + 1 WHERE version = :v
+                API -> DB : INSERT Order (PENDING, subtotal, discount, total),\nOrderItem, OrderItemTopping
+                API -> DB : COMMIT
+                DB --> API : orderId, total
+                deactivate DB
+                API --> UI : 201 Created (orderId, total)
+                UI -> UI : Chuyển sang /checkout (giữ đơn 5 phút)
 
-== 2. Tạo đơn hàng (Transaction) ==
-UI -> API : POST /orders\n(Bearer JWT, items, idempotencyKey)
-activate API
-API -> API : JwtAuthGuard: verify chữ ký & hạn token (exp)
-alt Token không hợp lệ / hết hạn (HTTP 401)
-    API --> UI : 401 Unauthorized
-    UI --> C : Xóa token, chuyển hướng /login?redirect=/checkout
-else Token hợp lệ
-    API -> API : Gắn userId, role vào Request.user\nValidate DTO (items, quantity, topping, isAvailable)
-    alt Dữ liệu không hợp lệ (HTTP 400)
-        API --> UI : 400 Bad Request (chi tiết lỗi)
-        UI --> C : Hiển thị lỗi, giữ nguyên giỏ hàng
-    else Dữ liệu hợp lệ
-        API -> DB : BEGIN prisma.$transaction
-        activate DB
-        API -> DB : Đọc stock, version của các sản phẩm\n(SELECT ... FOR UPDATE)
-        DB --> API : stock, version
-        alt Hết hàng (stock < quantity) hoặc xung đột version (E3)
-            API -> DB : ROLLBACK
-            DB --> API : Đã hoàn tác toàn bộ
-            deactivate DB
-            API --> UI : 400 / 409 "Sản phẩm đã hết hàng"
-            UI --> C : Cảnh báo đỏ, yêu cầu chỉnh giỏ hàng
-        else Đủ tồn kho
-            API -> DB : UPDATE products SET stock = stock - qty,\nversion = version + 1 WHERE version = :v
-            API -> DB : INSERT Order (PENDING), OrderItem, OrderItemTopping\n(áp dụng giảm giá điểm tích lũy)
-            API -> DB : COMMIT
-            DB --> API : orderId, totalAmount
-            deactivate DB
-            API --> UI : 201 Created (orderId, totalAmount)
+                == 3. Thanh toán & idempotency ==
+                C -> UI : Chọn phương thức, bấm "Xác nhận thanh toán"
+                UI -> UI : Sinh idempotencyKey (UUID v4)
+                UI -> API : POST /api/payments\n(Bearer JWT, orderId, method, amount, idempotencyKey)
+                API -> API : Verify JWT & validate dữ liệu
+                API -> DB : Tìm Payment theo idempotencyKey
+                DB --> API : Kết quả tra cứu
 
-            == 3. Thanh toán & idempotency ==
-            UI -> API : POST /payments\n(Bearer JWT, orderId, method, amount, idempotencyKey)
-            API -> API : Verify JWT & validate dữ liệu
-            API -> DB : Tìm Payment theo idempotencyKey
-            DB --> API : Kết quả tra cứu
-
-            alt idempotencyKey đã tồn tại trong DB (A2 - client gửi lại / bấm 2 lần)
-                API --> UI : 200 OK (kết quả giao dịch cũ)\nKHÔNG gọi Payment Service, KHÔNG trừ tiền lần 2
-                UI --> C : Thông báo thanh toán thành công (kết quả cũ)
-            else idempotencyKey chưa tồn tại
-                API -> PAY : Yêu cầu trừ tiền (orderId, amount, idempotencyKey)
-                activate PAY
-                alt Thanh toán thành công (SUCCESS)
-                    PAY --> API : SUCCESS, transactionId
-                    deactivate PAY
-                    API -> DB : BEGIN transaction
-                    activate DB
-                    API -> DB : Lưu Payment (idempotencyKey, amount, method)\nUPDATE Order -> PAID\nUPDATE User.loyaltyPoints += floor(total / 10000)
-                    API -> DB : COMMIT
-                    DB --> API : OK
-                    deactivate DB
-                    API --> UI : 200 OK (PAID, điểm mới)
-                    UI -> UI : clearCart()
-                    UI --> C : Toast "Thanh toán thành công",\nchuyển sang /orders/:id (ĐÃ THANH TOÁN)
-                else Thanh toán bị từ chối (FAILED) (E4)
-                    PAY --> API : FAILED (ví không đủ tiền...)
-                    API -> DB : BEGIN transaction
-                    activate DB
-                    API -> DB : UPDATE Order -> PAYMENT_FAILED\nHoàn trả tồn kho (stock += qty, version += 1)
-                    API -> DB : COMMIT
-                    DB --> API : OK
-                    deactivate DB
-                    API --> UI : 402 / 400 Payment Failed
-                    UI --> C : Báo lỗi thanh toán, giữ giỏ hàng để thử lại
-                else Cổng thanh toán timeout (E5)
-                    PAY --> API : (không phản hồi) 504 Gateway Timeout
-                    deactivate PAY
-                    API --> UI : 504 Gateway Timeout\n(đơn giữ PENDING chờ đối soát)
-                    UI --> C : Thông báo "Đang chờ xác nhận thanh toán",\nthử lại với cùng idempotencyKey
+                alt idempotencyKey đã tồn tại trong DB (A2 - client gửi lại / bấm 2 lần)
+                    API --> UI : 200 OK (kết quả giao dịch cũ, idempotent: true)\nKHÔNG gọi Payment Service, KHÔNG trừ tiền lần 2
+                    UI --> C : Thông báo thanh toán thành công (kết quả cũ)
+                else idempotencyKey chưa tồn tại
+                    API -> PAY : Yêu cầu trừ tiền (orderId, amount, idempotencyKey)
+                    activate PAY
+                    alt Thanh toán thành công (SUCCESS)
+                        PAY --> API : SUCCESS, transactionRef
+                        deactivate PAY
+                        API -> DB : BEGIN transaction
+                        activate DB
+                        API -> DB : Lưu Payment (idempotencyKey, amount, method, SUCCESS)\nUPDATE Order -> PAID\nUPDATE User.loyaltyPoints += floor(total / 10000)\nINSERT LoyaltyTransaction (EARN, balanceAfter)
+                        API -> DB : COMMIT
+                        DB --> API : OK
+                        deactivate DB
+                        API --> UI : 200/201 (PAID, pointsEarned)
+                        UI -> UI : clearCart()
+                        UI --> C : Chuyển sang /orders/:id (ĐÃ THANH TOÁN)
+                    else Thanh toán bị từ chối / Hủy đơn (E4)
+                        PAY --> API : FAILED / CANCELLED
+                        API -> DB : BEGIN transaction
+                        activate DB
+                        API -> DB : UPDATE Order -> PAYMENT_FAILED / CANCELLED\nHoàn trả tồn kho nguyên liệu (Ingredient.stock += needed)
+                        API -> DB : COMMIT
+                        DB --> API : OK
+                        deactivate DB
+                        API --> UI : 400 / 402 Payment Failed
+                        UI --> C : Báo lỗi thanh toán, hoàn món về giỏ hàng
+                    else Cổng thanh toán timeout (E5)
+                        PAY --> API : (không phản hồi) 504 Gateway Timeout
+                        deactivate PAY
+                        API --> UI : 504 Gateway Timeout\n(đơn giữ PENDING chờ đối soát)
+                        UI --> C : Thông báo "Đang chờ xác nhận thanh toán",\nthử lại với cùng idempotencyKey
+                    end
                 end
             end
         end

@@ -26,11 +26,11 @@ start
 :Truy cập ứng dụng BrewLite (PWA / Mobile Web);
 
 |Next.js UI|
-:Gửi yêu cầu GET /products;
+:Gửi yêu cầu GET /api/products;
 
 |NestJS API & DB|
 :Truy vấn danh sách đồ uống active từ Database;
-:Trả về danh mục sản phẩm kèm số lượng tồn kho (stock);
+:Trả về danh mục sản phẩm kèm định mức tồn kho nguyên liệu (stock);
 
 |Next.js UI|
 :Render giao diện Menu đồ uống (Mobile-First);
@@ -60,7 +60,14 @@ endif
 
 |Customer|
 :Mở giỏ hàng kiểm tra danh sách món;
-:Bấm nút "Tiến hành đặt hàng";
+:Nhập mã giảm giá Voucher (nếu có);
+
+|Next.js UI|
+if (Khách có nhập mã Voucher?) then ([Có mã])
+    :Gửi GET /api/orders/voucher/:code;
+    :Kiểm tra hiệu lực và áp dụng chiết khấu voucher;
+endif
+:Bấm nút "Tiến hành thanh toán";
 
 |Next.js UI|
 ' ========================================================
@@ -70,64 +77,58 @@ if (Khách hàng đã đăng nhập? (Có JWT Token hợp lệ)) then ([Đã đ�
     :Lấy accessToken (Bearer JWT) từ authStore;
 else ([Chưa đăng nhập])
     :Lưu tạm trạng thái giỏ hàng;
-    :Chuyển hướng (Redirect) sang trang Đăng nhập / Đăng ký;
+    :Chuyển hướng sang trang Đăng nhập (/login?redirect=/cart);
     |Customer|
     :Nhập thông tin tài khoản (Email & Password);
     |Next.js UI|
-    :Gửi POST /auth/login hoặc POST /auth/register;
+    :Gửi POST /api/auth/login hoặc POST /api/auth/register;
     |NestJS API & DB|
     :Xác thực mật khẩu (bcrypt) và cấp Token JWT;
     |Next.js UI|
     :Lưu Token JWT vào authStore;
-    :Tự động điều hướng quay lại trang Giỏ hàng / Checkout;
+    :Tự động điều hướng quay lại trang Giỏ hàng (/cart);
 endif
 
 |Next.js UI|
-:Gửi request POST /orders (kèm giỏ hàng + Bearer Token);
+:Gửi request POST /api/orders (kèm giỏ hàng + voucherCode + Bearer Token);
 
 |NestJS API & DB|
 :Bắt đầu Database Transaction ($transaction);
 ' ========================================================
 ' 2. NHÁNH RẼ: KIỂM TRA TỒN KHO & OPTIMISTIC LOCKING
 ' ========================================================
-:Kiểm tra số lượng tồn kho (stock) của từng món;
+:Kiểm tra công thức ProductRecipeItem và tồn kho nguyên liệu (Ingredient);
 
-if (Tồn kho đáp ứng đủ số lượng yêu cầu?) then ([Đủ số lượng])
-    :Áp dụng Optimistic Lock (version) & Trừ tồn kho tạm thời;
+if (Tồn kho nguyên liệu đáp ứng đủ định mức?) then ([Đủ nguyên liệu])
+    :Trừ Ingredient.stock & tăng Product.version (Optimistic Lock);
     :Tạo bản ghi Order mới với trạng thái 'PENDING';
     :Tạo các bản ghi OrderItem và OrderItemTopping;
     :Commit Transaction thành công;
     :Trả về { orderId, total, status: 'PENDING' };
-else ([Hết hàng / Thiếu tồn kho])
+else ([Thiếu nguyên liệu / Hết hàng])
     :Rollback Database Transaction;
     :Ném lỗi 400 Bad Request / 409 Conflict;
     |Next.js UI|
-    :Hiển thị Toast: "Sản phẩm không đủ tồn kho, vui lòng chọn lại!";
+    :Hiển thị banner cảnh báo không đủ tồn kho;
     |Customer|
     :Quay lại Giỏ hàng để điều chỉnh số lượng;
     detach
 endif
 
 |Next.js UI|
-:Nhận orderId và chuyển hướng sang màn hình Thanh toán;
+:Nhận orderId, chuyển sang trang /checkout (đồng hồ giữ đơn 5 phút);
 
 ' ========================================================
 ' CHECKOUT & PAYMENT
 ' ========================================================
 |Customer|
-:Đơn hàng PENDING sẵn sàng thanh toán;
-note right
-  **CHECKOUT & PAYMENT:**
-  Đơn hàng đã được tạo trong Database
-  với trạng thái PENDING, mã orderId và tổng tiền
-end note
-
-:Chọn phương thức thanh toán (Ví điện tử WALLET / Thẻ CARD);
+:Xem tóm tắt đơn hàng PENDING và tổng tiền;
+:Chọn phương thức thanh toán (Ví WALLET / Thẻ CARD / QR);
 :Bấm nút "Xác nhận thanh toán";
 
 |Next.js UI|
-:Tạo mã chống trùng lặp idempotencyKey (UUID);
-:Gửi request POST /payments;
+:Tạo mã chống trùng lặp idempotencyKey (UUID v4);
+:Gửi request POST /api/payments;
 note right: Payload: { orderId, amount, method, idempotencyKey }
 
 |NestJS API & DB|
@@ -136,7 +137,7 @@ if (Khóa thanh toán đã tồn tại trong DB?) then ([Đã xử lý trước 
     :Trả về kết quả giao dịch cũ (tránh trừ tiền 2 lần);
     detach
 else ([Giao dịch mới])
-    :Gửi yêu cầu thanh toán sang Cổng thanh toán;
+    :Gửi yêu cầu thanh toán sang Cổng thanh toán (Mô phỏng / PayOS / MoMo);
 endif
 
 |Payment Service|
@@ -151,12 +152,14 @@ if (Giao dịch thanh toán thành công?) then ([Thanh toán THÀNH CÔNG])
     |NestJS API & DB|
     :Lưu bản ghi Payment mới kèm idempotencyKey;
     :Cập nhật trạng thái Order thành 'PAID';
-    :Tự động tích lũy điểm thưởng (loyaltyPoints) cho khách;
+    :Tự động tích lũy điểm thưởng (loyaltyPoints) vào User;
+    :Ghi nhật ký biến động điểm vào bảng LoyaltyTransaction;
     :Commit Transaction & trả về 200 OK;
     
     |Next.js UI|
-    :Hiển thị màn hình "Đặt hàng & Thanh toán thành công!";
-    :Điều hướng sang màn hình Theo dõi đơn hàng (Tracking);
+    :Xóa giỏ hàng cục bộ (clearCart);
+    :Hiển thị thông báo "Đặt hàng & Thanh toán thành công!";
+    :Điều hướng sang màn hình Chi tiết đơn hàng (/orders/:id);
     
     ' ========================================================
     ' GIAI ĐOẠN QUẦY PHA CHẾ (BARISTA FULFILLMENT)
@@ -192,31 +195,24 @@ if (Giao dịch thanh toán thành công?) then ([Thanh toán THÀNH CÔNG])
     :Nhận thức uống và hoàn tất chu trình mua sắm;
     stop
 
-else ([Thanh toán THẤT BẠI / Timeout])
+else ([Thanh toán THẤT BẠI / Timeout / Hủy])
     :Phản hồi kết quả TRANSACTION_FAILED;
     
     |NestJS API & DB|
-    :Cập nhật trạng thái Order thành 'PAYMENT_FAILED';
-    :Mở Database Transaction hoàn lại số lượng tồn kho (Rollback stock);
-    :Trả về lỗi 400 Bad Request kèm chi tiết thất bại;
+    :Cập nhật trạng thái Order thành 'PAYMENT_FAILED' hoặc 'CANCELLED';
+    :Mở Database Transaction hoàn lại tồn kho nguyên liệu (Ingredient.stock);
+    :Trả về thông báo lỗi / hoàn trả;
     
     |Next.js UI|
-    :Hiển thị Toast báo lỗi thanh toán không thành công;
-    :Hiển thị tùy chọn cho khách: Thử lại hoặc Hủy đơn;
+    :Hiển thị thông báo hủy giữ đơn hoặc thanh toán thất bại;
+    :Tự động hoàn lại các món về giỏ hàng (/cart?status=cancelled);
     
     |Customer|
     if (Khách hàng muốn thử lại thanh toán?) then ([Thử lại])
-        :Chọn lại phương thức thanh toán khác;
-        |Next.js UI|
-        :Tạo idempotencyKey mới và gửi lại yêu cầu POST /payments;
+        :Mở lại giỏ hàng để đặt đơn mới;
         detach
-    else ([Hủy đơn])
-        |Next.js UI|
-        :Gửi request hủy đơn;
-        |NestJS API & DB|
-        :Cập nhật trạng thái Order thành 'CANCELLED';
-        |Customer|
-        :Đơn hàng bị hủy bỏ hoàn toàn;
+    else ([Không thử lại])
+        :Đơn hàng kết thúc;
         stop
     endif
 endif
