@@ -1,0 +1,195 @@
+name: BrewLite CD Pipeline (Continuous Delivery & Deployment)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: # Cho phép bấm chạy thủ công trên GitHub Actions để test
+
+permissions:
+  contents: read
+  packages: write # Quyền đóng gói và đẩy Docker image lên GitHub Container Registry (GHCR)
+
+jobs:
+  # ============================================================
+  # CHẶNG 1: QUALITY GATE (Kiểm tra Lint, Test và Build mã nguồn)
+  # ============================================================
+  quality-gate:
+    name: 1. Quality Gates (Lint, Test & Build)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: brewlite
+          POSTGRES_PASSWORD: brewlite123
+          POSTGRES_DB: brewlite_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: apps/api/package-lock.json
+
+      # 1.1 Backend Quality Check
+      - name: Install Backend Dependencies
+        working-directory: apps/api
+        run: npm ci
+
+      - name: Backend Lint
+        working-directory: apps/api
+        run: npm run lint
+
+      - name: Backend Prisma Migrations (Test DB)
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://brewlite:brewlite123@localhost:5432/brewlite_test?schema=public
+        run: npx prisma migrate deploy
+
+      - name: Run Backend Unit Tests
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://brewlite:brewlite123@localhost:5432/brewlite_test?schema=public
+          JWT_SECRET: ci-test-secret-key
+          PORT: 3001
+        run: npm test -- --passWithNoTests
+
+      - name: Build Backend Application
+        working-directory: apps/api
+        run: npm run build
+
+      # 1.2 Frontend Quality Check
+      - name: Install Frontend Dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Frontend Lint
+        working-directory: apps/web
+        run: npm run lint
+
+      - name: Build Frontend Application
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+        run: npm run build
+
+  # ============================================================
+  # CHẶNG 2: ĐÓNG GÓI DOCKER IMAGE & PUSH LÊN CONTAINER REGISTRY (GHCR)
+  # ============================================================
+  docker-build-push:
+    name: 2. Docker Packaging & Push to Registry
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata (Tags & Labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/brewlite-api
+          tags: |
+            type=sha,format=long
+            type=ref,event=tag
+            type=raw,value=latest
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/api
+          file: ./apps/api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ============================================================
+  # CHẶNG 3: KÍCH HOẠT TRIỂN KHAI PRODUCTION (RENDER DEPLOY HOOK)
+  # ============================================================
+  deploy-production:
+    name: 3. Trigger Render Production Deploy
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Render Deploy Hook
+        run: |
+          echo "🚀 Sending deploy webhook to Render..."
+          HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}")
+          echo "Response code: $HTTP_RESPONSE"
+          cat response.txt || true
+          
+          if [ "$HTTP_RESPONSE" -ne 200 ] && [ "$HTTP_RESPONSE" -ne 201 ]; then
+            echo "::error::Deploy trigger failed with HTTP status $HTTP_RESPONSE"
+            exit 1
+          fi
+          echo "✅ Deployment triggered on Render successfully!"
+
+  # ============================================================
+  # CHẶNG 4: SMOKE TEST / HEALTH CHECK & AUTO ROLLBACK ALERT
+  # ============================================================
+  smoke-test:
+    name: 4. Smoke Test & Health Check
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Cloud Container to start up
+        run: |
+          echo "Waiting 45 seconds for Render to deploy and start container..."
+          sleep 45
+
+      - name: Run Smoke Test on Production Endpoint
+        id: health_check
+        run: |
+          HEALTH_URL="${{ secrets.PRODUCTION_API_URL }}/health"
+          echo "🔍 Pinging Health Check: $HEALTH_URL"
+          
+          # Retry tối đa 6 lần, mỗi lần cách nhau 15 giây
+          PASSED=0
+          for i in {1..6}; do
+            HTTP_CODE=$(curl -s -o res.json -w "%{http_code}" "$HEALTH_URL" || true)
+            echo "Attempt $i: Received HTTP Status $HTTP_CODE"
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              cat res.json
+              echo ""
+              echo "✅ Health check PASSED with status 200 OK!"
+              PASSED=1
+              break
+            fi
+            sleep 15
+          done
+          
+          if [ "$PASSED" -eq 0 ]; then
+            echo "::error::Smoke test FAILED! Service at $HEALTH_URL did not respond 200 OK."
+            exit 1
+          fi
+
+      - name: Alert and Rollback Guidance on Failure
+        if: failure()
+        run: |
+          echo "::error::DEPLOYMENT FAILURE: Smoke test failed on Production!"
+          echo "⚠️ ACTION REQUIRED: Truy cập Render Dashboard để xem logs lỗi và Rollback về bản deploy trước đó."
