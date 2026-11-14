@@ -213,7 +213,6 @@ jobs:
         id: health_check
         run: |
           HEALTH_URL="${{ secrets.PRODUCTION_API_URL }}/health"
-          PRODUCTS_URL="${{ secrets.PRODUCTION_API_URL }}/products"
           echo "🔍 1. Pinging Health Check: $HEALTH_URL"
           
           # Retry tối đa 6 lần, mỗi lần cách nhau 15 giây
@@ -236,13 +235,21 @@ jobs:
             exit 1
           fi
 
-          echo "🔍 2. Kiểm tra truy vấn CSDL qua API nghiệp vụ: $PRODUCTS_URL"
+          echo "🔍 2. Kiểm tra truy vấn CSDL qua API nghiệp vụ (Products)"
+          PRODUCTS_URL="${{ secrets.PRODUCTION_API_URL }}/api/products"
           PROD_CODE=$(curl -s -o prod_res.json -w "%{http_code}" "$PRODUCTS_URL" || true)
           echo "Endpoint $PRODUCTS_URL trả về HTTP Status: $PROD_CODE"
+          
+          if [ "$PROD_CODE" -ne 200 ]; then
+            PRODUCTS_URL="${{ secrets.PRODUCTION_API_URL }}/products"
+            PROD_CODE=$(curl -s -o prod_res.json -w "%{http_code}" "$PRODUCTS_URL" || true)
+            echo "Fallback endpoint $PRODUCTS_URL trả về HTTP Status: $PROD_CODE"
+          fi
+
           if [ "$PROD_CODE" -eq 200 ]; then
             echo "✅ CSDL đã kết nối thành công và dữ liệu sản phẩm phản hồi 200 OK!"
           else
-            echo "::error::Truy vấn $PRODUCTS_URL thất bại với mã HTTP $PROD_CODE!"
+            echo "::error::Truy vấn dữ liệu sản phẩm thất bại với mã HTTP $PROD_CODE!"
             exit 1
           fi
 
