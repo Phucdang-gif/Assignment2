@@ -262,10 +262,10 @@ Nếu cần can thiệp khẩn cấp từ đội ngũ kỹ sư vận hành:
 | Tiêu chí bàn giao (Mục 7.4) | Trạng thái & Minh chứng thực tế |
 | :--- | :--- |
 | **URL Frontend Production (HTTPS)** | [https://assignment2-murex-gamma.vercel.app](https://assignment2-murex-gamma.vercel.app) (Vercel Edge Network) |
-| **URL API & Health Check** | Biến `PRODUCTION_API_URL` trên Render Cloud — đã pass Smoke Test `200 OK` tại `/health` và `/api/products` trong [CD Run `#43552738435`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43552738435) |
+| **URL API & Health Check** | Biến `PRODUCTION_API_URL` trên Render Cloud — đã pass Smoke Test `200 OK` tại `/health` và `/api/products` trong [CD Run `#43622804787`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43622804787) (`v1.0.1`) |
 | **Database Production không public** | PostgreSQL 16 vận hành trong **Render Private Network**, chỉ kết nối qua Internal Database URL (`dpg-...-a`), không mở port `5432` ra Internet |
 | **Không rò rỉ Secret trong repo / log CI** | Toàn bộ mật khẩu và khóa thật đã loại khỏi `.env.example`, `PAYMENT_SETUP.md`, mã nguồn và log CI; quản lý qua GitHub Secrets & Render/Vercel Environment Variables |
-| **Release/Tag phiên bản & Release Notes** | Tag `v1.0.0` và [`RELEASE_NOTES.md`](../RELEASE_NOTES.md) |
+| **Release/Tag phiên bản & Release Notes** | Tag [`v1.0.1`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.1) (và `v1.0.0`) · [`RELEASE_NOTES.md`](../RELEASE_NOTES.md) |
 | **README hướng dẫn Local, Test, Build, Deploy & Rollback** | Đầy đủ tại [`README.md`](../README.md) |
 | **Video / Demo End-to-End** | Kịch bản live demo chi tiết tại [`docs/sprint-review-retrospective.md`](sprint-review-retrospective.md#6-kịch-bản-video--demo-trực-tiếp-luồng-end-to-end-task-54-live-demo-runbook) |
 | **Sprint Review & Sprint Retrospective** | Đầy đủ cho cả Sprint 1 & Sprint 2 tại [`docs/sprint-review-retrospective.md`](sprint-review-retrospective.md) |

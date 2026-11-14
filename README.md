@@ -15,11 +15,11 @@
 | Thành phần | Nền tảng / Địa chỉ | Ghi chú nghiệm thu |
 | :--- | :--- | :--- |
 | **Frontend Production (HTTPS)** | [https://assignment2-murex-gamma.vercel.app](https://assignment2-murex-gamma.vercel.app) | Next.js 16 (Mobile-First / PWA) triển khai trên Vercel Edge CDN |
-| **Backend API Production (HTTPS)** | Cấu hình qua `PRODUCTION_API_URL` trên Render Cloud | NestJS 12 Docker Container; kiểm chứng HTTP `200 OK` tại [CD Run `#43552738435`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43552738435) |
+| **Backend API Production (HTTPS)** | Cấu hình qua `PRODUCTION_API_URL` trên Render Cloud | NestJS 12 Docker Container; kiểm chứng HTTP `200 OK` tại [CD Run `#43622804787`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43622804787) (`v1.0.1`) |
 | **Health Check & Menu API** | `<PRODUCTION_API_URL>/health` (và `/api/health`)<br>`<PRODUCTION_API_URL>/api/products` | Trả về `{"status":"ok","service":"BrewLite API","info":{"database":{"status":"up"}}}` |
 | **Database Production** | PostgreSQL 16 trên **Render Private Network** | Chỉ kết nối nội bộ qua Internal Database URL (`dpg-...-a`), **không public cổng `5432` ra Internet** |
 | **Container Registry** | `ghcr.io/phucdang-gif/assignment2/brewlite-api:latest` | Đóng gói đa tầng (`apps/api/Dockerfile`), gắn tag theo Git SHA & Release Tag |
-| **Phiên bản & Tài liệu Bàn giao** | Tag [`v1.0.0`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.0) · [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | [`Sprint Review & Retrospective`](docs/sprint-review-retrospective.md) · [`Chi tiết Triển khai`](docs/deployment.md) |
+| **Phiên bản & Tài liệu Bàn giao** | Tag [`v1.0.1`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.1) (Latest) · [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | [`Sprint Review & Retrospective`](docs/sprint-review-retrospective.md) · [`Chi tiết Triển khai`](docs/deployment.md) |
 
 ---
 
@@ -557,7 +557,7 @@ brewlite/
 │
 ├── docker-compose.yml          # Điều phối 3 dịch vụ (db, apps/api, apps/web) chỉ với 1 câu lệnh
 ├── .env.example                # File mẫu các biến môi trường cấu hình hệ thống
-├── RELEASE_NOTES.md            # Task 5.4: Ghi chú phát hành phiên bản (v1.0.0) & hướng dẫn Rollback
+├── RELEASE_NOTES.md            # Task 5.4: Ghi chú phát hành phiên bản (v1.0.1 / v1.0.0) & hướng dẫn Rollback
 └── README.md                   # Tài liệu hướng dẫn sử dụng, cài đặt, vận hành và bàn giao sản phẩm
 ```
 
@@ -661,8 +661,8 @@ Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố t
      ```bash
      # Tạo commit đảo ngược bản lỗi và phát hành tag vá lỗi mới
      git revert <commit-sha-loi> -m 1
-     git tag v1.0.1
-     git push origin main v1.0.1
+     git tag v1.0.2
+     git push origin main v1.0.2
      ```
 
 ---
