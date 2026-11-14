@@ -100,10 +100,18 @@ jobs:
         working-directory: apps/web
         run: npm test
 
+      - name: Validate Production Secrets
+        run: |
+          if [ -z "${{ secrets.PRODUCTION_API_URL }}" ]; then
+            echo "::error::Thiếu secret PRODUCTION_API_URL! Frontend Next.js build bắt buộc cần API URL để cấu hình."
+            exit 1
+          fi
+          echo "✅ PRODUCTION_API_URL đã được cấu hình: ${{ secrets.PRODUCTION_API_URL }}"
+
       - name: Build Frontend Application
         working-directory: apps/web
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'http://localhost:3001' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
         run: npm run build
 
   # ============================================================
@@ -147,25 +155,46 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   # ============================================================
-  # CHẶNG 3: KÍCH HOẠT TRIỂN KHAI PRODUCTION (RENDER DEPLOY HOOK)
+  # CHẶNG 3: KÍCH HOẠT TRIỂN KHAI PRODUCTION (RENDER API / HOOK)
   # ============================================================
   deploy-production:
     name: 3. Trigger Render Production Deploy
     needs: docker-build-push
     runs-on: ubuntu-latest
     steps:
-      - name: Call Render Deploy Hook
+      - name: Trigger Deploy on Render Cloud
         run: |
-          echo "🚀 Sending deploy webhook to Render..."
-          HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}")
-          echo "Response code: $HTTP_RESPONSE"
-          cat response.txt || true
-          
-          if [ "$HTTP_RESPONSE" -ne 200 ] && [ "$HTTP_RESPONSE" -ne 201 ]; then
-            echo "::error::Deploy trigger failed with HTTP status $HTTP_RESPONSE"
+          if [ -n "${{ secrets.RENDER_API_KEY }}" ] && [ -n "${{ secrets.RENDER_SERVICE_ID }}" ]; then
+            IMAGE_TAG="ghcr.io/${{ github.repository }}/brewlite-api:${{ github.sha }}"
+            echo "🚀 Triển khai qua Render API với Image: $IMAGE_TAG"
+            DEPLOY_RES=$(curl -s -o deploy_res.json -w "%{http_code}" -X POST \
+              "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              -d "{\"imageUrl\": \"$IMAGE_TAG\"}")
+            echo "Render API Response Code: $DEPLOY_RES"
+            cat deploy_res.json || true
+            if [ "$DEPLOY_RES" -eq 200 ] || [ "$DEPLOY_RES" -eq 201 ]; then
+              echo "✅ Đã kích hoạt deploy Image $IMAGE_TAG thành công qua Render API!"
+            else
+              echo "::error::Gọi Render API deploy thất bại (HTTP $DEPLOY_RES)"
+              exit 1
+            fi
+          elif [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "🚀 Kích hoạt triển khai qua Render Deploy Hook..."
+            HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}")
+            echo "Response code: $HTTP_RESPONSE"
+            cat response.txt || true
+            if [ "$HTTP_RESPONSE" -ne 200 ] && [ "$HTTP_RESPONSE" -ne 201 ]; then
+              echo "::error::Deploy trigger failed with HTTP status $HTTP_RESPONSE"
+              exit 1
+            fi
+            echo "✅ Deployment triggered on Render successfully!"
+          else
+            echo "::error::Thiếu cả RENDER_API_KEY lẫn RENDER_DEPLOY_HOOK. Không thể kích hoạt deploy!"
             exit 1
           fi
-          echo "✅ Deployment triggered on Render successfully!"
 
   # ============================================================
   # CHẶNG 4: SMOKE TEST / HEALTH CHECK & AUTO ROLLBACK ALERT
@@ -184,13 +213,14 @@ jobs:
         id: health_check
         run: |
           HEALTH_URL="${{ secrets.PRODUCTION_API_URL }}/health"
-          echo "🔍 Pinging Health Check: $HEALTH_URL"
+          PRODUCTS_URL="${{ secrets.PRODUCTION_API_URL }}/products"
+          echo "🔍 1. Pinging Health Check: $HEALTH_URL"
           
           # Retry tối đa 6 lần, mỗi lần cách nhau 15 giây
           PASSED=0
           for i in {1..6}; do
             HTTP_CODE=$(curl -s -o res.json -w "%{http_code}" "$HEALTH_URL" || true)
-            echo "Attempt $i: Received HTTP Status $HTTP_CODE"
+            echo "Attempt $i: Received HTTP Status $HTTP_CODE from $HEALTH_URL"
             if [ "$HTTP_CODE" -eq 200 ]; then
               cat res.json
               echo ""
@@ -204,6 +234,28 @@ jobs:
           if [ "$PASSED" -eq 0 ]; then
             echo "::error::Smoke test FAILED! Service at $HEALTH_URL did not respond 200 OK."
             exit 1
+          fi
+
+          echo "🔍 2. Kiểm tra truy vấn CSDL qua API nghiệp vụ: $PRODUCTS_URL"
+          PROD_CODE=$(curl -s -o prod_res.json -w "%{http_code}" "$PRODUCTS_URL" || true)
+          echo "Endpoint $PRODUCTS_URL trả về HTTP Status: $PROD_CODE"
+          if [ "$PROD_CODE" -eq 200 ]; then
+            echo "✅ CSDL đã kết nối thành công và dữ liệu sản phẩm phản hồi 200 OK!"
+          else
+            echo "::error::Truy vấn $PRODUCTS_URL thất bại với mã HTTP $PROD_CODE!"
+            exit 1
+          fi
+
+          # 3. Kiểm tra Frontend nếu có cấu hình PRODUCTION_WEB_URL
+          if [ -n "${{ secrets.PRODUCTION_WEB_URL }}" ]; then
+            echo "🔍 3. Kiểm tra Frontend Production: ${{ secrets.PRODUCTION_WEB_URL }}"
+            WEB_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.PRODUCTION_WEB_URL }}" || true)
+            echo "Frontend HTTP Status: $WEB_CODE"
+            if [ "$WEB_CODE" -ge 200 ] && [ "$WEB_CODE" -lt 400 ]; then
+              echo "✅ Frontend Production phản hồi tốt ($WEB_CODE)!"
+            else
+              echo "::warning::Frontend phản hồi mã $WEB_CODE"
+            fi
           fi
 
       - name: Automated Rollback and Failure Guidance
