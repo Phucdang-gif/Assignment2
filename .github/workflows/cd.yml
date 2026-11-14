@@ -106,7 +106,7 @@ jobs:
             echo "::error::Thiếu secret PRODUCTION_API_URL! Frontend Next.js build bắt buộc cần API URL để cấu hình."
             exit 1
           fi
-          echo "✅ PRODUCTION_API_URL đã được cấu hình: ${{ secrets.PRODUCTION_API_URL }}"
+          echo "✅ PRODUCTION_API_URL đã được cấu hình hợp lệ."
 
       - name: Build Frontend Application
         working-directory: apps/web

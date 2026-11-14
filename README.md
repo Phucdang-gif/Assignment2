@@ -6,7 +6,20 @@
 > ```bash
 > docker compose up --build
 > ```
-> *Tự động khởi tạo PostgreSQL, chạy migrations, nạp seed data mẫu, khởi chạy Backend NestJS (`http://localhost:3001`) và Frontend Next.js (`http://localhost:3000`).*
+> *Tự động khởi tạo PostgreSQL 16, chạy Prisma migrations (`npx prisma migrate deploy`), nạp seed data mẫu idempotent (`node prisma/seed.js`), khởi chạy Backend NestJS (`http://localhost:3001`) và Frontend Next.js (`http://localhost:3000`).*
+
+---
+
+## 🌐 Thông tin Triển khai Production & Bàn giao (Task 5.4 Handover)
+
+| Thành phần | Nền tảng / Địa chỉ | Ghi chú nghiệm thu |
+| :--- | :--- | :--- |
+| **Frontend Production (HTTPS)** | [https://assignment2-murex-gamma.vercel.app](https://assignment2-murex-gamma.vercel.app) | Next.js 16 (Mobile-First / PWA) triển khai trên Vercel Edge CDN |
+| **Backend API Production (HTTPS)** | Cấu hình qua `PRODUCTION_API_URL` trên Render Cloud | NestJS 12 Docker Container; kiểm chứng HTTP `200 OK` tại [CD Run `#43552738435`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43552738435) |
+| **Health Check & Menu API** | `<PRODUCTION_API_URL>/health` (và `/api/health`)<br>`<PRODUCTION_API_URL>/api/products` | Trả về `{"status":"ok","service":"BrewLite API","info":{"database":{"status":"up"}}}` |
+| **Database Production** | PostgreSQL 16 trên **Render Private Network** | Chỉ kết nối nội bộ qua Internal Database URL (`dpg-...-a`), **không public cổng `5432` ra Internet** |
+| **Container Registry** | `ghcr.io/phucdang-gif/assignment2/brewlite-api:latest` | Đóng gói đa tầng (`apps/api/Dockerfile`), gắn tag theo Git SHA & Release Tag |
+| **Phiên bản & Tài liệu Bàn giao** | Tag [`v1.0.0`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.0) · [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | [`Sprint Review & Retrospective`](docs/sprint-review-retrospective.md) · [`Chi tiết Triển khai`](docs/deployment.md) |
 
 ---
 
@@ -23,9 +36,10 @@
 8. [Máy trạng thái đơn hàng (Order State Machine)](#-máy-trạng-thái-đơn-hàng-order-state-machine)
 9. [Cấu trúc thư mục dự án (Monorepo)](#-cấu-trúc-thư-mục-dự-án-monorepo)
 10. [Nghiệp vụ Backend Nâng cao (Task 10) & Kiểm thử tự động](#-nghiệp-vụ-backend-nâng-cao-task-10--kiểm-thử-tự-động)
-11. [Phân hệ Barista / Quầy Pha Chế](#-phân-hệ-barista--quầy-pha-chế-tính-năng-mở-rộng-ngoài-mvp)
-12. [Kịch bản Demo (End-to-End Flow)](#-kịch-bản-demo-end-to-end-flow)
-13. [Thành viên nhóm phát triển & Phân công công việc](#-thành-viên-nhóm-phát-triển--phân-công-công-việc-contributors--task-assignment)
+11. [Hướng dẫn Build, Triển khai (Deploy) & Khôi phục sự cố (Rollback)](#-hướng-dẫn-build-triển-khai-deploy--khôi-phục-sự-cố-rollback-task-53--54)
+12. [Phân hệ Barista / Quầy Pha Chế](#-phân-hệ-barista--quầy-pha-chế-tính-năng-mở-rộng-ngoài-mvp)
+13. [Kịch bản Demo (End-to-End Flow)](#-kịch-bản-demo-end-to-end-flow)
+14. [Thành viên nhóm phát triển & Phân công công việc](#-thành-viên-nhóm-phát-triển--phân-công-công-việc-contributors--task-assignment)
 
 ---
 
@@ -277,14 +291,15 @@ docker compose up --build
 ### Quá trình khởi động tự động gồm:
 
 1. **Dịch vụ `db`**: Khởi chạy PostgreSQL 16 Alpine, cấu hình volume lưu trữ bền vững `pgdata` và kiểm tra sức khỏe (`healthcheck`).
-2. **Dịch vụ `api` (`apps/api`)**: Chờ database sẵn sàng -> tự động tạo cấu trúc bảng (`npx prisma db push`) -> tự động chạy script `seed.js` để đọc và nạp toàn bộ dữ liệu từ file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) (gồm 12 món đồ uống, 3 tài khoản, topping, đơn hàng, nguyên vật liệu & công thức pha chế theo size S/M/L) -> khởi chạy máy chủ NestJS tại cổng `3001`.
-3. **Dịch vụ `web` (`apps/web`)**: Build mã nguồn Next.js đa tầng (multi-stage) -> phục vụ ứng dụng tại cổng `3000`.
+2. **Dịch vụ `api` (`apps/api`)**: Chờ database sẵn sàng ➔ tự động áp dụng migration chuẩn (`npx prisma migrate deploy`) ➔ tự động chạy `node prisma/seed.js` (cơ chế *idempotent*, chỉ nạp khi CSDL còn trống dữ liệu từ file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql)) ➔ khởi chạy máy chủ NestJS tại cổng `3001`.
+3. **Dịch vụ `web` (`apps/web`)**: Build mã nguồn Next.js đa tầng (multi-stage) ➔ phục vụ ứng dụng tại cổng `3000`.
 
 ### Truy cập các dịch vụ:
 
 - 🌐 **Web App (`apps/web`)**: [http://localhost:3000](http://localhost:3000)
 - 🔌 **API Service (`apps/api`)**: [http://localhost:3001](http://localhost:3001)
-- 🗄️ **PostgreSQL Port**: `localhost:5433` (map từ 5432 của container)
+- 🩺 **Health Check (`GET /health`)**: [http://localhost:3001/health](http://localhost:3001/health)
+- 🗄️ **PostgreSQL Port**: `localhost:5433` (map từ `5432` của container)
 
 ### Dừng hệ thống & Reset dữ liệu:
 
@@ -304,89 +319,88 @@ Phương thức này là **tùy chọn (optional)** dành cho trường hợp b�
 
 ### Yêu cầu tiên quyết:
 
-- **Node.js**: >= 20.x
+- **Node.js**: >= 20.x (khuyến nghị Node.js 24 LTS đồng nhất với CI/Docker)
 - **npm**: >= 10.x
-- **PostgreSQL**: Đã cài đặt và đang chạy dịch vụ cục bộ trên máy (cổng mặc định `5432`).
+- **PostgreSQL**: Đã cài đặt và đang chạy dịch vụ cục bộ trên máy (mặc định cổng `5432`, hoặc `5433` nếu dùng container DB).
 
-### Bước 1: Khởi tạo Cơ sở dữ liệu cục bộ bằng File SQL
+### Bước 1: Chuẩn bị biến môi trường
 
-Bạn mở công cụ **pgAdmin 4**, **DBeaver** hoặc cửa sổ dòng lệnh `psql` để chạy file SQL trong thư mục `apps/api/prisma/database local/`:
-
-* **Cách 1 (Chạy 1 file duy nhất - Khuyên dùng)**: Mở file [`brewlite_init_full.sql`](apps/api/prisma/database%20local/brewlite_init_full.sql) và bấm thực thi (**F5**). File này đã gom toàn bộ tạo bảng (Schema), Enums, Ràng buộc, Dữ liệu mẫu (Seed Data) và Công thức pha chế (Recipes).
-* **Cách 2 (Chạy tách rời 2 bước)**:
-  1. Mở file [`brewlite_schema.sql`](apps/api/prisma/database%20local/brewlite_schema.sql) và bấm (**F5**) để tạo bảng và cấu trúc.
-  2. Mở file [`brewlite_seed_data.sql`](apps/api/prisma/database%20local/brewlite_seed_data.sql) và bấm (**F5**) để nạp dữ liệu mẫu và công thức.
-
-_(Hoặc chạy nhanh bằng lệnh `psql`):_
-
-```bash
-# Chạy 1 lệnh khởi tạo toàn diện:
-psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_init_full.sql"
-
-# Hoặc chạy tách rời:
-# psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_schema.sql"
-# psql -U postgres -d brewlite -f "apps/api/prisma/database local/brewlite_seed_data.sql"
-```
-
-### Bước 2: Chuẩn bị biến môi trường
-
-Tạo file `.env` tại thư mục gốc từ mẫu `.env.example`:
+Tạo file `.env` tại thư mục gốc và `apps/api/.env` từ mẫu có sẵn:
 
 ```bash
 cp .env.example .env
+cp apps/api/.env.example apps/api/.env
 ```
 
-Nội dung cấu hình tiêu chuẩn:
+Cấu hình tối thiểu cho môi trường local trong `apps/api/.env`:
 
 ```env
 # Database URL kết nối vào PostgreSQL local
-DATABASE_URL="postgresql://brewlite:brewlite123@localhost:5432/brewlite?schema=public"
+DATABASE_URL="postgresql://brewlite:brewlite123@localhost:5433/brewlite?schema=public"
 
 # Auth Secret
 JWT_SECRET="brewlite-super-secret-key-change-in-production"
 
-# Ports
+# Ports & URLs
 PORT=3001
-NEXT_PUBLIC_API_URL=http://localhost:3001
+FRONTEND_URL="http://localhost:3000"
+NEXT_PUBLIC_API_URL="http://localhost:3001"
+```
+
+### Bước 2: Khởi tạo Cơ sở dữ liệu (Prisma Migrate + Seed)
+
+**Cách 1 (Khuyên dùng - Dùng Prisma Migrations):** Chạy tại thư mục `apps/api`:
+
+```bash
+cd apps/api
+npm install
+npx prisma generate
+npx prisma migrate deploy
+node prisma/seed.js
+```
+
+**Cách 2 (Nạp trực tiếp bằng SQL qua `psql` / pgAdmin / DBeaver):** Thực thi tuần tự 2 file trong `apps/api/prisma/database local/`:
+
+```bash
+# 1. Tạo cấu trúc bảng, enums và ràng buộc
+psql -U brewlite -d brewlite -f "apps/api/prisma/database local/brewlite_schema.sql"
+
+# 2. Nạp dữ liệu mẫu (12 món, 3 tài khoản, toppings, nguyên liệu & công thức)
+psql -U brewlite -d brewlite -f "apps/api/prisma/database local/brewlite_seed_data.sql"
 ```
 
 ### Bước 3: Khởi chạy Backend (NestJS)
 
 ```bash
-cd backend
-npm install
-
-# Tạo Prisma Client
-npx prisma generate
-
-# Khởi chạy chế độ Watch (Development)
+cd apps/api
 npm run start:dev
 ```
 
-Backend sẽ lắng nghe tại: `http://localhost:3001`
+Backend sẽ lắng nghe tại: `http://localhost:3001` (Health check: `http://localhost:3001/health`).
 
 ### Bước 4: Khởi chạy Frontend (Next.js)
 
 Mở một cửa sổ terminal mới:
 
 ```bash
-cd frontend
+cd apps/web
 npm install
 
 # Khởi chạy giao diện phát triển
 npm run dev
 ```
 
-Frontend sẽ lắng nghe tại: `http://localhost:3000`
+Frontend sẽ lắng nghe tại: `http://localhost:3000`.
 
 ### Bước 5: Các lệnh quản lý & Cập nhật Cơ sở dữ liệu (Database Management)
 
-Dưới đây là các câu lệnh hữu ích khi làm việc với Database (chạy trong thư mục `backend`):
+Dưới đây là các câu lệnh hữu ích khi làm việc với Database (chạy trong thư mục `apps/api`):
 
 | Mục đích                         | Câu lệnh                                                    | Khi nào sử dụng?                                                                                |
 | :------------------------------- | :---------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| **Nạp dữ liệu mẫu**              | `node prisma/seed.js`                                       | Tự động đọc và nạp 12 món đồ uống, topping và tài khoản từ file SQL.                            |
-| **Xóa sạch & làm mới CSDL**      | `npx prisma db push --force-reset`<br>`node prisma/seed.js` | Khi muốn xóa toàn bộ đơn hàng test và đưa CSDL về trạng thái sạch ban đầu.                      |
+| **Nạp dữ liệu mẫu**              | `node prisma/seed.js`                                       | Tự động đọc và nạp 12 món đồ uống, topping và tài khoản từ file SQL (chỉ nạp khi DB trống hoặc khi đặt `RUN_SEED=true`). |
+| **Áp dụng migration chuẩn**      | `npx prisma migrate deploy`                                 | Đồng bộ tất cả phiên bản migration trong `prisma/migrations/` vào CSDL.                         |
+| **Xóa sạch & làm mới CSDL**      | `npx prisma migrate reset`<br>`node prisma/seed.js`         | Khi muốn xóa toàn bộ đơn hàng test và đưa CSDL local về trạng thái sạch ban đầu.                |
 | **Xem & chỉnh sửa dữ liệu (UI)** | `npx prisma studio`                                         | Mở giao diện Web quản trị dữ liệu trực quan tại [http://localhost:5555](http://localhost:5555). |
 | **Tạo migration cho schema mới** | `npx prisma migrate dev --name <ten_thay_doi>`              | Sau khi chỉnh sửa `prisma/schema.prisma` (thêm cột, thêm bảng, đổi kiểu).                       |
 
@@ -527,21 +541,24 @@ brewlite/
 │       ├── PAYMENT_SETUP.md    # Hướng dẫn chi tiết cấu hình thanh toán VietQR & MoMo
 │       └── Dockerfile          # Multi-stage Docker build phục vụ NestJS tại cổng 3001
 │
-├── docs/                       # Tài liệu kiểm soát phiên bản (Task 1 - 3 & Quản trị dự án)
+├── docs/                       # Tài liệu kiểm soát phiên bản (Task 1 - 5 & Quản trị dự án)
 │   ├── requirements/           # Task 1: SRS, Context & Scope, Use Case Specs
-│   ├── diagrams/               # Task 2: Activity, Sequence, Class Diagrams (.puml & .svg)
+│   ├── diagrams/               # Task 2: Activity, Sequence, Class, Deployment Diagrams (.puml & .svg)
 │   ├── architecture/           # Task 3: Quyết định kiến trúc & Các tệp ADR (001 - 006)
+│   ├── sprint-review-retrospective.md  # Task 5.4: Sprint Review & Retrospective (Sprint 1 & 2) + Demo Runbook
 │   ├── traceability-matrix.md  # Mục 8: Ma trận truy vết yêu cầu (FR/NFR ➔ Diagram ➔ Code ➔ Test)
 │   └── deployment.md           # Hướng dẫn chi tiết quy trình triển khai môi trường Production
 │
 ├── tests/                      # Tầng kiểm thử tích hợp (Integration & E2E)
 ├── .github/                    # Quy trình tự động hóa CI/CD & Quản trị mã nguồn
 │   ├── workflows/ci.yml        # Task 4.4: Pipeline CI (Install ➔ Lint ➔ Test ➔ Build)
+│   ├── workflows/cd.yml        # Task 5.3: Pipeline CD (Quality Gate ➔ GHCR ➔ Render Deploy ➔ Smoke Test)
 │   └── pull_request_template.md# Mẫu PR tiêu chuẩn tích hợp checklist Definition of Done (DoD)
 │
 ├── docker-compose.yml          # Điều phối 3 dịch vụ (db, apps/api, apps/web) chỉ với 1 câu lệnh
 ├── .env.example                # File mẫu các biến môi trường cấu hình hệ thống
-└── README.md                   # Tài liệu hướng dẫn sử dụng, cài đặt và bàn giao sản phẩm
+├── RELEASE_NOTES.md            # Task 5.4: Ghi chú phát hành phiên bản (v1.0.0) & hướng dẫn Rollback
+└── README.md                   # Tài liệu hướng dẫn sử dụng, cài đặt, vận hành và bàn giao sản phẩm
 ```
 
 ---
@@ -578,18 +595,75 @@ Hệ thống đã triển khai đầy đủ 4 tiêu chí cốt lõi của Task 1
 Hệ thống bao phủ đầy đủ 3 tầng kiểm thử (Unit Test, Integration Test và End-to-End Test):
 
 ```bash
-# 1. Chạy toàn bộ Unit Tests tại Backend (76 test cases qua 8 suites)
+# 1. Chạy toàn bộ Unit Tests tại Backend (90 test cases qua 11 suites)
 cd apps/api
 npm test
 
-# 2. Chạy Integration Tests (tạo đơn / thanh toán) & E2E Tests luồng đặt món hoàn chỉnh
+# 2. Chạy Integration Tests (tạo đơn / thanh toán với PostgreSQL thật) & API E2E Tests
 cd apps/api
 npm run test:e2e
 
-# 3. Chạy kiểm thử luồng Giỏ hàng & Checkout phía Frontend
+# 3. Chạy End-to-End Flow Test (8 bước từ /health -> Menu -> Order -> Payment -> Barista)
 cd apps/web
 npm test
+
+# 4. Chạy kiểm tra Lint cho cả Backend & Frontend
+cd apps/api && npm run lint
+cd apps/web && npm run lint
 ```
+
+---
+
+## 📦 Hướng dẫn Build, Triển khai (Deploy) & Khôi phục sự cố (Rollback) (Task 5.3 & 5.4)
+
+### 1. Hướng dẫn Build (Local & Docker Image)
+
+```bash
+# Build Backend NestJS (ra thư mục apps/api/dist/)
+cd apps/api
+npm ci
+npx prisma generate
+npm run build
+
+# Build Frontend Next.js (ra thư mục apps/web/.next/)
+cd apps/web
+npm ci
+NEXT_PUBLIC_API_URL=http://localhost:3001 npm run build
+
+# Hoặc build toàn bộ Docker images qua Docker Compose
+docker compose build
+```
+
+### 2. Hướng dẫn Triển khai Production (Continuous Delivery)
+
+Hệ thống triển khai tự động qua GitHub Actions ([`.github/workflows/cd.yml`](.github/workflows/cd.yml)) mỗi khi merge vào `main`, đẩy Git tag `v*.*.*`, hoặc kích hoạt thủ công (`workflow_dispatch`):
+
+1. **Chặng 1 – Quality Gate**: Chạy `oxlint`, `npx prisma migrate deploy`, `node prisma/seed.js`, `npm test` (90 unit tests), `npm run test:e2e`, `npm run build` trên `apps/api`; chạy `eslint`, `npm test` và `next build` (với `NEXT_PUBLIC_API_URL`) trên `apps/web`.
+2. **Chặng 2 – Đóng gói & Đẩy Docker Image**: Build `apps/api/Dockerfile` (Node 24 Alpine multi-stage) và đẩy lên GitHub Container Registry (`ghcr.io/phucdang-gif/assignment2/brewlite-api:<sha|tag|latest>`).
+3. **Chặng 3 – Kích hoạt Deploy lên Cloud**:
+   - **Backend (`apps/api`)**: Triển khai trên **Render Cloud** qua `RENDER_API_KEY` + `RENDER_SERVICE_ID` hoặc `RENDER_DEPLOY_HOOK`. Container tự động chạy `npx prisma migrate deploy && node dist/main.js` (tuyệt đối không dùng `db push` hay tự re-seed đè dữ liệu production).
+   - **Database**: **PostgreSQL 16** trên **Render Private Network** gắn Persistent Disk, chỉ cho phép kết nối nội bộ qua `DATABASE_URL` dạng Internal URL (không mở public Internet).
+   - **Frontend (`apps/web`)**: Tự động deploy từ nhánh `main` qua **Vercel Git Integration** với `NEXT_PUBLIC_API_URL` trỏ tới API Render HTTPS.
+4. **Chặng 4 – Smoke Test Hậu Triển khai**: Tự động gọi `<PRODUCTION_API_URL>/health` (retry tối đa 6 lần x 15s) và `<PRODUCTION_API_URL>/api/products` để xác nhận API + Database kết nối thành công `200 OK`.
+
+> 🔐 **Quản lý Secrets**: Không lưu key hay mật khẩu trong repository. Toàn bộ biến bí mật (`PRODUCTION_API_URL`, `RENDER_DEPLOY_HOOK`, `RENDER_API_KEY`, `RENDER_SERVICE_ID`, `PRODUCTION_WEB_URL` trên GitHub Actions; `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN`, `FRONTEND_URL`, `PAYOS_*` trên Render) được quản lý qua Secret Manager của nền tảng.
+
+### 3. Quy trình Khôi phục sự cố (Rollback Procedure)
+
+Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố trên Production, thực hiện khôi phục theo 3 tầng (chi tiết xem thêm tại [`docs/deployment.md`](docs/deployment.md#7-quy-trình-khôi-phục-sự-cố--chiến-lược-rollback-yêu-cầu-7)):
+
+1. **Tầng 1 – Tự động bảo vệ (Zero-Downtime trên Render)**: Nếu container mới không phản hồi `200 OK` tại `GET /health`, Render tự động giữ container phiên bản ổn định trước đó tiếp tục phục vụ lưu lượng.
+2. **Tầng 2 – Tự động Rollback qua Pipeline CD**: Trong [`.github/workflows/cd.yml`](.github/workflows/cd.yml), nếu bước Smoke Test thất bại và đã cấu hình `RENDER_API_KEY` + `RENDER_SERVICE_ID`, pipeline tự động gọi `POST https://api.render.com/v1/services/${RENDER_SERVICE_ID}/rollback`.
+3. **Tầng 3 – Rollback Thủ công (SOP)**:
+   - **Backend (Render Dashboard)**: Chọn Web Service ➔ **Deploys** ➔ chọn bản *Live* ổn định gần nhất ➔ nhấn `...` ➔ **Rollback to this deploy**.
+   - **Frontend (Vercel Dashboard)**: Chọn Project ➔ **Deployments** ➔ chọn bản Production ổn định trước đó ➔ **Promote to Production**.
+   - **Mã nguồn & Release Tag (Git)**:
+     ```bash
+     # Tạo commit đảo ngược bản lỗi và phát hành tag vá lỗi mới
+     git revert <commit-sha-loi> -m 1
+     git tag v1.0.1
+     git push origin main v1.0.1
+     ```
 
 ---
 
@@ -604,6 +678,8 @@ npm test
 ---
 
 ## 🎬 Kịch bản Demo (End-to-End Flow)
+
+> 📋 Kịch bản trình diễn trực tiếp chi tiết (Live Demo Runbook) và **Báo cáo Sprint Review & Sprint Retrospective** được lưu đầy đủ tại: [`docs/sprint-review-retrospective.md`](docs/sprint-review-retrospective.md).
 
 1. **Khởi chạy ứng dụng**:
    Chạy lệnh `docker compose up --build` và chờ các dịch vụ hoạt động. Mở trình duyệt tại [http://localhost:3000](http://localhost:3000).
