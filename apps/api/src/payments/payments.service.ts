@@ -374,11 +374,15 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     const amount = Math.round(Number(order.total));
     const formattedOrderId = String(orderId).padStart(8, '0');
     const description = `BL${formattedOrderId}`;
+    const frontendBaseUrl =
+      process.env.FRONTEND_URL?.replace(/\/+$/, '') ||
+      process.env.CORS_ORIGIN?.split(',')[0]?.trim()?.replace(/\/+$/, '') ||
+      'http://localhost:3000';
     const cancelUrl =
       options?.cancelUrl ||
-      `http://localhost:3000/cart?status=cancelled&reason=payos_timeout&orderId=${orderId}`;
+      `${frontendBaseUrl}/cart?status=cancelled&reason=payos_timeout&orderId=${orderId}`;
     const returnUrl =
-      options?.returnUrl || `http://localhost:3000/orders/${orderId}?status=PAID`;
+      options?.returnUrl || `${frontendBaseUrl}/orders/${orderId}?status=PAID`;
 
     try {
       const paymentLinkRes = await this.payOS.paymentRequests.create({
@@ -641,7 +645,11 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     const requestId = `${partnerCode}-${orderId}-${Date.now()}`;
     const momoOrderId = `BL_${orderId}_${Date.now()}`;
 
-    const redirectUrl = `http://localhost:3000/orders/${orderId}`;
+    const frontendBaseUrl =
+      process.env.FRONTEND_URL?.replace(/\/+$/, '') ||
+      process.env.CORS_ORIGIN?.split(',')[0]?.trim()?.replace(/\/+$/, '') ||
+      'http://localhost:3000';
+    const redirectUrl = `${frontendBaseUrl}/orders/${orderId}`;
     const ipnUrl = `https://cusp-pager-velvet.ngrok-free.dev/api/payments/momo-ipn`;
     const requestType = 'captureWallet';
     const extraData = '';

@@ -354,6 +354,7 @@ export default function CheckoutPage() {
       }
 
       if (paymentMethod === "VIETQR") {
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
         const payosResponse = await fetch(
           `${API_URL}/payments/create-payos-link`,
           {
@@ -362,7 +363,11 @@ export default function CheckoutPage() {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ orderId }),
+            body: JSON.stringify({
+              orderId,
+              returnUrl: `${origin}/orders/${orderId}?status=PAID`,
+              cancelUrl: `${origin}/cart?status=cancelled&reason=payos_timeout&orderId=${orderId}`,
+            }),
           },
         );
 
