@@ -139,5 +139,118 @@ Không có bất kỳ mật khẩu hay khóa bí mật thực tế nào được
 | **`Docker Container: brewlite-api`** | **Render Cloud** (Docker Web Service) | **Application Tier** – Container `API Application` (NestJS Modular Monolith: `AuthModule`, `ProductsModule`, `OrdersModule`, `PaymentsModule`) | [`apps/api/Dockerfile`](../apps/api/Dockerfile)<br>[`apps/api/src/main.ts`](../apps/api/src/main.ts)<br>[`apps/api/src/app.module.ts`](../apps/api/src/app.module.ts)<br>[`apps/api/src/app.controller.ts`](../apps/api/src/app.controller.ts) (`GET /health`) |
 | **`Docker Container: brewlite-postgres` + `Render Persistent Disk`** | **Render Cloud** (Docker Private Service + Persistent Disk `/var/lib/postgresql/data`) | **Data Tier** – Container `Database` (PostgreSQL 16 + Prisma ORM + Optimistic Locking) | [`docker-compose.yml`](../docker-compose.yml) (`image: postgres:16-alpine`)<br>[`apps/api/prisma/schema.prisma`](../apps/api/prisma/schema.prisma)<br>[`apps/api/prisma/migrations/`](../apps/api/prisma/migrations/)<br>[`apps/api/prisma/seed.js`](../apps/api/prisma/seed.js) |
 | **`Mock Payment Subsystem`** | Nội bộ trong Container `brewlite-api` trên Render | **Integration Tier** – `Mock Payment Service` (VietQR / MoMo / Card + Idempotency Key) | [`apps/api/src/payments/payments.controller.ts`](../apps/api/src/payments/payments.controller.ts)<br>[`apps/api/src/payments/payments.service.ts`](../apps/api/src/payments/payments.service.ts)<br>[`docs/architecture/adr/004-payment-simulation-and-idempotency.md`](architecture/adr/004-payment-simulation-and-idempotency.md) |
-| **`GitHub Actions Runner (ubuntu-latest)`** | **GitHub Actions** CI/CD | **NFR-05 (Deployability)** & [`ADR-001`](architecture/adr/001-monorepo.md), [`ADR-006`](architecture/adr/006-logging-healthcheck-and-configuration.md) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)<br>[`docs/ci-evidence.md`](ci-evidence.md) |
+| **`GitHub Actions Runner (ubuntu-latest)`** | **GitHub Actions** CI/CD | **NFR-05 (Deployability)** & [`ADR-001`](architecture/adr/001-monorepo.md), [`ADR-006`](architecture/adr/006-logging-healthcheck-and-configuration.md) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)<br>[`.github/workflows/cd.yml`](../.github/workflows/cd.yml)<br>[`docs/ci-evidence.md`](ci-evidence.md) |
 | **`Local Docker Engine`** | Máy trạm Lập trình viên (Docker Desktop) | Môi trường phát triển & kiểm thử tích hợp cục bộ (Local Environment) | [`docker-compose.yml`](../docker-compose.yml)<br>[`.env.example`](../.env.example) |
+
+---
+
+## 5. Quy Trình Tự Động Hóa CD Pipeline (Continuous Delivery & Deployment - Task 5.3)
+
+Quy trình phân phối và triển khai liên tục được hiện thực hóa qua workflow [`.github/workflows/cd.yml`](../.github/workflows/cd.yml), thỏa mãn 7 yêu cầu bắt buộc của mục 7.3:
+
+```mermaid
+flowchart LR
+    A["1. Git Tag (v*.*.*)<br>/ Push main"] --> B["2. Quality Gate<br>(Lint + Test + Build)"]
+    B --> C["3. Containerize & Push<br>(GHCR Docker Image)"]
+    C --> D["4. Trigger Render<br>(Deploy Webhook)"]
+    D --> E["5. Smoke Test<br>(GET /health on Prod)"]
+    E -- Success --> F["✅ Release Live"]
+    E -- Failure --> G["🚨 Disaster Recovery<br>& Auto/Manual Rollback"]
+```
+
+### 5.1. Bốn Chặng Kiểm Soát trong Pipeline CD
+
+1. **Chặng 1 - Quality Gate Toàn diện**:
+   * **Backend**: Chạy linter (`oxlint`), áp dụng Prisma migration trên container PostgreSQL dịch vụ, nạp test seed data, chạy toàn bộ Unit Tests (`npm test`), và chạy toàn bộ Integration & E2E Tests (`npm run test:e2e`).
+   * **Frontend**: Chạy ESLint (`npm run lint`), kiểm thử luồng nghiệp vụ PWA (`npm test`), và biên dịch Next.js bundle (`npm run build`).
+   * *Điều kiện chuyển chặng*: Bất kỳ bài test hoặc bước build nào thất bại, pipeline dừng ngay lập tức, ngăn ngừa đưa mã nguồn lỗi lên môi trường sản xuất.
+2. **Chặng 2 - Đóng gói Docker & Đẩy lên GitHub Container Registry (GHCR)**:
+   * Build image đa tầng (Multi-stage build) tối ưu dung lượng dựa trên Node 24 Alpine.
+   * Gắn nhãn phiên bản theo Git SHA, Release Tag và nhãn `latest`.
+3. **Chặng 3 - Kích hoạt Triển khai Production (Render Deploy Hook)**:
+   * Gửi tín hiệu Webhook mã hóa an toàn qua HTTPS tới Render Cloud để kích hoạt kéo Docker image mới nhất và khởi tạo container.
+4. **Chặng 4 - Smoke Test & Cơ chế Tự động Phát hiện Lỗi**:
+   * Chờ container khởi động (45s grace period) và thực hiện kiểm tra sức khỏe lặp lại (retry 6 lần x 15s) tới endpoint sản xuất `GET /health`.
+   * Nếu không đạt phản hồi `200 OK` (Healthy), pipeline báo lỗi và kích hoạt quy trình Rollback.
+
+---
+
+## 6. Chiến Lược Quản Lý Database Migration & Seeding An Toàn (Yêu cầu #5)
+
+### 6.1. Nguyên tắc Không sử dụng `db push --accept-data-loss`
+* Tuyệt đối **không** dùng `prisma db push` trên môi trường Production: lệnh này có thể tự động xóa cột, xóa bảng hoặc làm rớt dữ liệu thực tế nếu schema có thay đổi không tương thích ngược.
+* **Chuẩn áp dụng**: `npx prisma migrate deploy` trong lệnh khởi chạy container của [`apps/api/Dockerfile`](../apps/api/Dockerfile). Lệnh này chỉ thực thi các file SQL migration đã được kiểm duyệt và lập phiên bản trong thư mục `prisma/migrations/`.
+
+### 6.2. Cơ chế Ngăn ngừa Chạy Lặp Seeding khi Container Khởi động lại
+* Trong [`apps/api/Dockerfile`](../apps/api/Dockerfile), lệnh `CMD` chỉ thực hiện di trú schema và chạy ứng dụng:
+  ```dockerfile
+  CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+  ```
+* Script [`apps/api/prisma/seed.js`](../apps/api/prisma/seed.js) được tích hợp cờ kiểm tra dữ liệu tồn tại (**Idempotency Check**): Nếu các bảng danh mục, sản phẩm, người dùng đã có dữ liệu, quá trình seed sẽ tự động bỏ qua để bảo toàn dữ liệu người dùng và tránh xung đột khóa chính khi hệ thống khởi động lại.
+
+---
+
+## 7. Quy Trình Khôi Phục Sự Cố & Chiến Lược Rollback (Yêu cầu #7)
+
+Khi chặng Smoke Test trong CD Pipeline thất bại (endpoint sản xuất không phản hồi hoặc phản hồi lỗi), hệ thống áp dụng cơ chế xử lý sự cố đa tầng:
+
+```
+                          ┌──────────────────────────┐
+                          │   Smoke Test Thất bại    │
+                          └─────────────┬────────────┘
+                                        │
+                 ┌──────────────────────┴──────────────────────┐
+                 ▼                                             ▼
+    [Tầng 1: Render Platform]                     [Tầng 2: Pipeline CD & SOP]
+ ┌───────────────────────────────┐             ┌───────────────────────────────┐
+ │ Zero-Downtime Deployment:     │             │ 1. Gọi Render Rollback API    │
+ │ Tự động giữ container cũ      │             │    (nếu có RENDER_API_KEY)    │
+ │ khi container mới fail health │             │ 2. SOP Rollback qua Dashboard │
+ └───────────────────────────────┘             │ 3. Git Release Tag Revert     │
+                                               └───────────────────────────────┘
+```
+
+### 7.1. Tầng 1: Tính năng Zero-Downtime Deployment & Built-in Rollback của Render
+* Render Cloud chỉ chuyển hướng lưu lượng truy cập (Traffic Switching) sang container phiên bản mới khi container mới vượt qua kiểm tra sức khỏe tại cấu hình `Health Check Path: /health`.
+* Nếu container mới bị crash loop, thiếu biến môi trường hoặc thất bại khi migrate, Render giữ nguyên container của phiên bản trước đó tiếp tục hoạt động, đảm bảo thời gian gián đoạn bằng không (Zero-downtime).
+
+### 7.2. Tầng 2: Tự động hóa Rollback qua Render REST API trong CD Pipeline
+Khi phát hiện Smoke Test thất bại, nếu cấu hình Secret `RENDER_API_KEY` và `RENDER_SERVICE_ID`, GitHub Actions sẽ tự động phát lệnh đảo ngược bản triển khai:
+```bash
+curl -s -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/rollback" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer ${RENDER_API_KEY}"
+```
+
+### 7.3. Tầng 3: Quy trình Chuẩn Vận hành Thủ công (Runbook / SOP Rollback)
+Nếu cần can thiệp khẩn cấp từ đội ngũ kỹ sư vận hành:
+1. **Rollback qua Render Dashboard**:
+   * Bước 1: Đăng nhập vào [Render Dashboard](https://dashboard.render.com).
+   * Bước 2: Chọn Web Service `brewlite-api` ➔ chọn mục **Deploys**.
+   * Bước 3: Tìm bản triển khai thành công gần nhất trước đó (hiển thị trạng thái *Live* trước phiên bản lỗi).
+   * Bước 4: Nhấn vào biểu tượng 3 chấm `...` và chọn **Rollback to this deploy**.
+2. **Rollback phiên bản qua Git Tag & VCS**:
+   * Bước 1: Revert commit lỗi: `git revert HEAD -m "revert: rollback broken release"`.
+   * Bước 2: Xóa tag lỗi nếu cần: `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`.
+   * Bước 3: Đẩy bản vá ổn định với tag mới (ví dụ: `v1.0.1`) để pipeline CD kích hoạt lại quy trình triển khai phiên bản sạch.
+
+---
+
+## 8. Hướng Dẫn Kích Hoạt Thực Tế & Cấu Hình Secrets (Yêu cầu #4 & #6)
+
+Để kích hoạt pipeline CD chạy thực tế trên môi trường sản xuất:
+
+1. **Thiết lập GitHub Repository Secrets**:
+   * Truy cập GitHub Repo: **Settings** ➔ **Secrets and variables** ➔ **Actions**.
+   * Thêm các biến bí mật sau:
+     * `PRODUCTION_API_URL`: URL Backend chính thức trên Render (ví dụ: `https://brewlite-api.onrender.com`).
+     * `RENDER_DEPLOY_HOOK`: URL Deploy Hook do Render cấp tại mục Service Settings.
+     * `RENDER_API_KEY` *(Tùy chọn)*: API Key của tài khoản Render để tự động hóa Rollback.
+     * `RENDER_SERVICE_ID` *(Tùy chọn)*: ID định danh Web Service trên Render (dạng `srv-xxxxxxxxxxxxxxxxxxxx`).
+
+2. **Gắn Git Release Tag để Kích hoạt CD**:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+   Pipeline `cd.yml` sẽ tự động thực thi chuỗi 4 chặng: kiểm thử chất lượng toàn diện, đóng gói Docker, kích hoạt triển khai và thực hiện smoke test trực tiếp trên endpoint sản xuất.
