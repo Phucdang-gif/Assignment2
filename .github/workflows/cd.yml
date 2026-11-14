@@ -61,6 +61,12 @@ jobs:
           DATABASE_URL: postgresql://brewlite:brewlite123@localhost:5432/brewlite_test?schema=public
         run: npx prisma migrate deploy
 
+      - name: Seed Database (Test DB)
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://brewlite:brewlite123@localhost:5432/brewlite_test?schema=public
+        run: node prisma/seed.js
+
       - name: Run Backend Unit Tests
         working-directory: apps/api
         env:
@@ -68,6 +74,14 @@ jobs:
           JWT_SECRET: ci-test-secret-key
           PORT: 3001
         run: npm test -- --passWithNoTests
+
+      - name: Run Backend Integration & E2E Tests (Task 5.2)
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://brewlite:brewlite123@localhost:5432/brewlite_test?schema=public
+          JWT_SECRET: ci-test-secret-key
+          PORT: 3001
+        run: npm run test:e2e
 
       - name: Build Backend Application
         working-directory: apps/api
@@ -82,10 +96,14 @@ jobs:
         working-directory: apps/web
         run: npm run lint
 
+      - name: Run Frontend Tests
+        working-directory: apps/web
+        run: npm test
+
       - name: Build Frontend Application
         working-directory: apps/web
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'http://localhost:3001' }}
         run: npm run build
 
   # ============================================================
@@ -188,8 +206,41 @@ jobs:
             exit 1
           fi
 
-      - name: Alert and Rollback Guidance on Failure
+      - name: Automated Rollback and Failure Guidance
         if: failure()
         run: |
-          echo "::error::DEPLOYMENT FAILURE: Smoke test failed on Production!"
-          echo "⚠️ ACTION REQUIRED: Truy cập Render Dashboard để xem logs lỗi và Rollback về bản deploy trước đó."
+          echo "::error::DEPLOYMENT FAILURE: Smoke test failed on Production endpoint ($HEALTH_URL)!"
+          echo "================================================================================"
+          echo "🚨 KÍCH HOẠT QUY TRÌNH ROLLBACK & PHỤC HỒI DỊCH VỤ SẢN XUẤT (DISASTER RECOVERY)"
+          echo "================================================================================"
+          
+          # Kiểm tra nếu có API Token và Service ID thì tự động trigger Render Rollback API
+          if [ -n "${{ secrets.RENDER_API_KEY }}" ] && [ -n "${{ secrets.RENDER_SERVICE_ID }}" ]; then
+            echo "⚡ Phát hiện RENDER_API_KEY. Đang kích hoạt Automated Rollback qua Render REST API..."
+            ROLLBACK_RESPONSE=$(curl -s -o rollback_res.txt -w "%{http_code}" \
+              -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/rollback" \
+              -H "Accept: application/json" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
+            echo "Render Rollback API HTTP Status: $ROLLBACK_RESPONSE"
+            cat rollback_res.txt || true
+            if [ "$ROLLBACK_RESPONSE" -eq 200 ] || [ "$ROLLBACK_RESPONSE" -eq 201 ]; then
+              echo "✅ ĐÃ KÍCH HOẠT ROLLBACK TỰ ĐỘNG THÀNH CÔNG VỀ BẢN BUILD TRƯỚC ĐÓ TRÊN RENDER!"
+            else
+              echo "⚠️ Tự động rollback qua API chưa hoàn tất (Status $ROLLBACK_RESPONSE). Yêu cầu rollback qua Dashboard."
+            fi
+          else
+            echo "ℹ️ Chưa thiết lập RENDER_API_KEY. Tiến hành hướng dẫn quy trình Rollback chuẩn (SOP):"
+            echo "1. Render Cloud đã kích hoạt Zero-Downtime Deployment: Nếu container mới không vượt qua /health,"
+            echo "   Render sẽ tạm hoãn chuyển lưu lượng và giữ container phiên bản trước đó hoạt động."
+            echo "2. Để Rollback triệt để trên Render Dashboard:"
+            echo "   a. Truy cập: https://dashboard.render.com"
+            echo "   b. Chọn Web Service 'brewlite-api' -> mục 'Events' hoặc 'Deploys'."
+            echo "   c. Chọn bản deploy thành công gần nhất trước đó (Last Successful Deploy) -> nhấn 'Rollback to this deploy'."
+            echo "3. Để Rollback mã nguồn qua Git Version Control:"
+            echo "   a. git revert HEAD (hoặc git revert <commit-sha-loi>)"
+            echo "   b. git tag -d <release-tag> && git push origin :refs/tags/<release-tag>"
+            echo "   c. Tạo và đẩy tag mới: git tag vX.Y.Z-rollback && git push origin vX.Y.Z-rollback"
+            echo "4. Chi tiết xem tại tài liệu: docs/deployment.md (Mục 7: Chiến lược Rollback & Khôi phục sự cố)"
+          fi
+          echo "================================================================================"
+          exit 1
