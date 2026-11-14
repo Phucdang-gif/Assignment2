@@ -2,7 +2,20 @@
 
 ---
 
-## 🚀 Phiên bản `v1.0.0` – Production Release (Sprint 2 Delivery)
+## 🚀 Phiên bản `v1.0.1` – Production Handover & Docker Fix (Latest)
+
+- **Ngày phát hành**: 15/11/2026
+- **Tag / Release**: [`v1.0.1`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.1)
+- **Phạm vi**: Hợp nhất PR `#47` (Task 5.4 Delivery & Handover), đồng bộ hạ tầng Docker Compose local và kiểm chứng CD Pipeline trên Render Cloud mới (`CD Run #43622804787`).
+
+### 🔧 Thay đổi chính trong `v1.0.1`
+- **Khắc phục Docker Healthcheck (`docker-compose.yml`)**: Đổi healthcheck của `brewlite-api` từ `http://localhost:3001/health` sang `http://127.0.0.1:3001/health` để `wget` trong Alpine không phân giải nhầm sang IPv6 `::1`, giúp stack 3 container (`db`, `api`, `web`) khởi động ổn định và pass `8/8` bước E2E.
+- **Chuẩn hóa tài liệu bàn giao & bảo mật (Task 5.4)**: Loại bỏ toàn bộ khóa/mật khẩu khỏi `.env.example`, `PAYMENT_SETUP.md`, `payments.service.ts` và log CI; bổ sung tài liệu bàn giao (`README.md`, `docs/sprint-review-retrospective.md`, `docs/deployment.md`).
+- **Kiểm chứng Production CD Pipeline**: Đã chạy thành công toàn bộ 4 chặng trên GitHub Actions ([CD Run `#43622804787`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43622804787)) với Render Web Service & Vercel Production hiện tại.
+
+---
+
+## 📦 Phiên bản `v1.0.0` – Production Release (Sprint 2 Delivery)
 
 - **Ngày phát hành**: 14/11/2026
 - **Tag / Release**: [`v1.0.0`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.0)
@@ -45,7 +58,7 @@
 3. **Qua Git VCS**:
    ```bash
    git revert <commit-sha-loi> -m 1
-   git tag v1.0.1 && git push origin main v1.0.1
+   git tag v1.0.2 && git push origin main v1.0.2
    ```
 
 ---
