@@ -636,8 +636,8 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
     }
     const partnerCode = process.env.MOMO_PARTNER_CODE || 'MOMO';
-    const accessKey = process.env.MOMO_ACCESS_KEY || 'F8BBA842ECF85';
-    const secretKey = process.env.MOMO_SECRET_KEY || 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+    const accessKey = process.env.MOMO_ACCESS_KEY || 'MOMO_SANDBOX_ACCESS_KEY';
+    const secretKey = process.env.MOMO_SECRET_KEY || 'MOMO_SANDBOX_SECRET_KEY';
     const momoApiUrl =
       process.env.MOMO_API_URL || 'https://test-payment.momo.vn/v2/gateway/api/create';
     const amount = Math.round(Number(order.total));
@@ -650,7 +650,11 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       process.env.CORS_ORIGIN?.split(',')[0]?.trim()?.replace(/\/+$/, '') ||
       'http://localhost:3000';
     const redirectUrl = `${frontendBaseUrl}/orders/${orderId}`;
-    const ipnUrl = `https://cusp-pager-velvet.ngrok-free.dev/api/payments/momo-ipn`;
+    const ipnUrl =
+      process.env.MOMO_IPN_URL ||
+      (process.env.API_PUBLIC_URL
+        ? `${process.env.API_PUBLIC_URL.replace(/\/+$/, '')}/api/payments/momo-ipn`
+        : 'http://localhost:3001/api/payments/momo-ipn');
     const requestType = 'captureWallet';
     const extraData = '';
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${momoOrderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;

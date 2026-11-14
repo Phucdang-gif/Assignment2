@@ -80,12 +80,12 @@ winget install ngrok
 Mở thêm 2 tab Terminal mới trong VS Code:
 1. **Terminal chạy Backend:**
    ```bash
-   cd backend
+   cd apps/api
    npm run start:dev
    ```
 2. **Terminal chạy Frontend:**
    ```bash
-   cd frontend
+   cd apps/web
    npm run dev
    ```
 *(Nếu trên trình duyệt mở ra trang thông báo kết nối của Ngrok với mã `ERR_NGROK_8012`, chỉ cần tắt tab đó đi sau khi Backend đã khởi chạy thành công).*
@@ -95,12 +95,7 @@ Mở thêm 2 tab Terminal mới trong VS Code:
 ### Bước 5: Đăng nhập vào trang quản trị PayOS
 
 1. Mở trình duyệt và truy cập: [https://payos.vn](https://payos.vn)
-2. Đăng nhập với tài khoản kiểm thử của nhóm:
-   - **Tên đăng nhập (Email):** `thanhle502188@gmail.com`
-   - **Mật khẩu:** `Cnpm_nhom06@`
-
-> [!NOTE]
-> Nếu hệ thống PayOS yêu cầu mã OTP gửi về điện thoại / email, hãy nhắn tin ngay cho bạn **Thành Lê** trong nhóm để nhận mã OTP.
+2. Đăng nhập bằng tài khoản PayOS Sandbox của nhóm (thông tin đăng nhập và mã OTP được quản trị viên nhóm cung cấp qua kênh nội bộ — **tuyệt đối không lưu mật khẩu hay khóa bí mật trong repository Git**).
 
 ---
 
@@ -127,8 +122,8 @@ Mở thêm 2 tab Terminal mới trong VS Code:
    - `Client ID`
    - `Api Key`
    - `Checksum Key`
-3. Mở file `backend/.env` (nằm trong thư mục `Assignment/backend/`):
-   - Cập nhật các khóa của PayOS và dán thêm cấu hình của MoMo bên dưới:
+3. Mở file `apps/api/.env` (tạo từ `apps/api/.env.example`):
+   - Cập nhật các khóa của PayOS và cấu hình của MoMo bên dưới (giá trị Sandbox lấy từ tài khoản MoMo Developer / cấu hình nội bộ của nhóm):
 
 ```env
 # ==========================================
@@ -142,9 +137,10 @@ PAYOS_CHECKSUM_KEY="<dán_Checksum_Key_từ_PayOS_vào_đây>"
 # CẤU HÌNH VÍ MOMO (MÔI TRƯỜNG TEST / SANDBOX)
 # ==========================================
 MOMO_PARTNER_CODE="MOMO"
-MOMO_ACCESS_KEY="F8BBA842ECF85"
-MOMO_SECRET_KEY="K951B6PE1waDMi640xX08PD3vg6EkVlz"
+MOMO_ACCESS_KEY="<dán_Access_Key_MoMo_Sandbox>"
+MOMO_SECRET_KEY="<dán_Secret_Key_MoMo_Sandbox>"
 MOMO_API_URL="https://test-payment.momo.vn/v2/gateway/api/create"
+MOMO_IPN_URL="https://<ngrok-domain>/api/payments/momo-ipn"
 ```
 
 4. Lưu file `.env` lại.
@@ -157,6 +153,6 @@ MOMO_API_URL="https://test-payment.momo.vn/v2/gateway/api/create"
 
 | Thứ tự Terminal | Nơi mở lệnh | Câu lệnh chạy | Mục đích |
 | :---: | :--- | :--- | :--- |
-| **Terminal 1** | Thư mục `Assignment/` | `ngrok http 3001` | Mở link công khai nhận Webhook từ ngân hàng / MoMo |
-| **Terminal 2** | Thư mục `backend/` | `npm run start:dev` | Khởi chạy máy chủ Backend NestJS |
-| **Terminal 3** | Thư mục `frontend/` | `npm run dev` | Khởi chạy giao diện người dùng Next.js |
+| **Terminal 1** | Thư mục gốc repo | `ngrok http 3001` | Mở link công khai nhận Webhook từ ngân hàng / MoMo |
+| **Terminal 2** | Thư mục `apps/api/` | `npm run start:dev` | Khởi chạy máy chủ Backend NestJS |
+| **Terminal 3** | Thư mục `apps/web/` | `npm run dev` | Khởi chạy giao diện người dùng Next.js |

@@ -3,7 +3,7 @@
 > **Học phần:** Công nghệ Phần mềm (Software Engineering) – Assignment 2  
 > **Dự án:** BrewLite Coffee Ordering System  
 > **Repository:** [Phucdang-gif/Assignment2](https://github.com/Phucdang-gif/Assignment2)  
-> **Trạng thái:** Toàn bộ tạo phẩm phân tích, thiết kế, kiến trúc triển khai & minh chứng CI từ Task 1 đến Task 4 đã được đưa vào kiểm soát phiên bản (Version Control).
+> **Trạng thái:** Hoàn thiện toàn bộ tạo phẩm từ Task 1 đến Task 5 (Phân tích yêu cầu, Sơ đồ UML, Kiến trúc ADR, Kiểm thử 3 tầng, CI/CD & Bàn giao Production `v1.0.0`).
 
 ---
 
@@ -37,3 +37,8 @@
 - [`conventions.md`](conventions.md): Quy ước đặt tên Git branch, Conventional Commits, Coding style và chuẩn hóa RESTful API.
 - [`team-workflow.md`](team-workflow.md): Quy trình làm việc nhóm theo Git Feature Branch, Pull Request Review và Definition of Done.
 - [`api-testing-guide.md`](api-testing-guide.md): Hướng dẫn kiểm thử API tự động và bộ sưu tập Postman/Thunder Client.
+
+### 5. Kiểm thử Tích hợp, CD Pipeline & Bàn giao (Task 5 Delivery)
+- [`../.github/workflows/cd.yml`](../.github/workflows/cd.yml): Pipeline Continuous Delivery/Deployment (Quality Gates ➔ GHCR Docker Image ➔ Render Deploy ➔ Smoke Test ➔ Auto/SOP Rollback).
+- [`sprint-review-retrospective.md`](sprint-review-retrospective.md): Báo cáo Sprint Review & Sprint Retrospective cho Sprint 1 và Sprint 2 cùng kịch bản Demo End-to-End.
+- [`../RELEASE_NOTES.md`](../RELEASE_NOTES.md): Ghi chú phát hành phiên bản `v1.0.0` (Production Release) và hướng dẫn Rollback.
