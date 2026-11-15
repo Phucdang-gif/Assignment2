@@ -679,6 +679,7 @@ Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố t
 
 ## 🎬 Kịch bản Demo (End-to-End Flow)
 
+> 🎥 **Video Demo quay sẵn (MP4 – Full 6 bước)**: [`docs/demo/BrewLite-Live-Demo-Runbook.mp4`](docs/demo/BrewLite-Live-Demo-Runbook.mp4)  
 > 📋 Kịch bản trình diễn trực tiếp chi tiết (Live Demo Runbook) và **Báo cáo Sprint Review & Sprint Retrospective** được lưu đầy đủ tại: [`docs/sprint-review-retrospective.md`](docs/sprint-review-retrospective.md).
 
 1. **Khởi chạy ứng dụng**:
