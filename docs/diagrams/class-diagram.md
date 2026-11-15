@@ -7,8 +7,6 @@
 > **Chuẩn thiết kế**: UML 2.5 Specification  
 > **Tệp mã nguồn PlantUML**: [`docs/diagrams/class-diagram.puml`](./class-diagram.puml)  
 > **Tệp ảnh Vector SVG**: [`docs/diagrams/class-diagram.svg`](./class-diagram.svg)  
-> **Tệp ảnh Bitmap PNG**: [`docs/diagrams/class-diagram.png`](./class-diagram.png)  
-> **Tệp tài liệu PDF**: [`docs/diagrams/class-diagram.pdf`](./class-diagram.pdf)  
 
 ---
 

@@ -19,7 +19,7 @@
 | **Health Check & Menu API** | `<PRODUCTION_API_URL>/health` (và `/api/health`)<br>`<PRODUCTION_API_URL>/api/products` | Trả về `{"status":"ok","service":"BrewLite API","info":{"database":{"status":"up"}}}` |
 | **Database Production** | PostgreSQL 16 trên **Render Private Network** | Chỉ kết nối nội bộ qua Internal Database URL (`dpg-...-a`), **không public cổng `5432` ra Internet** |
 | **Container Registry** | `ghcr.io/phucdang-gif/assignment2/brewlite-api:latest` | Đóng gói đa tầng (`apps/api/Dockerfile`), gắn tag theo Git SHA & Release Tag |
-| **Phiên bản & Tài liệu Bàn giao** | Tag [`v1.0.1`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.1) (Latest) · [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | [`Sprint Review & Retrospective`](docs/sprint-review-retrospective.md) · [`Chi tiết Triển khai`](docs/deployment.md) |
+| **Phiên bản & Tài liệu Bàn giao** | Tag [`v1.0.1`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.1) (Latest) · [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | [`Sprint Review & Retrospective`](docs/delivery/sprint-review-retrospective.md) · [`Chi tiết Triển khai`](docs/deployment.md) |
 
 ---
 
@@ -545,15 +545,17 @@ brewlite/
 │       └── Dockerfile          # Multi-stage Docker build phục vụ NestJS tại cổng 3001
 │
 ├── docs/                       # Tài liệu kiểm soát phiên bản (Task 1 - 5 & Quản trị dự án)
-│   ├── requirements/           # Task 1: SRS, Context & Scope, Use Case Specs
+│   ├── requirements/           # Task 1: SRS, Context & Scope, Use Case Specs (.md & .pdf)
 │   ├── diagrams/               # Task 2 & 3.2: Activity, Sequence, Class, C4 & Deployment Diagrams (.puml & .svg)
 │   ├── architecture/           # Task 3.1: Kiến trúc hệ thống (C4) & Các tệp ADR (001 - 006)
-│   ├── screenshots/            # Task 4.4: Ảnh minh chứng CI Pipeline (PR Pass & PR Fail)
-│   ├── ci-evidence.md          # Task 4.4: Báo cáo minh chứng CI & Branch Protection
-│   ├── conventions.md          # Task 4.1: Quy ước nhánh, Conventional Commits & Definition of Done
-│   ├── team-workflow.md        # Quy trình phối hợp Git Feature Branch & PR Review
-│   ├── api-testing-guide.md    # Hướng dẫn kiểm thử API (kèm Postman / Thunder Client collection)
-│   ├── sprint-review-retrospective.md  # Task 5.4: Sprint Review & Retrospective (Sprint 1 & 2) + Demo Runbook
+│   ├── delivery/               # Tài liệu quy trình nhóm, kiểm thử & minh chứng bàn giao
+│   │   ├── screenshots/        # Task 4.4: Ảnh minh chứng CI Pipeline (PR Pass & PR Fail)
+│   │   ├── ci-evidence.md      # Task 4.4: Báo cáo minh chứng CI & Branch Protection
+│   │   ├── conventions.md      # Task 4.1: Quy ước nhánh, Conventional Commits & Definition of Done
+│   │   ├── team-workflow.md    # Quy trình phối hợp Git Feature Branch & PR Review
+│   │   ├── api-testing-guide.md# Hướng dẫn kiểm thử API
+│   │   ├── brewlite-collection.postman_collection.json # Collection Postman / Thunder Client
+│   │   └── sprint-review-retrospective.md  # Task 5.4: Sprint Review & Retrospective + Demo Runbook
 │   ├── traceability-matrix.md  # Mục 8: Ma trận truy vết yêu cầu (FR/NFR ➔ Diagram ➔ Code ➔ Test)
 │   ├── deployment.md           # Task 3.2 & 5.4: Kiến trúc triển khai Production & Handover Checklist
 │   └── README.md               # Bản đồ tổng hợp tài liệu dự án
@@ -690,7 +692,7 @@ Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố t
 
 ## 🎬 Kịch bản Demo (End-to-End Flow)
 
-> 📋 Kịch bản trình diễn trực tiếp chi tiết (Live Demo Runbook) và **Báo cáo Sprint Review & Sprint Retrospective** được lưu đầy đủ tại: [`docs/sprint-review-retrospective.md`](docs/sprint-review-retrospective.md).
+> 📋 Kịch bản trình diễn trực tiếp chi tiết (Live Demo Runbook) và **Báo cáo Sprint Review & Sprint Retrospective** được lưu đầy đủ tại: [`docs/delivery/sprint-review-retrospective.md`](docs/delivery/sprint-review-retrospective.md).
 
 1. **Khởi chạy ứng dụng**:
    Chạy lệnh `docker compose up --build` và chờ các dịch vụ hoạt động. Mở trình duyệt tại [http://localhost:3000](http://localhost:3000).
@@ -723,8 +725,8 @@ Dự án được thực hiện bởi nhóm sinh viên Khoa Công nghệ Thông 
 ### 📋 Quy ước Commit & Định nghĩa Hoàn thành (Conventions & Definition of Done)
 
 Toàn bộ quy chuẩn phát triển phần mềm và quy trình làm việc của nhóm được quy định chi tiết tại:  
-👉 **[Tài liệu Quy ước Phát triển & Definition of Done (docs/conventions.md)](docs/conventions.md)**  
-👉 **[Hướng dẫn Quy trình Làm việc Nhóm & 6 bước thực hiện Task (docs/team-workflow.md)](docs/team-workflow.md)**
+👉 **[Tài liệu Quy ước Phát triển & Definition of Done (docs/delivery/conventions.md)](docs/delivery/conventions.md)**  
+👉 **[Hướng dẫn Quy trình Làm việc Nhóm & 6 bước thực hiện Task (docs/delivery/team-workflow.md)](docs/delivery/team-workflow.md)**
 
 #### 1. Quy ước Commit (Conventional Commits):
 Định dạng chuẩn: `<type>(<scope>): [<mã-task/FR>] <tiêu đề tóm tắt>`

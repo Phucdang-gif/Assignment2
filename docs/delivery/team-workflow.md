@@ -78,7 +78,7 @@ git checkout -b feat/task-4.3-menu-api
   ```
 
 ### Bước 4: Commit theo chuẩn Conventional Commits & Push lên GitHub
-Đặt commit message theo đúng chuẩn quy định tại [`docs/conventions.md`](conventions.md):
+Đặt commit message theo đúng chuẩn quy định tại [`docs/delivery/conventions.md`](conventions.md):
 ```powershell
 # 1. Thêm các file thay đổi vào staging
 git add .
@@ -128,6 +128,6 @@ git push -u origin feat/task-4.3-menu-api
 
 > [!NOTE]
 > **Tài liệu tham khảo liên quan:**
-> * Quy ước Commit & Definition of Done: [`docs/conventions.md`](conventions.md)
-> * Hướng dẫn khởi chạy & Kiến trúc: [`README.md`](../README.md)
-> * Ma trận truy vết yêu cầu: [`docs/traceability-matrix.md`](traceability-matrix.md)
+> * Quy ước Commit & Definition of Done: [`docs/delivery/conventions.md`](conventions.md)
+> * Hướng dẫn khởi chạy & Kiến trúc: [`README.md`](../../README.md)
+> * Ma trận truy vết yêu cầu: [`docs/traceability-matrix.md`](../traceability-matrix.md)

@@ -4,7 +4,6 @@
 > **Mã truy vết**: Activity-01  
 > **Tệp nguồn PlantUML**: [`activity-order-flow.puml`](activity-order-flow.puml)  
 > **Tệp ảnh SVG**: [`activity-order-flow.svg`](activity-order-flow.svg)  
-> **Tệp ảnh PNG**: [`activity-order-flow.png`](activity-order-flow.png)  
 
 ---
 
