@@ -28,7 +28,6 @@ Mô hình triển khai của **BrewLite** tách biệt rõ ràng thành **3 ranh
 
 > **Tệp nguồn PlantUML & Vector SVG**:
 > - PlantUML chi tiết ([N-xx] Node & [C-xx] Connection): [`docs/diagrams/deployment-diagram.puml`](diagrams/deployment-diagram.puml)
-> - PlantUML kiến trúc rút gọn: [`docs/diagrams/deployment.puml`](diagrams/deployment.puml)
 > - Ảnh vector chất lượng cao: [`docs/diagrams/deployment-diagram.svg`](diagrams/deployment-diagram.svg)
 
 ![Sơ Đồ Triển Khai Hệ Thống BrewLite](diagrams/deployment-diagram.svg)
@@ -68,7 +67,7 @@ flowchart TB
             RenderProxy["🔒 Render HTTPS Load Balancer / Reverse Proxy<br>(TLS 1.3 Termination - Port 443)"]
 
             subgraph RenderPrivateNet["🛡️ Render Private Network (Internal VPC)"]
-                RenderAPI["🐳 Docker Container: brewlite-api<br>(apps/api/Dockerfile - Node 20 Alpine)<br>Internal Port: 3001 | Health: GET /health<br>Secrets: DATABASE_URL, JWT_SECRET, PORT"]
+                RenderAPI["🐳 Docker Container: brewlite-api<br>(apps/api/Dockerfile - Node 24 Alpine)<br>Internal Port: 3001 | Health: GET /health<br>Secrets: DATABASE_URL, JWT_SECRET, PORT"]
                 RenderDB["🐳 Docker Container: brewlite-postgres<br>(Image: postgres:16-alpine)<br>Internal Port: 5432 (Private Only)"]
                 RenderDisk[("💾 Render Persistent Disk<br>Mount: /var/lib/postgresql/data")]
                 MockPay["💳 Mock Payment Subsystem<br>(VietQR / MoMo / Card + Idempotency Key)"]
@@ -139,7 +138,7 @@ Không có bất kỳ mật khẩu hay khóa bí mật thực tế nào được
 | **`Docker Container: brewlite-api`** | **Render Cloud** (Docker Web Service) | **Application Tier** – Container `API Application` (NestJS Modular Monolith: `AuthModule`, `ProductsModule`, `OrdersModule`, `PaymentsModule`) | [`apps/api/Dockerfile`](../apps/api/Dockerfile)<br>[`apps/api/src/main.ts`](../apps/api/src/main.ts)<br>[`apps/api/src/app.module.ts`](../apps/api/src/app.module.ts)<br>[`apps/api/src/app.controller.ts`](../apps/api/src/app.controller.ts) (`GET /health`) |
 | **`Docker Container: brewlite-postgres` + `Render Persistent Disk`** | **Render Cloud** (Docker Private Service + Persistent Disk `/var/lib/postgresql/data`) | **Data Tier** – Container `Database` (PostgreSQL 16 + Prisma ORM + Optimistic Locking) | [`docker-compose.yml`](../docker-compose.yml) (`image: postgres:16-alpine`)<br>[`apps/api/prisma/schema.prisma`](../apps/api/prisma/schema.prisma)<br>[`apps/api/prisma/migrations/`](../apps/api/prisma/migrations/)<br>[`apps/api/prisma/seed.js`](../apps/api/prisma/seed.js) |
 | **`Mock Payment Subsystem`** | Nội bộ trong Container `brewlite-api` trên Render | **Integration Tier** – `Mock Payment Service` (VietQR / MoMo / Card + Idempotency Key) | [`apps/api/src/payments/payments.controller.ts`](../apps/api/src/payments/payments.controller.ts)<br>[`apps/api/src/payments/payments.service.ts`](../apps/api/src/payments/payments.service.ts)<br>[`docs/architecture/adr/004-payment-simulation-and-idempotency.md`](architecture/adr/004-payment-simulation-and-idempotency.md) |
-| **`GitHub Actions Runner (ubuntu-latest)`** | **GitHub Actions** CI/CD | **NFR-05 (Deployability)** & [`ADR-001`](architecture/adr/001-monorepo.md), [`ADR-006`](architecture/adr/006-logging-healthcheck-and-configuration.md) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)<br>[`.github/workflows/cd.yml`](../.github/workflows/cd.yml)<br>[`docs/ci-evidence.md`](ci-evidence.md) |
+| **`GitHub Actions Runner (ubuntu-latest)`** | **GitHub Actions** CI/CD | **NFR-05 (Deployability)** & [`ADR-001`](architecture/adr/001-monorepo.md), [`ADR-006`](architecture/adr/006-logging-healthcheck-and-configuration.md) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)<br>[`.github/workflows/cd.yml`](../.github/workflows/cd.yml)<br>[`docs/delivery/ci-evidence.md`](delivery/ci-evidence.md) |
 | **`Local Docker Engine`** | Máy trạm Lập trình viên (Docker Desktop) | Môi trường phát triển & kiểm thử tích hợp cục bộ (Local Environment) | [`docker-compose.yml`](../docker-compose.yml)<br>[`.env.example`](../.env.example) |
 
 ---
@@ -254,3 +253,18 @@ Nếu cần can thiệp khẩn cấp từ đội ngũ kỹ sư vận hành:
    git push origin v1.0.0
    ```
    Pipeline `cd.yml` sẽ tự động thực thi chuỗi 4 chặng: kiểm thử chất lượng toàn diện, đóng gói Docker, kích hoạt triển khai và thực hiện smoke test trực tiếp trên endpoint sản xuất.
+
+---
+
+## 9. Tổng Hợp Bàn Giao Sản Phẩm Production (Task 5.4 Handover Checklist)
+
+| Tiêu chí bàn giao (Mục 7.4) | Trạng thái & Minh chứng thực tế |
+| :--- | :--- |
+| **URL Frontend Production (HTTPS)** | [https://assignment2-murex-gamma.vercel.app](https://assignment2-murex-gamma.vercel.app) (Vercel Edge Network) |
+| **URL API & Health Check** | Biến `PRODUCTION_API_URL` trên Render Cloud — đã pass Smoke Test `200 OK` tại `/health` và `/api/products` trong [CD Run `#43622804787`](https://github.com/Phucdang-gif/Assignment2/actions/runs/43622804787) (`v1.0.1`) |
+| **Database Production không public** | PostgreSQL 16 vận hành trong **Render Private Network**, chỉ kết nối qua Internal Database URL (`dpg-...-a`), không mở port `5432` ra Internet |
+| **Không rò rỉ Secret trong repo / log CI** | Toàn bộ mật khẩu và khóa thật đã loại khỏi `.env.example`, `PAYMENT_SETUP.md`, mã nguồn và log CI; quản lý qua GitHub Secrets & Render/Vercel Environment Variables |
+| **Release/Tag phiên bản & Release Notes** | Tag [`v1.0.1`](https://github.com/Phucdang-gif/Assignment2/releases/tag/v1.0.1) (và `v1.0.0`) · [`RELEASE_NOTES.md`](../RELEASE_NOTES.md) |
+| **README hướng dẫn Local, Test, Build, Deploy & Rollback** | Đầy đủ tại [`README.md`](../README.md) |
+| **Video / Demo End-to-End** | Kịch bản live demo chi tiết tại [`docs/delivery/sprint-review-retrospective.md`](delivery/sprint-review-retrospective.md#6-kịch-bản-video--demo-trực-tiếp-luồng-end-to-end-task-54-live-demo-runbook) |
+| **Sprint Review & Sprint Retrospective** | Đầy đủ cho cả Sprint 1 & Sprint 2 tại [`docs/delivery/sprint-review-retrospective.md`](delivery/sprint-review-retrospective.md) |

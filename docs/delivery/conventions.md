@@ -28,7 +28,7 @@ Mọi thay đổi đưa vào nhánh `main` / `develop` **bắt buộc** phải t
 4. **Peer Review**: Tối thiểu **1 thành viên khác trong nhóm** phải review mã nguồn, để lại nhận xét và bấm **Approve**.
 5. **Merge**: Sử dụng hình thức **Squash and Merge** hoặc **Rebase and Merge** để giữ lịch sử commit tinh gọn, có ý nghĩa.
 
-> 📖 **Xem hướng dẫn thực hành 6 bước chi tiết:** [`docs/team-workflow.md`](team-workflow.md)
+> 📖 **Xem hướng dẫn thực hành 6 bước chi tiết:** [`docs/delivery/team-workflow.md`](team-workflow.md)
 
 ---
 
@@ -79,7 +79,7 @@ Một User Story, Tính năng hoặc Task kỹ thuật chỉ được đánh d�
 | **3** | **Chất lượng mã nguồn (Code Quality)** | Mã nguồn tuân thủ coding convention, TypeScript type-safety (không lạm dụng `any`). Chạy công cụ Linting (`npm run lint` / `oxlint`) không có lỗi hoặc cảnh báo nghiêm trọng. | Lệnh `npm run lint` thoát với mã 0 (Clean) |
 | **4** | **Tích hợp liên tục (CI Gate)** | Pipeline GitHub Actions CI tự động kích hoạt trên Pull Request và trả về trạng thái màu xanh (**Success**) cho cả 4 bước: `Install ➔ Lint ➔ Test ➔ Build`. | Checkmark xanh của GitHub Actions trên PR |
 | **5** | **Đồng cấp kiểm tra (Peer Review)** | PR được mở đầy đủ thông tin theo mẫu `.github/pull_request_template.md`. Có ít nhất **1 thành viên khác trong nhóm** review mã nguồn, thảo luận phản biện và bấm **Approve**. | Lịch sử Review & Approve trên giao diện PR của GitHub |
-| **6** | **Tài liệu & Ma trận truy vết (Traceability)** | Đã cập nhật mã yêu cầu (`FR-xx`, `NFR-xx`) tương ứng vào bảng ma trận truy vết [`docs/traceability-matrix.md`](traceability-matrix.md). Cập nhật README hoặc tài liệu API nếu có thay đổi cấu hình/endpoint. | Tệp `docs/traceability-matrix.md` có commit thay đổi |
+| **6** | **Tài liệu & Ma trận truy vết (Traceability)** | Đã cập nhật mã yêu cầu (`FR-xx`, `NFR-xx`) tương ứng vào bảng ma trận truy vết [`docs/traceability-matrix.md`](../traceability-matrix.md). Cập nhật README hoặc tài liệu API nếu có thay đổi cấu hình/endpoint. | Tệp `docs/traceability-matrix.md` có commit thay đổi |
 
 ---
 

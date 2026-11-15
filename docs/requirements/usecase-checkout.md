@@ -6,7 +6,6 @@
 > **Phiên bản**: 1.0 (Chuẩn UML 2.0 Quốc Tế)  
 > **Tệp mã nguồn PlantUML**: [`docs/diagrams/usecase-checkout.puml`](../diagrams/usecase-checkout.puml)  
 > **Tệp ảnh Vector SVG**: [`docs/diagrams/usecase-checkout.svg`](../diagrams/usecase-checkout.svg)  
-> **Tệp ảnh PNG**: [`docs/diagrams/usecase-checkout.png`](../diagrams/usecase-checkout.png)  
 > **Bản in PDF**: [`docs/requirements/usecase-checkout.pdf`](usecase-checkout.pdf)  
 
 ---
@@ -95,7 +94,7 @@ PaymentService -down- UC_ProcessPayment
 
 ### 2.3. Sơ đồ hình ảnh trực quan
 
-![Sơ đồ Use-case Đặt và thanh toán](../diagrams/usecase-checkout.png)
+![Sơ đồ Use-case Đặt và thanh toán](../diagrams/usecase-checkout.svg)
 
 ---
 

@@ -4,7 +4,7 @@
 > **Học phần**: Công nghệ Phần mềm (Software Engineering) – Assignment 2  
 > **Nhiệm vụ**: Task 4.4 – Thiết lập Continuous Integration & Minh chứng vận hành thực tế  
 > **Trạng thái**: Hoàn thành vận hành trên GitHub Actions (Đã có PR Pass & PR Fail thực tế)  
-> **Kiến trúc triển khai liên kết**: Frontend trên **Vercel**, Backend (NestJS) & Database (PostgreSQL 16) chạy **Docker Container trên Render** (xem chi tiết tại [`docs/deployment.md`](deployment.md)).
+> **Kiến trúc triển khai liên kết**: Frontend trên **Vercel**, Backend (NestJS) & Database (PostgreSQL 16) chạy **Docker Container trên Render** (xem chi tiết tại [`docs/deployment.md`](../deployment.md)).
 
 ---
 
@@ -23,7 +23,7 @@ $$\textbf{Install} \longrightarrow \textbf{Lint} \longrightarrow \textbf{Unit Te
 
 ---
 
-## 2. Cấu trúc Pipeline CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml))
+## 2. Cấu trúc Pipeline CI ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml))
 
 Pipeline được chia làm 2 jobs độc lập chạy song song trên GitHub-hosted runner `ubuntu-latest` (Node.js 24):
 
@@ -103,7 +103,7 @@ Result: All checks have passed (2 successful checks). Merging is allowed.
   * Job `Backend CI (NestJS)` (Failed): [`https://github.com/Phucdang-gif/Assignment2/actions/runs/42985734778/job/130406327406`](https://github.com/Phucdang-gif/Assignment2/actions/runs/42985734778/job/130406327406)
 * **Kịch bản gây lỗi có chủ đích**:
   1. Tạo nhánh `test/ci-failure-demo` từ `main`.
-  2. Trong tệp [`apps/api/src/products/products.service.spec.ts`](../apps/api/src/products/products.service.spec.ts), thêm kỳ vọng sai có chủ đích `expect(result).toHaveLength(999)` trong test case `findAll [API-T01]`.
+  2. Trong tệp [`apps/api/src/products/products.service.spec.ts`](../../apps/api/src/products/products.service.spec.ts), thêm kỳ vọng sai có chủ đích `expect(result).toHaveLength(999)` trong test case `findAll [API-T01]`.
   3. Mở Pull Request **#21** hướng vào nhánh `main`.
 * **Kết quả**:
   * GitHub Actions chạy qua `Install dependencies` (`✓`), `Run Lint (oxlint)` (`✓`), `Run Prisma migrations` (`✓`), và **phát hiện lỗi ngay tại bước `Run Unit Tests` (`✕`)**.

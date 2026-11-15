@@ -14,6 +14,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "BrewLite — Good Coffee Better Days",
   description: "Ứng dụng đặt cà phê và thanh toán không dùng tiền mặt",
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
   },

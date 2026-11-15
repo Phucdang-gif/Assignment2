@@ -738,7 +738,6 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     if (!accessKey || !secretKey) {
       throw new BadRequestException('Cấu hình MoMo (MOMO_ACCESS_KEY, MOMO_SECRET_KEY) chưa được thiết lập');
     }
-
     const momoApiUrl =
       process.env.MOMO_API_URL || 'https://test-payment.momo.vn/v2/gateway/api/create';
     const amount = Math.round(Number(order.total));
@@ -751,7 +750,11 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       process.env.CORS_ORIGIN?.split(',')[0]?.trim()?.replace(/\/+$/, '') ||
       'http://localhost:3000';
     const redirectUrl = `${frontendBaseUrl}/orders/${orderId}`;
-    const ipnUrl = process.env.MOMO_IPN_URL || `${frontendBaseUrl}/api/payments/momo-ipn`;
+    const ipnUrl =
+      process.env.MOMO_IPN_URL ||
+      (process.env.API_PUBLIC_URL
+        ? `${process.env.API_PUBLIC_URL.replace(/\/+$/, '')}/api/payments/momo-ipn`
+        : `${frontendBaseUrl}/api/payments/momo-ipn`);
     const requestType = 'captureWallet';
     const extraData = '';
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${momoOrderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
