@@ -34,3 +34,16 @@ coverage/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Python & Temporary Files
+__pycache__/
+*.pyc
+extracted_figures/
+figures/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

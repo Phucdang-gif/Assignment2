@@ -1,25 +1,44 @@
 @startuml activity-part2
 !theme plain
 skinparam shadowing false
-skinparam roundcorner 8
+skinparam roundcorner 12
 skinparam defaultFontName "Segoe UI", Arial, sans-serif
-skinparam defaultFontSize 12
+skinparam defaultFontSize 18
 
 skinparam activity {
     BackgroundColor #FFFFFF
-    BorderColor #2D3748
-    ArrowColor #4A5568
-    DiamondBackgroundColor #FEFCBF
-    DiamondBorderColor #B7791F
+    BorderColor #1A365D
+    BorderThickness 1.8
+    ArrowColor #2D3748
+    ArrowThickness 1.5
+    DiamondBackgroundColor #FFFFFF
+    DiamondBorderColor #1A365D
+    DiamondBorderThickness 1.8
+    FontSize 18
+    Padding 16
+    Margin 12
 }
+
+skinparam swimlane {
+    BorderColor #2D3748
+    BorderThickness 1.5
+    TitleFontSize 18
+    TitleFontStyle bold
+    BackgroundColor #FFFFFF
+    Padding 16
+}
+
+skinparam wrapWidth 180
+skinparam maxMessageSize 180
+skinparam ArrowFontSize 14
 
 title SƠ ĐỒ HOẠT ĐỘNG (ACTIVITY DIAGRAM) - PHẦN B: THANH TOÁN, PHA CHẾ & HOÀN TẤT ĐƠN\n(Phụ trách: Thành viên B)
 
-|#EBF8FF|Customer|
-|#F0FFF4|Next.js UI|
-|#FEFCBF|NestJS API & DB|
-|#FFF1F2|Payment Service|
-|#E6FFFA|Barista|
+|Customer|
+|Next.js UI|
+|NestJS API & DB|
+|Payment Service|
+|Barista|
 
 |Customer|
 start
