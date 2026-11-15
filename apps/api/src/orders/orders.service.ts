@@ -217,30 +217,28 @@ export class OrdersService {
             }
 
             const prodStock = (product as any).stock;
-            if (typeof prodStock === 'number') {
-              if (prodStock < item.qty) {
-                throw new BadRequestException(
-                  `Sản phẩm "${product.name}" không đủ số lượng tồn kho (còn ${prodStock}, yêu cầu ${item.qty})`,
-                );
-              }
+            if (typeof prodStock === 'number' && prodStock < item.qty) {
+              throw new BadRequestException(
+                `Sản phẩm "${product.name}" không đủ số lượng tồn kho (còn ${prodStock}, yêu cầu ${item.qty})`,
+              );
+            }
 
-              const updateResult = await tx.product.updateMany({
-                where: {
-                  id: product.id,
-                  version: product.version,
-                  stock: { gte: item.qty },
-                },
-                data: {
-                  stock: { decrement: item.qty },
-                  version: { increment: 1 },
-                },
-              });
+            const updateResult = await tx.product.updateMany({
+              where: {
+                id: product.id,
+                version: product.version,
+                ...(typeof prodStock === 'number' ? { stock: { gte: item.qty } } : {}),
+              },
+              data: {
+                ...(typeof prodStock === 'number' ? { stock: { decrement: item.qty } } : {}),
+                version: { increment: 1 },
+              },
+            });
 
-              if (updateResult.count === 0) {
-                throw new ConflictException(
-                  `Xung đột tồn kho khi nhiều khách đặt đồng thời sản phẩm "${product.name}". Vui lòng thử lại!`,
-                );
-              }
+            if (updateResult && updateResult.count === 0) {
+              throw new ConflictException(
+                `Xung đột tồn kho khi nhiều khách đặt đồng thời sản phẩm "${product.name}". Vui lòng thử lại!`,
+              );
             }
           }
 
