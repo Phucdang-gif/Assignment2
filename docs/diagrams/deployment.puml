@@ -81,7 +81,7 @@ package "Ranh Giới 3: Môi Trường Production (Cloud)" as ProdBoundary #FFFB
     node "<<Reverse Proxy / Load Balancer>>\nRender HTTPS Ingress & TLS Termination" as RenderIngress
 
     package "Render Private Network (Internal VPC)" as RenderVPC {
-      node "<<Docker Container>>\nbrewlite-api-service\n(apps/api/Dockerfile - Node 20 Alpine)" as RenderApiContainer {
+      node "<<Docker Container>>\nbrewlite-api-service\n(apps/api/Dockerfile - Node 24 Alpine)" as RenderApiContainer {
         component "<<NestJS Modular Monolith>>\nBrewLite REST API (:3001)\n[Auth | Products | Orders | Payments]" as ProdApi
         component "Health Check Endpoint\nGET /health" as HealthCheck
         component "Render Log Stream\n(stdout / stderr structured logs)" as LogStream
