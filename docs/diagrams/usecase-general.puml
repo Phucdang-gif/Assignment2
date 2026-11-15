@@ -1,11 +1,14 @@
-@startuml usecase-general
+@startuml usecase-brewlite
 !theme plain
-skinparam packageStyle rectangle
-skinparam roundcorner 10
-skinparam actorStyle awesome
+left to right direction
+
+skinparam linetype polyline
+skinparam actorStyle stickman
 skinparam shadowing false
 skinparam defaultFontName "Segoe UI", Arial, sans-serif
 skinparam defaultFontSize 12
+skinparam nodesep 22
+skinparam ranksep 90
 
 skinparam usecase {
     BackgroundColor #FFFFFF
@@ -20,80 +23,83 @@ skinparam actor {
 
 title SƠ ĐỒ USE-CASE TỔNG QUÁT HỆ THỐNG BREWLITE
 
-' Định nghĩa 4 Actor đều là dạng người que (stick figure)
+' ==================== ACTORS (NGƯỜI QUE) ====================
 actor "Khách hàng\n(Customer)" as Customer #EBF8FF
 actor "Nhân viên quầy\n(Barista)" as Barista #F0FFF4
 actor "Quản lý cửa hàng\n(Store Manager)" as Manager #FEFCBF
 actor "Cổng thanh toán\n(Payment Service)" as PaymentService #FFF1F2
 
+' ==================== KHUNG HỆ THỐNG ====================
 rectangle "Hệ thống Đặt đồ uống BrewLite" as BrewLiteSystem #F8FAFC {
 
-  package "Phân hệ Khách hàng (Ordering Flow)" {
-    usecase "UC-01: Xem menu đồ uống" as UC_Menu
-    usecase "UC-02: Tìm kiếm & lọc đồ uống" as UC_Search
-    usecase "UC-03: Xem chi tiết món" as UC_Detail
-    usecase "UC-04: Tùy biến Size & Topping" as UC_Customize
-    usecase "UC-05: Quản lý giỏ hàng" as UC_Cart
-    usecase "UC-06: Đặt hàng mới" as UC_Order
-    usecase "UC-07: Thanh toán trực tuyến" as UC_Payment
-    usecase "UC-08: Theo dõi trạng thái đơn" as UC_Tracking
-    usecase "UC-09: Xem lịch sử & tích điểm" as UC_History
-  }
+  ' CỘT 1: Use-case chính (Xếp thứ tự từ trên xuống dưới theo từng Actor)
+  usecase "UC-10: Đăng ký tài khoản" as UC_Register
+  usecase "UC-01: Xem menu đồ uống" as UC_Menu
+  usecase "UC-03: Xem chi tiết món" as UC_Detail
+  usecase "UC-05: Quản lý giỏ hàng" as UC_Cart
+  usecase "UC-06: Đặt hàng mới" as UC_Order
+  usecase "UC-07: Thanh toán trực tuyến" as UC_Payment
+  usecase "UC-08: Theo dõi trạng thái đơn" as UC_Tracking
+  usecase "UC-09: Xem lịch sử & tích điểm" as UC_History
 
-  package "Phân hệ Xác thực (Authentication)" {
-    usecase "UC-10: Đăng ký tài khoản" as UC_Register
-    usecase "UC-11: Đăng nhập cấp JWT" as UC_Login
-  }
+  usecase "UC-12: Tiếp nhận đơn đã thanh toán" as UC_ReceiveOrder
+  usecase "UC-13: Cập nhật tiến độ pha chế" as UC_UpdateStatus
 
-  package "Phân hệ Pha chế (Barista Operations)" {
-    usecase "UC-12: Tiếp nhận đơn đã thanh toán" as UC_ReceiveOrder
-    usecase "UC-13: Cập nhật tiến độ pha chế" as UC_UpdateStatus
-  }
+  usecase "UC-14: Bật/tắt món & topping" as UC_ManageItems
 
-  package "Phân hệ Quản trị (Store Management)" {
-    usecase "UC-14: Bật/tắt món & topping" as UC_ManageItems
-    usecase "UC-15: Xem báo cáo đơn & doanh thu" as UC_Report
-  }
+  ' CỘT 2: Use-case mở rộng & xác thực (Nằm ngay cạnh Use-case gốc ở bên phải)
+  usecase "UC-02: Tìm kiếm & lọc đồ uống" as UC_Search
+  usecase "UC-04: Tùy biến Size & Topping" as UC_Customize
+  usecase "UC-11: Đăng nhập cấp JWT" as UC_Login
 
-  ' Các quan hệ Include / Extend trong hệ thống
-  UC_Search .> UC_Menu : <<extend>>
-  UC_Customize .> UC_Detail : <<extend>>
+  ' Ép thứ tự cột 1 từ trên xuống để không bị nhảy lộn xộn
+  UC_Register -[hidden]right- UC_Menu
+  UC_Menu -[hidden]right- UC_Detail
+  UC_Detail -[hidden]right- UC_Cart
+  UC_Cart -[hidden]right- UC_Order
+  UC_Order -[hidden]right- UC_Payment
+  UC_Payment -[hidden]right- UC_Tracking
+  UC_Tracking -[hidden]right- UC_History
+  UC_History -[hidden]right- UC_ReceiveOrder
+  UC_ReceiveOrder -[hidden]right- UC_UpdateStatus
+  UC_UpdateStatus -[hidden]right- UC_ManageItems
+  ' ==================== QUAN HỆ INCLUDE / EXTEND (ĐI NGANG SANG CỘT 2) ====================
+  UC_Menu <.. UC_Search : <<extend>>
+  UC_Detail <.. UC_Customize : <<extend>>
+
+  ' Quan hệ dọc cùng cột 1 (ngắn gọn, liền kề)
   UC_Order .> UC_Cart : <<include>>
   UC_Payment .> UC_Order : <<include>>
-
-  ' QUY TẮC ĐĂNG NHẬP:
-  ' - UC-05 (Giỏ hàng) và UC-06 (Đặt hàng) KHÔNG cần đăng nhập
-  ' - UC-07 (Thanh toán) BẮT BUỘC cần đăng nhập trước khi thanh toán
-  ' - UC-13 (Cập nhật tiến độ pha chế) BẮT BUỘC Barista phải đăng nhập
-  UC_Payment .> UC_Login : <<include>>
-  UC_UpdateStatus .> UC_Login : <<include>>
-  UC_History .> UC_Login : <<include>>
-
   UC_UpdateStatus .> UC_ReceiveOrder : <<include>>
+
+  ' Quan hệ đi ngang sang UC-11 ở cột 2
+  UC_Payment ..> UC_Login : <<include>>
+  UC_History ..> UC_Login : <<include>>
+  UC_UpdateStatus ..> UC_Login : <<include>>
 }
 
-' Tương tác của Khách hàng
-Customer --> UC_Menu
-Customer --> UC_Detail
-Customer --> UC_Cart
-Customer --> UC_Order
-Customer --> UC_Payment
-Customer --> UC_Tracking
-Customer --> UC_History
-Customer --> UC_Register
-Customer --> UC_Login
+' ==================== ĐƯỜNG NỐI THẲNG KHÔNG MŨI TÊN (ACTOR -- USECASE) ====================
+' Khách hàng
+Customer -- UC_Register
+Customer -- UC_Menu
+Customer -- UC_Detail
+Customer -- UC_Cart
+Customer -- UC_Order
+Customer -- UC_Payment
+Customer -- UC_Tracking
+Customer -- UC_History
+Customer -- UC_Login
 
-' Tương tác của Barista
-Barista --> UC_Login
-Barista --> UC_ReceiveOrder
-Barista --> UC_UpdateStatus
+' Nhân viên quầy
+Barista -- UC_ReceiveOrder
+Barista -- UC_UpdateStatus
+Barista -- UC_Login
 
-' Tương tác của Quản lý cửa hàng
-Manager --> UC_Login
-Manager --> UC_ManageItems
-Manager --> UC_Report
+' Quản lý cửa hàng
+Manager -- UC_ManageItems
+Manager -- UC_Login
 
-' Tương tác với Cổng thanh toán (Actor người que)
-UC_Payment --> PaymentService : <<interact>>
+' Cổng thanh toán (Đặt bên phải hệ thống)
+UC_Payment -- PaymentService : <<interact>>
 
 @enduml
