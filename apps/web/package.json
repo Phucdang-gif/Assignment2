@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test ../../tests/e2e/ordering-flow.e2e.test.mjs"
+    "test": "node --no-warnings --test __tests__/frontend.unit.test.mjs ../../tests/e2e/ordering-flow.e2e.test.mjs"
   },
   "dependencies": {
     "next": "16.3.5",

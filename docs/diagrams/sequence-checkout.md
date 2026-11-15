@@ -4,9 +4,8 @@
 > **Học phần**: Công nghệ Phần mềm (Software Engineering) – Assignment 2  
 > **Nhiệm vụ**: **Task 2.2 – Sequence Diagram cho Use-Case Trọng Tâm (Task 1.3)**  
 > **Phiên bản**: 1.0 (Chuẩn UML 2.0 Quốc Tế)  
-> **Tệp mã nguồn PlantUML**: [`docs/diagrams/sequence-checkout.puml`](../diagrams/sequence-checkout.puml)  
-> **Tệp ảnh Vector SVG**: [`docs/diagrams/sequence-checkout.svg`](../diagrams/sequence-checkout.svg)  
-> **Tệp ảnh PNG**: [`docs/diagrams/sequence-checkout.png`](../diagrams/sequence-checkout.png)  
+> **Tệp mã nguồn PlantUML**: [`docs/diagrams/sequence-checkout.puml`](./sequence-checkout.puml)  
+> **Tệp ảnh Vector SVG**: [`docs/diagrams/sequence-checkout.svg`](./sequence-checkout.svg)  
 
 ---
 
@@ -27,7 +26,7 @@ Sơ đồ thể hiện đầy đủ:
 
 ### 2.1. Hình ảnh trực quan
 
-![Sequence Diagram - Đặt và thanh toán đơn hàng](../diagrams/sequence-checkout.svg)
+![Sequence Diagram - Đặt và thanh toán đơn hàng](./sequence-checkout.svg)
 
 ---
 

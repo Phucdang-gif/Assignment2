@@ -3,7 +3,7 @@
 > **Học phần:** Công nghệ Phần mềm (Software Engineering) – Assignment 2  
 > **Dự án:** BrewLite Coffee Ordering System  
 > **Repository:** [Phucdang-gif/Assignment2](https://github.com/Phucdang-gif/Assignment2)  
-> **Trạng thái:** Hoàn thiện toàn bộ tạo phẩm từ Task 1 đến Task 5 (Phân tích yêu cầu, Sơ đồ UML, Kiến trúc ADR, Kiểm thử 3 tầng, CI/CD & Bàn giao Production `v1.0.0`).
+> **Trạng thái:** Hoàn thiện toàn bộ tạo phẩm từ Task 1 đến Task 5 (Phân tích yêu cầu, Sơ đồ UML, Kiến trúc ADR, Kiểm thử 3 tầng, CI/CD & Bàn giao Production `v1.0.1`).
 
 ---
 
@@ -16,9 +16,9 @@
 
 ### 2. Thiết kế mô hình & Sơ đồ UML (Task 2 - Diagrams)
 - [`diagrams/activity/activity-diagram.md`](diagrams/activity/activity-diagram.md): Sơ đồ hoạt động (Activity Diagram) thể hiện luồng nghiệp vụ end-to-end từ đặt món đến nhận đồ uống.
-- [`diagrams/sequence-checkout.puml`](diagrams/sequence-checkout.puml): Sơ đồ tuần tự (Sequence Diagram) chi tiết cho luồng thanh toán và xác nhận đơn hàng.
+- [`diagrams/sequence-checkout.md`](diagrams/sequence-checkout.md) ([`.puml`](diagrams/sequence-checkout.puml) / [`.svg`](diagrams/sequence-checkout.svg)): Sơ đồ tuần tự (Sequence Diagram) chi tiết cho luồng thanh toán và xác nhận đơn hàng.
 - [`diagrams/class-diagram.md`](diagrams/class-diagram.md): Sơ đồ lớp miền nghiệp vụ (Domain Class Diagram) với đầy đủ quan hệ bội số (multiplicity), trạng thái Enum và cơ chế Optimistic Lock (`version`).
-- [`diagrams/deployment.puml`](diagrams/deployment.puml): Tệp nguồn PlantUML của sơ đồ triển khai hệ thống (Vercel + Render Docker Containers).
+- [`diagrams/deployment-diagram.puml`](diagrams/deployment-diagram.puml) ([`.svg`](diagrams/deployment-diagram.svg)): Sơ đồ triển khai hệ thống (Vercel Edge Network + Render Docker Containers).
 
 ### 3. Kiến trúc hệ thống & Quyết định kiến trúc (Task 3 - Architecture & ADR)
 - [`architecture/system-architecture.md`](architecture/system-architecture.md): Tài liệu kiến trúc C4 Model (Context, Container, Component).
@@ -32,13 +32,14 @@
 - [`deployment.md`](deployment.md): Sơ đồ triển khai hệ thống (UML Deployment Diagram: Frontend trên Vercel, Backend & PostgreSQL chạy Docker Container trên Render), cấu hình môi trường Production và bảng truy vết thành phần.
 
 ### 4. Quy chuẩn, CI Pipeline & Truy vết kỹ thuật (Task 4 Foundation & CI)
-- [`ci-evidence.md`](ci-evidence.md): Báo cáo vận hành GitHub Actions CI Pipeline, hướng dẫn Branch Protection và minh chứng PR CI Pass / CI Fail.
+- [`delivery/ci-evidence.md`](delivery/ci-evidence.md): Báo cáo vận hành GitHub Actions CI Pipeline, hướng dẫn Branch Protection và minh chứng PR CI Pass / CI Fail.
 - [`traceability-matrix.md`](traceability-matrix.md): Ma trận truy vết từ Yêu cầu (FR/NFR) đến Thiết kế, ADR, API Code và Test Case tương ứng.
-- [`conventions.md`](conventions.md): Quy ước đặt tên Git branch, Conventional Commits, Coding style và chuẩn hóa RESTful API.
-- [`team-workflow.md`](team-workflow.md): Quy trình làm việc nhóm theo Git Feature Branch, Pull Request Review và Definition of Done.
-- [`api-testing-guide.md`](api-testing-guide.md): Hướng dẫn kiểm thử API tự động và bộ sưu tập Postman/Thunder Client.
+- [`delivery/conventions.md`](delivery/conventions.md): Quy ước đặt tên Git branch, Conventional Commits, Coding style và chuẩn hóa RESTful API.
+- [`delivery/team-workflow.md`](delivery/team-workflow.md): Quy trình làm việc nhóm theo Git Feature Branch, Pull Request Review và Definition of Done.
+- [`delivery/api-testing-guide.md`](delivery/api-testing-guide.md) & [`collection JSON`](delivery/brewlite-collection.postman_collection.json): Hướng dẫn kiểm thử API tự động và bộ sưu tập Postman / Thunder Client.
 
 ### 5. Kiểm thử Tích hợp, CD Pipeline & Bàn giao (Task 5 Delivery)
 - [`../.github/workflows/cd.yml`](../.github/workflows/cd.yml): Pipeline Continuous Delivery/Deployment (Quality Gates ➔ GHCR Docker Image ➔ Render Deploy ➔ Smoke Test ➔ Auto/SOP Rollback).
-- [`sprint-review-retrospective.md`](sprint-review-retrospective.md): Báo cáo Sprint Review & Sprint Retrospective cho Sprint 1 và Sprint 2 cùng kịch bản Demo End-to-End.
-- [`../RELEASE_NOTES.md`](../RELEASE_NOTES.md): Ghi chú phát hành phiên bản `v1.0.0` (Production Release) và hướng dẫn Rollback.
+- [`delivery/sprint-review-retrospective.md`](delivery/sprint-review-retrospective.md): Báo cáo Sprint Review & Sprint Retrospective cho Sprint 1 và Sprint 2 cùng kịch bản Demo End-to-End.
+- [`demo/BrewLite-Live-Demo-Runbook.mp4`](demo/BrewLite-Live-Demo-Runbook.mp4): Video demo quay sẵn quy trình End-to-End 6 bước.
+- [`../RELEASE_NOTES.md`](../RELEASE_NOTES.md): Ghi chú phát hành phiên bản `v1.0.1` / `v1.0.0` (Production Release) và hướng dẫn Rollback.

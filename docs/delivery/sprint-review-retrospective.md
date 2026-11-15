@@ -29,7 +29,7 @@ Dự án được tổ chức theo mô hình phát triển lặp tăng trưởng
 | **#3** | `TASK-4.3A` (`FR-01`) | API `GET /api/products`, `GET /api/products/:id`, `GET /api/categories`, Prisma Schema & `prisma/seed.js` | PR `#17`, PR `#25` | Đạt |
 | **#4** | `TASK-4.3B` (`FR-01`) | Giao diện Menu Mobile-First / PWA bằng Next.js 16 với đầy đủ 3 trạng thái **Loading (Skeleton), Empty State, Error Alert** | PR `#17` | Đạt |
 | **#5** | `TASK-4.3C` | Unit test cho `ProductsService` (`API-T01`) và `AppController` | PR `#17`, PR `#19` | Đạt |
-| **#6** | `TASK-4.4` (`NFR-05`) | GitHub Actions CI Pipeline (`.github/workflows/ci.yml`): `Install ➔ Lint ➔ Unit Test ➔ Build` + minh chứng PR Pass (`#22`) & PR Fail (`#21`) | PR `#19`, `#22`, `#24` ([`docs/ci-evidence.md`](ci-evidence.md)) | Đạt |
+| **#6** | `TASK-4.4` (`NFR-05`) | GitHub Actions CI Pipeline (`.github/workflows/ci.yml`): `Install ➔ Lint ➔ Unit Test ➔ Build` + minh chứng PR Pass (`#22`) & PR Fail (`#21`) | PR `#19`, `#22`, `#24` ([`docs/delivery/ci-evidence.md`](ci-evidence.md)) | Đạt |
 
 ### 2.2. Nhận xét nghiệm thu Sprint 1
 - **Điểm đạt được**: Đã chuyển giao từ các tệp đơn lẻ sang cấu trúc Monorepo chuẩn hóa; người mới clone repo có thể dựng PostgreSQL 16 + NestJS + Next.js bằng Docker Compose; toàn bộ PR vào `main` đều bắt buộc vượt qua Quality Gate của GitHub Actions.
@@ -99,7 +99,7 @@ Dự án được tổ chức theo mô hình phát triển lặp tăng trưởng
 
 ## 6. Kịch Bản Video / Demo Trực Tiếp Luồng End-to-End (Task 5.4 Live Demo Runbook)
 
-> 🎥 **File Video Demo quay sẵn (MP4 – Full 6 bước)**: [`docs/demo/BrewLite-Live-Demo-Runbook.mp4`](demo/BrewLite-Live-Demo-Runbook.mp4)
+> 🎥 **File Video Demo quay sẵn (MP4 – Full 6 bước)**: [`docs/demo/BrewLite-Live-Demo-Runbook.mp4`](../demo/BrewLite-Live-Demo-Runbook.mp4)
 
 Kịch bản dùng để quay video hoặc trình diễn trực tiếp lúc nghiệm thu (thời lượng đề xuất: **3–5 phút**):
 
