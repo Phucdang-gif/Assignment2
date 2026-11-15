@@ -548,6 +548,7 @@ brewlite/
 │   ├── requirements/           # Task 1: SRS, Context & Scope, Use Case Specs (.md & .pdf)
 │   ├── diagrams/               # Task 2 & 3.2: Activity, Sequence, Class, C4 & Deployment Diagrams (.puml & .svg)
 │   ├── architecture/           # Task 3.1: Kiến trúc hệ thống (C4) & Các tệp ADR (001 - 006)
+│   ├── demo/                   # Task 5.4: Video demo End-to-End 6 bước (BrewLite-Live-Demo-Runbook.mp4)
 │   ├── delivery/               # Tài liệu quy trình nhóm, kiểm thử & minh chứng bàn giao
 │   │   ├── screenshots/        # Task 4.4: Ảnh minh chứng CI Pipeline (PR Pass & PR Fail)
 │   │   ├── ci-evidence.md      # Task 4.4: Báo cáo minh chứng CI & Branch Protection
@@ -692,6 +693,7 @@ Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố t
 
 ## 🎬 Kịch bản Demo (End-to-End Flow)
 
+> 🎥 **Video Demo quay sẵn (MP4 – Full 6 bước)**: [`docs/demo/BrewLite-Live-Demo-Runbook.mp4`](docs/demo/BrewLite-Live-Demo-Runbook.mp4)  
 > 📋 Kịch bản trình diễn trực tiếp chi tiết (Live Demo Runbook) và **Báo cáo Sprint Review & Sprint Retrospective** được lưu đầy đủ tại: [`docs/delivery/sprint-review-retrospective.md`](docs/delivery/sprint-review-retrospective.md).
 
 1. **Khởi chạy ứng dụng**:

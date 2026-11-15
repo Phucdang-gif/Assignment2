@@ -3,23 +3,37 @@
 skinparam shadowing false
 skinparam roundcorner 8
 skinparam defaultFontName "Segoe UI", Arial, sans-serif
-skinparam defaultFontSize 12
+skinparam defaultFontSize 15
 
 skinparam activity {
     BackgroundColor #FFFFFF
     BorderColor #2D3748
     ArrowColor #4A5568
-    DiamondBackgroundColor #FEFCBF
-    DiamondBorderColor #B7791F
+    DiamondBackgroundColor #FFFFFF
+    DiamondBorderColor #2D3748
+    FontSize 15
+    Padding 12
+    Margin 8
 }
+
+skinparam swimlane {
+    BorderColor #2D3748
+    TitleFontSize 15
+    TitleFontStyle bold
+    BackgroundColor #FFFFFF
+    Padding 20
+}
+
+skinparam wrapWidth 260
+skinparam maxMessageSize 260
 
 title SƠ ĐỒ HOẠT ĐỘNG TỔNG QUÁT LUỒNG ĐẶT VÀ THANH TOÁN ĐỒ UỐNG (BREWLITE END-TO-END FLOW)\nMã truy vết: Activity-01 (Đáp ứng tiêu chuẩn Task 2.1)
 
-|#EBF8FF|Customer|
-|#F0FFF4|Next.js UI|
-|#FEFCBF|NestJS API & DB|
-|#FFF1F2|Payment Service|
-|#E6FFFA|Barista|
+|Customer|
+|Next.js UI|
+|NestJS API & DB|
+|Payment Service|
+|Barista|
 
 |Customer|
 start

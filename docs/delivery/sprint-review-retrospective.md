@@ -99,6 +99,8 @@ Dự án được tổ chức theo mô hình phát triển lặp tăng trưởng
 
 ## 6. Kịch Bản Video / Demo Trực Tiếp Luồng End-to-End (Task 5.4 Live Demo Runbook)
 
+> 🎥 **File Video Demo quay sẵn (MP4 – Full 6 bước)**: [`docs/demo/BrewLite-Live-Demo-Runbook.mp4`](../demo/BrewLite-Live-Demo-Runbook.mp4)
+
 Kịch bản dùng để quay video hoặc trình diễn trực tiếp lúc nghiệm thu (thời lượng đề xuất: **3–5 phút**):
 
 1. **Kiểm tra trạng thái hệ thống Production & Health Check (30s)**:
