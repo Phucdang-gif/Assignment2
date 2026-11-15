@@ -511,13 +511,15 @@ Dự án được cấu trúc theo mô hình **Monorepo** chuẩn hóa theo đú
 brewlite/
 ├── apps/
 │   ├── web/                    # Phân hệ Frontend (Next.js 16 mobile-first/PWA, React 19, Tailwind CSS)
-│   │   ├── app/                # Next.js App Router (Menu, Cart, Checkout, Auth, Orders, Barista)
-│   │   ├── components/         # Các UI components tái sử dụng (Header, Footer, MobileNav, Icons...)
-│   │   ├── hooks/              # Custom React hooks (useProducts, useProductDetail, useToppings...)
+│   │   ├── app/                # Next.js App Router (Menu, Product, Cart, Checkout, Auth, Orders, Barista)
+│   │   ├── components/         # Các UI components tái sử dụng (Header, Footer, MobileBottomNav, AuthNav, Icons)
+│   │   ├── hooks/              # Custom React hooks (useProducts, useProductDetail, useToppings, useCheckoutTimer...)
+│   │   ├── lib/                # Tiện ích dùng chung (uuid.ts...)
 │   │   ├── services/           # Tầng giao tiếp REST API Backend (api.ts, productService...)
 │   │   ├── store/              # Quản lý State toàn cục bằng Zustand (cartStore, authStore)
 │   │   ├── types/              # Định nghĩa TypeScript interfaces & data types
-│   │   ├── public/             # Tài nguyên tĩnh (ảnh đồ uống, hero banner, icons)
+│   │   ├── public/             # Tài nguyên tĩnh & PWA (manifest.json, sw.js, hero banners, icons)
+│   │   ├── __tests__/          # Frontend unit tests (frontend.unit.test.mjs cho cartStore, authStore, helpers)
 │   │   └── Dockerfile          # Multi-stage Docker build phục vụ Next.js tại cổng 3000
 │   │
 │   └── api/                    # Phân hệ Backend (NestJS 12, TypeScript, Prisma ORM, PostgreSQL)
@@ -527,32 +529,41 @@ brewlite/
 │       │   ├── products/       # Module thực đơn đồ uống & Optimistic Locking tồn kho
 │       │   ├── toppings/       # Module quản lý toppings kèm theo
 │       │   ├── orders/         # Module xử lý đơn hàng & State Machine
-│       │   ├── payments/       # Module thanh toán (VietQR/MoMo) & cơ chế Idempotency Key
+│       │   ├── payments/       # Module thanh toán (Mock / VietQR PayOS / MoMo) & cơ chế Idempotency Key
 │       │   ├── users/          # Module người dùng, phân quyền Role & tích điểm Loyalty
 │       │   ├── prisma/         # Prisma Database Service kết nối PostgreSQL
 │       │   ├── app.module.ts   # Root Module kết nối toàn bộ hệ thống
-│       │   └── main.ts         # Khởi chạy NestJS (Prefix: /api, CORS, Validation Pipe)
+│       │   └── main.ts         # Khởi chạy NestJS (0.0.0.0:3001, CORS, Validation Pipe)
 │       ├── prisma/             # Cấu hình ORM Prisma & Cơ sở dữ liệu
 │       │   ├── schema.prisma   # Mô hình dữ liệu PostgreSQL Schema & Enums
-│       │   ├── seed.js         # Kịch bản nạp dữ liệu mẫu tự động
+│       │   ├── seed.js         # Kịch bản nạp dữ liệu mẫu tự động (idempotent)
 │       │   ├── database local/ # File SQL khởi tạo schema và seed data cục bộ
 │       │   └── migrations/     # Lịch sử các phiên bản migration cơ sở dữ liệu
-│       ├── test/               # Unit tests & End-to-End tests
+│       ├── test/               # Unit tests & Integration/E2E tests (app.e2e-spec.ts, orders-payments.e2e-spec.ts)
+│       ├── .env.example        # Mẫu biến môi trường Backend (PayOS/MoMo tùy chọn đã chú thích sẵn)
 │       ├── PAYMENT_SETUP.md    # Hướng dẫn chi tiết cấu hình thanh toán VietQR & MoMo
 │       └── Dockerfile          # Multi-stage Docker build phục vụ NestJS tại cổng 3001
 │
 ├── docs/                       # Tài liệu kiểm soát phiên bản (Task 1 - 5 & Quản trị dự án)
 │   ├── requirements/           # Task 1: SRS, Context & Scope, Use Case Specs
-│   ├── diagrams/               # Task 2: Activity, Sequence, Class, Deployment Diagrams (.puml & .svg)
-│   ├── architecture/           # Task 3: Quyết định kiến trúc & Các tệp ADR (001 - 006)
+│   ├── diagrams/               # Task 2 & 3.2: Activity, Sequence, Class, C4 & Deployment Diagrams (.puml & .svg)
+│   ├── architecture/           # Task 3.1: Kiến trúc hệ thống (C4) & Các tệp ADR (001 - 006)
+│   ├── screenshots/            # Task 4.4: Ảnh minh chứng CI Pipeline (PR Pass & PR Fail)
+│   ├── ci-evidence.md          # Task 4.4: Báo cáo minh chứng CI & Branch Protection
+│   ├── conventions.md          # Task 4.1: Quy ước nhánh, Conventional Commits & Definition of Done
+│   ├── team-workflow.md        # Quy trình phối hợp Git Feature Branch & PR Review
+│   ├── api-testing-guide.md    # Hướng dẫn kiểm thử API (kèm Postman / Thunder Client collection)
 │   ├── sprint-review-retrospective.md  # Task 5.4: Sprint Review & Retrospective (Sprint 1 & 2) + Demo Runbook
 │   ├── traceability-matrix.md  # Mục 8: Ma trận truy vết yêu cầu (FR/NFR ➔ Diagram ➔ Code ➔ Test)
-│   └── deployment.md           # Hướng dẫn chi tiết quy trình triển khai môi trường Production
+│   ├── deployment.md           # Task 3.2 & 5.4: Kiến trúc triển khai Production & Handover Checklist
+│   └── README.md               # Bản đồ tổng hợp tài liệu dự án
 │
-├── tests/                      # Tầng kiểm thử tích hợp (Integration & E2E)
+├── tests/                      # Tầng kiểm thử E2E luồng đặt món (ordering-flow.e2e.test.mjs)
+├── scripts/                    # Script tiện ích khởi tạo backlog/issues GitHub
 ├── .github/                    # Quy trình tự động hóa CI/CD & Quản trị mã nguồn
 │   ├── workflows/ci.yml        # Task 4.4: Pipeline CI (Install ➔ Lint ➔ Test ➔ Build)
 │   ├── workflows/cd.yml        # Task 5.3: Pipeline CD (Quality Gate ➔ GHCR ➔ Render Deploy ➔ Smoke Test)
+│   ├── ISSUE_TEMPLATE/         # Biểu mẫu User Story / Backlog Issue
 │   └── pull_request_template.md# Mẫu PR tiêu chuẩn tích hợp checklist Definition of Done (DoD)
 │
 ├── docker-compose.yml          # Điều phối 3 dịch vụ (db, apps/api, apps/web) chỉ với 1 câu lệnh

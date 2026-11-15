@@ -3,7 +3,7 @@
 > **Học phần:** Công nghệ Phần mềm (Software Engineering) – Assignment 2  
 > **Dự án:** BrewLite Coffee Ordering System  
 > **Repository:** [Phucdang-gif/Assignment2](https://github.com/Phucdang-gif/Assignment2)  
-> **Trạng thái:** Hoàn thiện toàn bộ tạo phẩm từ Task 1 đến Task 5 (Phân tích yêu cầu, Sơ đồ UML, Kiến trúc ADR, Kiểm thử 3 tầng, CI/CD & Bàn giao Production `v1.0.0`).
+> **Trạng thái:** Hoàn thiện toàn bộ tạo phẩm từ Task 1 đến Task 5 (Phân tích yêu cầu, Sơ đồ UML, Kiến trúc ADR, Kiểm thử 3 tầng, CI/CD & Bàn giao Production `v1.0.1`).
 
 ---
 
@@ -41,4 +41,4 @@
 ### 5. Kiểm thử Tích hợp, CD Pipeline & Bàn giao (Task 5 Delivery)
 - [`../.github/workflows/cd.yml`](../.github/workflows/cd.yml): Pipeline Continuous Delivery/Deployment (Quality Gates ➔ GHCR Docker Image ➔ Render Deploy ➔ Smoke Test ➔ Auto/SOP Rollback).
 - [`sprint-review-retrospective.md`](sprint-review-retrospective.md): Báo cáo Sprint Review & Sprint Retrospective cho Sprint 1 và Sprint 2 cùng kịch bản Demo End-to-End.
-- [`../RELEASE_NOTES.md`](../RELEASE_NOTES.md): Ghi chú phát hành phiên bản `v1.0.0` (Production Release) và hướng dẫn Rollback.
+- [`../RELEASE_NOTES.md`](../RELEASE_NOTES.md): Ghi chú phát hành phiên bản `v1.0.1` / `v1.0.0` (Production Release) và hướng dẫn Rollback.
