@@ -22,8 +22,16 @@ async function bootstrap() {
         .filter(Boolean)
     : [];
 
+  const defaultDevOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  const origins =
+    allowedOrigins.length > 0
+      ? allowedOrigins
+      : process.env.NODE_ENV === 'production'
+        ? false
+        : defaultDevOrigins;
+
   app.enableCors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+    origin: origins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

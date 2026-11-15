@@ -1,5 +1,15 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class OrderItemDto {
   @Type(() => Number)
@@ -8,6 +18,7 @@ export class OrderItemDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsIn(['S', 'M', 'L'], { message: 'Size sản phẩm phải là S, M hoặc L' })
   size: string;
 
   @Type(() => Number)
@@ -27,8 +38,8 @@ export class OrderItemDto {
 }
 
 export class CreateOrderDto {
-
   @IsArray()
+  @ArrayNotEmpty({ message: 'Đơn hàng phải có ít nhất một sản phẩm' })
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
   items: OrderItemDto[];

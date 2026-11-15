@@ -95,7 +95,8 @@ export class UsersService {
       if (e.code === 'P2002') {
         const t = (e.meta?.target as string[]) ?? [];
         if (t.includes('phone')) throw new ConflictException('Số điện thoại đã được sử dụng');
-        throw new ConflictException('Email đã được sử dụng');};
+        throw new ConflictException('Email đã được sử dụng');
+      }
       if (e.code === 'P2025') throw new NotFoundException(`User ${id} không tồn tại`);
     }
     throw e;

@@ -94,17 +94,60 @@ export class PaymentsService implements OnModuleInit {
       throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
     }
 
-    if (order.status === order_status.PAID || order.status === order_status.COMPLETED) {
+    if (
+      order.status === order_status.PAID ||
+      order.status === order_status.COMPLETED ||
+      order.status === order_status.PREPARING ||
+      order.status === order_status.READY
+    ) {
       return {
         alreadyPaid: true,
         order,
       };
     }
 
+    if (order.status === order_status.CANCELLED) {
+      throw new BadRequestException('Không thể thanh toán đơn hàng đã hủy');
+    }
+
     const payAmount = Number(amount ?? order.total);
     const idempotencyKey = reference || `PAYMENT-${orderId}-${Date.now()}`;
+    const pointsEarned = Math.floor(payAmount / 10000);
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // Dùng updateMany với điều kiện trạng thái PENDING hoặc PAYMENT_FAILED để chống race condition
+      if (typeof tx.order.updateMany === 'function') {
+        const updateResult = await tx.order.updateMany({
+          where: {
+            id: BigInt(orderId),
+            status: { in: [order_status.PENDING, order_status.PAYMENT_FAILED] },
+          },
+          data: { status: order_status.PAID },
+        });
+
+        // Nếu count === 0 thì request song song khác đã đánh dấu PAID trước
+        if (updateResult.count === 0) {
+          const freshOrder = await tx.order.findUnique({
+            where: { id: BigInt(orderId) },
+            include: {
+              OrderItem: {
+                include: {
+                  Product: true,
+                  OrderItemTopping: { include: { Topping: true } },
+                },
+              },
+              Payment: true,
+            },
+          });
+          return {
+            alreadyPaid: true,
+            order: freshOrder,
+            payment: freshOrder?.Payment?.[0],
+            pointsEarned: 0,
+          };
+        }
+      }
+
       const existingPayment = await tx.payment.findFirst({
         where: { orderId: BigInt(orderId) },
       });
@@ -121,6 +164,34 @@ export class PaymentsService implements OnModuleInit {
             idempotencyKey,
           },
         });
+      }
+
+      // Đưa toàn bộ việc cộng điểm tích lũy vào trong Transaction nguyên tử
+      if (pointsEarned > 0 && order.userId) {
+        try {
+          const updatedUser = await tx.user.update({
+            where: { id: order.userId },
+            data: {
+              loyaltyPoints: {
+                increment: pointsEarned,
+              },
+            },
+          });
+          if ((tx as any).loyaltyTransaction) {
+            await (tx as any).loyaltyTransaction.create({
+              data: {
+                userId: order.userId,
+                orderId: BigInt(orderId),
+                points: pointsEarned,
+                type: 'EARN',
+                balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
+                reason: `Tích điểm thanh toán đơn hàng #${orderId}`,
+              },
+            });
+          }
+        } catch (err) {
+          console.warn('[Payments] Lỗi tích điểm thưởng cho người dùng:', err);
+        }
       }
 
       const updatedOrder = await tx.order.update({
@@ -141,43 +212,15 @@ export class PaymentsService implements OnModuleInit {
         },
       });
 
-      return { payment, order: updatedOrder };
+      return {
+        alreadyPaid: false,
+        payment,
+        order: updatedOrder,
+        pointsEarned,
+      };
     });
 
-    // Cộng điểm thưởng tích lũy: mỗi 10.000đ tích 1 điểm và lưu vết LoyaltyTransaction
-    const pointsEarned = Math.floor(payAmount / 10000);
-    if (pointsEarned > 0 && order.userId) {
-      try {
-        const updatedUser = await this.prisma.user.update({
-          where: { id: order.userId },
-          data: {
-            loyaltyPoints: {
-              increment: pointsEarned,
-            },
-          },
-        });
-        if ((this.prisma as any).loyaltyTransaction) {
-          await (this.prisma as any).loyaltyTransaction.create({
-            data: {
-              userId: order.userId,
-              orderId: BigInt(orderId),
-              points: pointsEarned,
-              type: 'EARN',
-              balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
-              reason: `Tích điểm thanh toán đơn hàng #${orderId}`,
-            },
-          });
-        }
-      } catch (err) {
-        console.warn('[Payments] Lỗi tích điểm thưởng cho người dùng:', err);
-      }
-    }
-
-    return {
-      alreadyPaid: false,
-      ...result,
-      pointsEarned,
-    };
+    return result;
   }
 
   /**
@@ -186,12 +229,15 @@ export class PaymentsService implements OnModuleInit {
   async create(createPaymentDto: CreatePaymentDto): Promise<PaymentProcessResult> {
     const { orderId, amount, method, idempotencyKey } = createPaymentDto;
 
-    // 1. Kiểm tra Idempotency Key chống trừ tiền lặp lại
+    // 1. Kiểm tra Idempotency Key chống trừ tiền lặp lại & kiểm tra orderId khớp
     const existingPayment = await this.prisma.payment.findUnique({
       where: { idempotencyKey },
     });
 
     if (existingPayment) {
+      if (Number(existingPayment.orderId) !== Number(orderId)) {
+        throw new BadRequestException('Idempotency key này đã được sử dụng cho một đơn hàng khác');
+      }
       const existingOrder = await this.prisma.order.findUnique({
         where: { id: BigInt(orderId) },
       });
@@ -219,7 +265,11 @@ export class PaymentsService implements OnModuleInit {
     if (order.status === order_status.COMPLETED) {
       throw new BadRequestException('Đơn hàng này đã hoàn thành');
     }
-    if (order.status === order_status.PAID) {
+    if (
+      order.status === order_status.PAID ||
+      order.status === order_status.PREPARING ||
+      order.status === order_status.READY
+    ) {
       throw new BadRequestException('Đơn hàng này đã được thanh toán');
     }
 
@@ -323,7 +373,9 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       status: currentOrder.status,
       isPaid:
         currentOrder.status === order_status.PAID ||
-        currentOrder.status === order_status.COMPLETED,
+        currentOrder.status === order_status.COMPLETED ||
+        currentOrder.status === order_status.PREPARING ||
+        currentOrder.status === order_status.READY,
       total: Number(currentOrder.total),
       payment: currentOrder.Payment,
       order: currentOrder,
@@ -359,7 +411,12 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
     }
 
-    if (order.status === order_status.PAID || order.status === order_status.COMPLETED) {
+    if (
+      order.status === order_status.PAID ||
+      order.status === order_status.COMPLETED ||
+      order.status === order_status.PREPARING ||
+      order.status === order_status.READY
+    ) {
       throw new BadRequestException('Đơn hàng này đã được thanh toán hoàn tất');
     }
 
@@ -367,8 +424,8 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       throw new BadRequestException('Đơn hàng này đã bị hủy, không thể thanh toán');
     }
 
-    const timestampSuffix = Date.now().toString().slice(-6);
-    const orderCode = Number(`${order.id}${timestampSuffix}`);
+    const timestampSuffix = Math.floor(100000 + Math.random() * 900000);
+    const orderCode = Number(order.id) * 1000000 + timestampSuffix;
     this.latestOrderCodes.set(Number(order.id), orderCode);
 
     const amount = Math.round(Number(order.total));
@@ -382,7 +439,7 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       options?.cancelUrl ||
       `${frontendBaseUrl}/cart?status=cancelled&reason=payos_timeout&orderId=${orderId}`;
     const returnUrl =
-      options?.returnUrl || `${frontendBaseUrl}/orders/${orderId}?status=PAID`;
+      options?.returnUrl || `${frontendBaseUrl}/orders/${orderId}?orderCode=${orderCode}`;
 
     try {
       const paymentLinkRes = await this.payOS.paymentRequests.create({
@@ -467,7 +524,12 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
     }
 
-    if (order.status === order_status.PAID || order.status === order_status.COMPLETED) {
+    if (
+      order.status === order_status.PAID ||
+      order.status === order_status.COMPLETED ||
+      order.status === order_status.PREPARING ||
+      order.status === order_status.READY
+    ) {
       return {
         success: true,
         isPaid: true,
@@ -487,13 +549,21 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       parsedOrderCode = this.latestOrderCodes.get(orderId)!;
     }
 
+    if (!this.payOS) {
+      this.initPayOS();
+    }
+
     if (this.payOS && parsedOrderCode) {
       try {
         const payosInfo = await this.payOS.paymentRequests.get(parsedOrderCode);
         if (payosInfo && (payosInfo.status === 'PAID' || payosInfo.amountRemaining === 0)) {
+          const paidAmount = Number(payosInfo.amountPaid || order.total);
+          if (paidAmount < Number(order.total)) {
+            throw new BadRequestException('Số tiền thanh toán trên PayOS chưa đủ tổng tiền đơn hàng');
+          }
           const res = await this.markOrderAsPaid(
             orderId,
-            payosInfo.amountPaid || Number(order.total),
+            paidAmount,
             payosInfo.transactions?.[0]?.reference || `PAYOS-${parsedOrderCode}`,
             payment_method.WALLET,
           );
@@ -509,21 +579,7 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       }
     }
 
-    if (body.status === 'PAID' && (body.code === '00' || !body.code)) {
-      const res = await this.markOrderAsPaid(
-        orderId,
-        Number(order.total),
-        `PAYOS-RETURN-${orderId}-${Date.now()}`,
-        payment_method.WALLET,
-      );
-      return {
-        success: true,
-        isPaid: true,
-        message: 'Thanh toán được xác nhận tự động từ thông tin trả về của PayOS!',
-        order: res.order,
-      };
-    }
-
+    // Bảo mật: Không tin cậy dữ liệu client gửi lên body.status === 'PAID'!
     return {
       success: false,
       isPaid: false,
@@ -558,28 +614,40 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     console.log('[PayOS Webhook] Received webhook payload:', JSON.stringify(webhookBody));
 
     if (!webhookBody) {
-      return { success: false, message: 'No data' };
+      throw new BadRequestException('Webhook payload trống');
     }
 
     if (webhookBody?.webhookUrl) {
       return { success: true, message: 'Webhook URL verified successfully' };
     }
 
-    let verifiedData: any = null;
+    if (webhookBody?.data?.description === 'webhook test') {
+      return { success: true, message: 'Webhook test received' };
+    }
 
-    if (this.payOS && webhookBody.signature) {
-      try {
-        verifiedData = await this.payOS.webhooks.verify(webhookBody);
-      } catch (err: any) {
-        console.warn('[PayOS Webhook] Signature notice:', err?.message || err);
-        verifiedData = webhookBody.data;
-      }
-    } else {
-      verifiedData = webhookBody.data;
+    if (!this.payOS) {
+      this.initPayOS();
+    }
+
+    if (!this.payOS) {
+      throw new BadRequestException('PayOS chưa được cấu hình');
+    }
+
+    // Bắt buộc xác thực chữ ký Webhook
+    if (!webhookBody.signature) {
+      throw new BadRequestException('Thiếu chữ ký xác thực Webhook PayOS');
+    }
+
+    let verifiedData: any = null;
+    try {
+      verifiedData = await this.payOS.webhooks.verify(webhookBody);
+    } catch (err: any) {
+      console.error('[PayOS Webhook] Lỗi xác thực chữ ký PayOS:', err?.message || err);
+      throw new BadRequestException('Chữ ký Webhook PayOS không hợp lệ');
     }
 
     if (!verifiedData) {
-      return { success: true, message: 'Ping/verification acknowledged' };
+      throw new BadRequestException('Dữ liệu Webhook sau xác thực không tồn tại');
     }
 
     const rawOrderCode = Number(verifiedData.orderCode);
@@ -593,8 +661,7 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     let orderId = rawOrderCode;
 
     if (!order && rawOrderCode > 1000000) {
-      const strCode = rawOrderCode.toString();
-      orderId = Number(strCode.slice(0, strCode.length - 6));
+      orderId = Math.floor(rawOrderCode / 1000000);
       order = await this.prisma.order.findUnique({
         where: { id: BigInt(orderId) },
       });
@@ -605,12 +672,27 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       return { success: true, message: 'Order not found, acknowledged' };
     }
 
-    if (order.status === order_status.PAID || order.status === order_status.COMPLETED) {
+    if (
+      order.status === order_status.PAID ||
+      order.status === order_status.COMPLETED ||
+      order.status === order_status.PREPARING ||
+      order.status === order_status.READY
+    ) {
       return { success: true, message: 'Order already paid' };
     }
 
+    if (order.status === order_status.CANCELLED) {
+      console.warn(`[PayOS Webhook] Nhận tiền cho đơn hàng đã bị hủy #${orderId}`);
+      return { success: false, message: 'Đơn hàng đã bị hủy trước khi thanh toán' };
+    }
+
     const amount = Number(verifiedData.amount || order.total);
-    const reference = verifiedData.reference || `${Date.now()}`;
+    if (amount < Number(order.total)) {
+      console.error(`[PayOS Webhook] Số tiền thanh toán (${amount}) nhỏ hơn tổng tiền đơn hàng (${Number(order.total)})`);
+      return { success: false, message: 'Số tiền thanh toán không đủ' };
+    }
+
+    const reference = verifiedData.reference || `PAYOS-${rawOrderCode}`;
     const result = await this.markOrderAsPaid(
       orderId,
       amount,
@@ -635,9 +717,28 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     if (!order) {
       throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
     }
+
+    if (
+      order.status === order_status.PAID ||
+      order.status === order_status.COMPLETED ||
+      order.status === order_status.PREPARING ||
+      order.status === order_status.READY
+    ) {
+      throw new BadRequestException('Đơn hàng này đã được thanh toán hoàn tất');
+    }
+
+    if (order.status === order_status.CANCELLED) {
+      throw new BadRequestException('Đơn hàng này đã bị hủy, không thể thanh toán');
+    }
+
     const partnerCode = process.env.MOMO_PARTNER_CODE || 'MOMO';
-    const accessKey = process.env.MOMO_ACCESS_KEY || 'F8BBA842ECF85';
-    const secretKey = process.env.MOMO_SECRET_KEY || 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY;
+
+    if (!accessKey || !secretKey) {
+      throw new BadRequestException('Cấu hình MoMo (MOMO_ACCESS_KEY, MOMO_SECRET_KEY) chưa được thiết lập');
+    }
+
     const momoApiUrl =
       process.env.MOMO_API_URL || 'https://test-payment.momo.vn/v2/gateway/api/create';
     const amount = Math.round(Number(order.total));
@@ -650,7 +751,7 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       process.env.CORS_ORIGIN?.split(',')[0]?.trim()?.replace(/\/+$/, '') ||
       'http://localhost:3000';
     const redirectUrl = `${frontendBaseUrl}/orders/${orderId}`;
-    const ipnUrl = `https://cusp-pager-velvet.ngrok-free.dev/api/payments/momo-ipn`;
+    const ipnUrl = process.env.MOMO_IPN_URL || `${frontendBaseUrl}/api/payments/momo-ipn`;
     const requestType = 'captureWallet';
     const extraData = '';
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${momoOrderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
@@ -677,21 +778,31 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       signature,
     };
 
-    const response = await fetch(momoApiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
-    const result = await response.json();
-    if (result.resultCode !== 0) {
-      throw new BadRequestException(result.message || 'Lỗi kết nối tới cổng thanh toán MoMo');
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const response = await fetch(momoApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const result = await response.json();
+      if (result.resultCode !== 0) {
+        throw new BadRequestException(result.message || 'Lỗi kết nối tới cổng thanh toán MoMo');
+      }
+      return {
+        orderId,
+        payUrl: result.payUrl,
+        qrCodeUrl: result.qrCodeUrl,
+        deeplink: result.deeplink,
+      };
+    } catch (err: any) {
+      if (err instanceof BadRequestException) throw err;
+      throw new BadRequestException(`Không thể kết nối tới cổng thanh toán MoMo: ${err.message}`);
     }
-    return {
-      orderId,
-      payUrl: result.payUrl,
-      qrCodeUrl: result.qrCodeUrl,
-      deeplink: result.deeplink,
-    };
   }
 
   /**
@@ -699,61 +810,82 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
    */
   async handleMomoIPN(body: any) {
     console.log('[MoMo IPN] Received notification:', JSON.stringify(body));
-    const { resultCode, orderId: momoOrderId, amount, transId } = body;
-    if (resultCode === 0) {
+    if (!body) {
+      throw new BadRequestException('Payload MoMo IPN trống');
+    }
+
+    const {
+      partnerCode,
+      orderId: momoOrderId,
+      requestId,
+      amount,
+      orderInfo,
+      orderType,
+      transId,
+      resultCode,
+      message,
+      payType,
+      responseTime,
+      extraData,
+      signature,
+    } = body;
+
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY;
+
+    if (!secretKey || !accessKey) {
+      throw new BadRequestException('MOMO_SECRET_KEY / MOMO_ACCESS_KEY chưa được cấu hình');
+    }
+
+    if (!signature) {
+      throw new BadRequestException('Thiếu chữ ký xác thực MoMo IPN');
+    }
+
+    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData ?? ''}&message=${message ?? ''}&orderId=${momoOrderId}&orderInfo=${orderInfo ?? ''}&orderType=${orderType ?? ''}&partnerCode=${partnerCode}&payType=${payType ?? ''}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
+
+    const expectedSignature = crypto
+      .createHmac('sha256', secretKey)
+      .update(rawSignature)
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      console.error('[MoMo IPN] Invalid signature. Expected:', expectedSignature, 'Got:', signature);
+      throw new BadRequestException('Chữ ký MoMo IPN không hợp lệ');
+    }
+
+    if (Number(resultCode) === 0) {
       const match = momoOrderId?.match(/BL_(\d+)_/);
       const orderId = match ? Number(match[1]) : null;
       if (!orderId) {
-        return { message: 'Invalid orderId format' };
+        throw new BadRequestException('Định dạng orderId MoMo không hợp lệ');
       }
+
       const order = await this.prisma.order.findUnique({
         where: { id: BigInt(orderId) },
       });
-      if (!order || order.status === order_status.PAID || order.status === order_status.COMPLETED) {
-        return { message: 'Order processed or not found' };
+
+      if (!order) {
+        throw new NotFoundException(`Không tìm thấy đơn hàng #${orderId}`);
       }
-      const idempotencyKey = `MOMO-${orderId}-${transId || Date.now()}`;
-      await this.prisma.$transaction(async (tx) => {
-        await tx.payment.create({
-          data: {
-            orderId: BigInt(orderId),
-            amount: Number(amount),
-            method: payment_method.WALLET,
-            status: payment_status.SUCCESS,
-            transactionRef: transId ? String(transId) : null,
-            idempotencyKey,
-          },
-        });
-        await tx.order.update({
-          where: { id: BigInt(orderId) },
-          data: { status: order_status.PAID },
-        });
-      });
-      const pointsEarned = Math.floor(Number(amount) / 10000);
-      if (pointsEarned > 0 && order.userId) {
-        try {
-          const updatedUser = await this.prisma.user.update({
-            where: { id: order.userId },
-            data: { loyaltyPoints: { increment: pointsEarned } },
-          });
-          if ((this.prisma as any).loyaltyTransaction) {
-            await (this.prisma as any).loyaltyTransaction.create({
-              data: {
-                userId: order.userId,
-                orderId: BigInt(orderId),
-                points: pointsEarned,
-                type: 'EARN',
-                balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
-                reason: `Tích điểm thanh toán MoMo đơn hàng #${orderId}`,
-              },
-            });
-          }
-        } catch (err) {
-          console.error('Lỗi cộng điểm tích lũy:', err);
-        }
+
+      if (Math.round(Number(order.total)) !== Math.round(Number(amount))) {
+        throw new BadRequestException(
+          `Số tiền thanh toán MoMo (${amount}đ) không khớp với tổng tiền đơn hàng (${Number(order.total)}đ)`,
+        );
       }
+
+      const reference = transId ? String(transId) : `MOMO-${momoOrderId}`;
+      const result = await this.markOrderAsPaid(
+        orderId,
+        Number(amount),
+        reference,
+        payment_method.WALLET,
+      );
+
       console.log(`[MoMo IPN] Đơn hàng #${orderId} đã duyệt thanh toán MoMo thành công!`);
+      return { message: 'Received', result };
     }
+
     return { message: 'Received' };
   }
 }

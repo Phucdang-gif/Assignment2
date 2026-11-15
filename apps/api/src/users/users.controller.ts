@@ -19,7 +19,7 @@ import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard, Roles, STAFF_ROLES } from '../auth/roles.guard';
 
-@Controller('users')
+@Controller(['api/users', 'users'])
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(...STAFF_ROLES)
 export class UsersController {
