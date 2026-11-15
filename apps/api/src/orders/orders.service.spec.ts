@@ -624,5 +624,56 @@ describe('OrdersService', () => {
         data: { stock: { increment: 60 } },
       });
     });
+
+    it('updateStatus chặn nhân viên chuyển PENDING -> PAID hoặc sang CANCELLED trực tiếp', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(500),
+        status: order_status.PENDING,
+      });
+
+      await expect(service.updateStatus(500, order_status.PAID)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.updateStatus(500, order_status.CANCELLED)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('từ chối tạo đơn nếu sản phẩm có status inactive', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({
+        id: BigInt(1),
+        name: 'Trà xoài',
+        price: 30000,
+        status: 'inactive',
+      });
+
+      await expect(
+        service.create(
+          {
+            items: [{ productId: 1, size: 'M', qty: 1 }],
+          },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('từ chối tạo đơn nếu topping không tồn tại', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({
+        id: BigInt(1),
+        name: 'Cà phê đen',
+        price: 25000,
+        status: 'active',
+      });
+      mockPrisma.topping.findMany.mockResolvedValue([]); // không tìm thấy topping
+
+      await expect(
+        service.create(
+          {
+            items: [{ productId: 1, size: 'M', qty: 1, toppings: ['Topping Không Có'] }],
+          },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 });

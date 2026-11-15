@@ -190,6 +190,75 @@ describe('PaymentsService', () => {
       expect(mockPrismaService.payment.create).not.toHaveBeenCalled();
       expect(mockPrismaService.order.update).not.toHaveBeenCalled();
     });
+
+    it('should throw BadRequestException if idempotencyKey belongs to a different order', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        ...mockPayment,
+        orderId: BigInt(99), // Different order!
+      });
+
+      await expect(
+        service.create({
+          orderId: 4,
+          amount: 103500,
+          method: payment_method.WALLET,
+          idempotencyKey: 'key-of-different-order',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('Security & Validation Fixes (PayOS & MoMo)', () => {
+    it('markOrderAsPaid should throw BadRequestException if order is CANCELLED', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: order_status.CANCELLED,
+      });
+
+      await expect(service.markOrderAsPaid(4, 103500)).rejects.toThrow(BadRequestException);
+    });
+
+    it('verifyPayOSPayment should NOT mark order as PAID based solely on client body status', async () => {
+      mockPrismaService.order.findUnique.mockResolvedValue({
+        ...mockOrder,
+        status: order_status.PENDING,
+      });
+
+      const result = await service.verifyPayOSPayment({
+        orderId: 4,
+        status: 'PAID',
+        code: '00',
+      });
+
+      expect(result.isPaid).toBe(false);
+      expect(result.status).toBe(order_status.PENDING);
+      expect(mockPrismaService.payment.create).not.toHaveBeenCalled();
+    });
+
+    it('handlePayOSWebhook should throw BadRequestException if signature is missing', async () => {
+      (service as any).payOS = {
+        webhooks: { verify: jest.fn() },
+      };
+
+      await expect(
+        service.handlePayOSWebhook({
+          data: { orderCode: 4000001, amount: 103500 },
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('handleMomoIPN should throw BadRequestException if signature is missing or invalid', async () => {
+      process.env.MOMO_ACCESS_KEY = 'test_access';
+      process.env.MOMO_SECRET_KEY = 'test_secret';
+
+      await expect(
+        service.handleMomoIPN({
+          orderId: 'BL_4_12345',
+          amount: 103500,
+          resultCode: 0,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('getPaymentStatus', () => {

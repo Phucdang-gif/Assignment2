@@ -43,8 +43,10 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Không có thông tin xác thực');
     }
 
-    const dbUser = await this.usersService.findOne(Number(user.userId));
-    if (!dbUser) {
+    let dbUser;
+    try {
+      dbUser = await this.usersService.findOne(Number(user.userId));
+    } catch {
       throw new ForbiddenException('Người dùng không tồn tại');
     }
 

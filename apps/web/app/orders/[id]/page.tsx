@@ -137,7 +137,7 @@ function OrderConfirmationContent() {
   const verifyAndFetchOrder = useCallback(async () => {
     if (!token || !orderId) return null;
 
-    if (paymentStatus === 'PAID' || payosCode === '00' || orderCode) {
+    if (orderCode || payosCode === '00' || paymentStatus === 'PAID') {
       try {
         const verifyRes = await fetch(`${API_URL}/payments/payos-verify`, {
           method: 'POST',
@@ -148,14 +148,13 @@ function OrderConfirmationContent() {
           body: JSON.stringify({
             orderId: Number(orderId),
             orderCode: orderCode ? Number(orderCode) : undefined,
-            status: paymentStatus || undefined,
             code: payosCode || undefined,
           }),
         });
 
         if (verifyRes.ok) {
           const verifyData = await verifyRes.json();
-          if (verifyData.success && verifyData.order) {
+          if (verifyData.success && verifyData.order && verifyData.isPaid) {
             setOrder(verifyData.order);
             clearActiveCart();
             clearCheckoutItems();
@@ -205,7 +204,6 @@ function OrderConfirmationContent() {
             body: JSON.stringify({
               orderId: Number(orderId),
               orderCode: orderCode ? Number(orderCode) : undefined,
-              status: paymentStatus || undefined,
               code: payosCode || undefined,
             }),
           });

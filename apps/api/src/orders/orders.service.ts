@@ -63,37 +63,12 @@ export class OrdersService {
       membershipTier = 'Bạc';
     }
 
-    const recentPendingOrder = await this.prisma.order.findFirst({
-      where: {
-        userId: BigInt(userId) as any,
-        status: order_status.PENDING,
-        createdAt: {
-          gte: new Date(Date.now() - 4000), // trong vòng 4 giây
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (recentPendingOrder) {
-      const recentSubtotal = Number((recentPendingOrder as any).subtotal ?? recentPendingOrder.total);
-      const recentDiscount = Number((recentPendingOrder as any).discountAmount ?? 0);
-      return {
-        message: 'Tạo đơn hàng thành công',
-        orderId: Number(recentPendingOrder.id),
-        total: Number(recentPendingOrder.total),
-        rawTotal: recentSubtotal,
-        discount: recentDiscount,
-        loyaltyPoints,
-        membershipTier,
-      };
-    }
-
     const oldUserPendingOrders = await this.prisma.order.findMany({
       where: {
         userId: BigInt(userId) as any,
         status: order_status.PENDING,
         createdAt: {
-          lt: new Date(Date.now() - 4000),
+          lt: new Date(Date.now() - 60000), // tự động hủy các đơn treo quá 1 phút của user
         },
       },
       include: { OrderItem: true },
@@ -121,6 +96,18 @@ export class OrdersService {
 
       for (const expOrder of expiredPendingOrders) {
         await this.prisma.$transaction(async (tx) => {
+          const updateRes = tx.order.updateMany
+            ? await tx.order.updateMany({
+                where: { id: expOrder.id, status: order_status.PENDING },
+                data: { status: order_status.CANCELLED },
+              })
+            : await tx.order.update({
+                where: { id: expOrder.id },
+                data: { status: order_status.CANCELLED },
+              });
+
+          if (updateRes && (updateRes as any).count === 0) return;
+
           for (const item of expOrder.OrderItem) {
             if ((tx as any).productRecipeItem) {
               const recipeItems = await (tx as any).productRecipeItem.findMany({
@@ -137,19 +124,7 @@ export class OrdersService {
                 });
               }
             }
-
-            await tx.product.update({
-              where: { id: item.productId },
-              data: {
-                ...((tx.product as any)?.stock !== undefined ? { stock: { increment: item.qty } } : {}),
-                version: { increment: 1 },
-              },
-            });
           }
-          await tx.order.update({
-            where: { id: expOrder.id },
-            data: { status: order_status.CANCELLED },
-          });
         });
       }
     } catch {
@@ -186,9 +161,13 @@ export class OrdersService {
               throw new NotFoundException(`Sản phẩm #${item.productId} không tồn tại`);
             }
 
+            if (product.status && product.status !== 'active') {
+              throw new BadRequestException(`Sản phẩm "${product.name}" hiện đang tạm ngưng phục vụ`);
+            }
+
             productsMap.set(Number(item.productId), product);
 
-            // Kiểm tra và trừ tồn kho theo nguyên vật liệu (ProductRecipeItem & Ingredient)
+            // Kiểm tra và trừ tồn kho atomic theo nguyên vật liệu (ProductRecipeItem & Ingredient)
             if ((tx as any).productRecipeItem) {
               const recipeItems = await (tx as any).productRecipeItem.findMany({
                 where: {
@@ -201,17 +180,38 @@ export class OrdersService {
               if (recipeItems.length > 0) {
                 for (const r of recipeItems) {
                   const needed = r.amount * item.qty;
-                  const ing = r.Ingredient;
-                  if (!ing || ing.stock < needed) {
-                    throw new BadRequestException(
-                      `Nguyên liệu "${ing?.name || 'Không xác định'}" không đủ để pha món "${product.name}" size ${item.size} (còn ${ing?.stock ?? 0} ${ing?.unit ?? ''}, cần ${needed} ${ing?.unit ?? ''})`,
-                    );
-                  }
+                  const ingName = r.Ingredient?.name || 'Nguyên liệu';
 
-                  await (tx as any).ingredient.update({
-                    where: { id: r.ingredientId },
-                    data: { stock: { decrement: needed } },
-                  });
+                  if (typeof (tx as any).ingredient?.updateMany === 'function') {
+                    const updateIngRes = await (tx as any).ingredient.updateMany({
+                      where: {
+                        id: r.ingredientId,
+                        stock: { gte: needed },
+                      },
+                      data: {
+                        stock: { decrement: needed },
+                      },
+                    });
+
+                    if (updateIngRes.count === 0) {
+                      throw new BadRequestException(
+                        `Nguyên liệu "${ingName}" không đủ để pha món "${product.name}" size ${item.size}`,
+                      );
+                    }
+                  } else {
+                    const ing = r.Ingredient;
+                    if (!ing || ing.stock < needed) {
+                      throw new BadRequestException(
+                        `Nguyên liệu "${ingName}" không đủ để pha món "${product.name}" size ${item.size} (còn ${ing?.stock ?? 0} ${ing?.unit ?? ''}, cần ${needed} ${ing?.unit ?? ''})`,
+                      );
+                    }
+                    if ((tx as any).ingredient?.update) {
+                      await (tx as any).ingredient.update({
+                        where: { id: r.ingredientId },
+                        data: { stock: { decrement: needed } },
+                      });
+                    }
+                  }
                 }
               }
             }
@@ -235,7 +235,7 @@ export class OrdersService {
               },
             });
 
-            if (updateResult.count === 0) {
+            if (updateResult && updateResult.count === 0) {
               throw new ConflictException(
                 `Xung đột tồn kho khi nhiều khách đặt đồng thời sản phẩm "${product.name}". Vui lòng thử lại!`,
               );
@@ -254,9 +254,18 @@ export class OrdersService {
             const dbToppings = await (tx as any).topping.findMany({
               where: { name: { in: Array.from(allToppingNames) } },
             });
-            dbToppings.forEach((t: any) =>
-              toppingsMap.set(t.name, { id: t.id, price: Number(t.price) }),
-            );
+            const foundNames = new Set(dbToppings.map((t: any) => t.name));
+            for (const name of allToppingNames) {
+              if (!foundNames.has(name)) {
+                throw new BadRequestException(`Topping "${name}" không tồn tại trong hệ thống`);
+              }
+            }
+            for (const t of dbToppings) {
+              if (t.isAvailable === false) {
+                throw new BadRequestException(`Topping "${t.name}" hiện đang hết hàng`);
+              }
+              toppingsMap.set(t.name, { id: t.id, price: Number(t.price) });
+            }
           }
 
           // Tính đơn giá từng món trực tiếp từ Database (Product.price + phụ thu Size + Topping.price)
@@ -449,6 +458,20 @@ export class OrdersService {
     this.assertTransition(order.status, order_status.CANCELLED);
 
     return this.prisma.$transaction(async (tx) => {
+      if (typeof tx.order.updateMany === 'function') {
+        const updateResult = await tx.order.updateMany({
+          where: {
+            id: BigInt(id) as any,
+            status: { in: [order_status.PENDING, order_status.PAID, order_status.PAYMENT_FAILED] },
+          },
+          data: { status: order_status.CANCELLED },
+        });
+
+        if (updateResult.count === 0) {
+          throw new BadRequestException('Đơn hàng không thể hủy hoặc đã được xử lý');
+        }
+      }
+
       for (const item of order.OrderItem) {
         if ((tx as any).productRecipeItem) {
           const recipeItems = await (tx as any).productRecipeItem.findMany({
@@ -466,13 +489,54 @@ export class OrdersService {
           }
         }
 
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            ...((item as any)?.Product?.stock !== undefined ? { stock: { increment: item.qty } } : {}),
-            version: { increment: 1 },
-          },
-        });
+        if ((item as any)?.Product?.stock !== undefined) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stock: { increment: item.qty },
+              version: { increment: 1 },
+            },
+          });
+        }
+      }
+
+      // Thu hồi điểm tích lũy nếu đơn hàng đã từng được PAID
+      if (order.status === order_status.PAID && (tx as any).loyaltyTransaction) {
+        try {
+          const earnTxs = await (tx as any).loyaltyTransaction.findMany({
+            where: {
+              orderId: BigInt(id),
+              type: 'EARN',
+            },
+          });
+          const pointsToRevoke = (earnTxs || []).reduce(
+            (sum: number, t: any) => sum + Number(t.points),
+            0,
+          );
+          if (pointsToRevoke > 0) {
+            const targetUser = await tx.user.findUnique({ where: { id: order.userId } });
+            const currentPoints = targetUser?.loyaltyPoints ?? 0;
+            const newBalance = Math.max(0, currentPoints - pointsToRevoke);
+
+            await tx.user.update({
+              where: { id: order.userId },
+              data: { loyaltyPoints: newBalance },
+            });
+
+            await (tx as any).loyaltyTransaction.create({
+              data: {
+                userId: order.userId,
+                orderId: BigInt(id),
+                points: -pointsToRevoke,
+                type: 'ADJUST',
+                balanceAfter: newBalance,
+                reason: `Thu hồi điểm do hủy đơn hàng #${id}`,
+              },
+            });
+          }
+        } catch (err) {
+          console.warn('[cancelOrder] Lỗi thu hồi điểm thưởng:', err);
+        }
       }
 
       return tx.order.update({
@@ -618,6 +682,17 @@ export class OrdersService {
   }
 
   async updateStatus(id: number, newStatus: string) {
+    if (newStatus === order_status.PAID) {
+      throw new BadRequestException(
+        'Không thể chuyển trạng thái sang PAID thủ công. Đơn hàng phải qua cổng thanh toán.',
+      );
+    }
+    if (newStatus === order_status.CANCELLED) {
+      throw new BadRequestException(
+        'Vui lòng sử dụng tính năng hủy đơn hàng chuyên biệt để hoàn kho nguyên liệu.',
+      );
+    }
+
     const order = await this.findOne(id);
     this.assertTransition(order.status, newStatus);
 

@@ -125,6 +125,14 @@ export class OrdersController {
     return this.ordersService.retryPayment(id, Number(req.user.userId));
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/payment-failed')
+  markPaymentFailed(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.ordersService.markPaymentFailed(id);
+  }
+
   @Get('statuses')
   getOrderStatuses() {
     return this.ordersService.getOrderStatuses();
