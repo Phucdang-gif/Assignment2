@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fetchAllProducts } from '@/services/productService';
 import { Product } from '@/types/types';
 
@@ -7,8 +7,9 @@ export function useProducts() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProducts = useCallback(() => {
     setIsLoading(true);
+    setError(null);
     fetchAllProducts()
       .then((data) => {
         setProducts(data);
@@ -21,5 +22,9 @@ export function useProducts() {
       });
   }, []);
 
-  return { products, isLoading, error };
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  return { products, isLoading, error, refetch: loadProducts };
 }
