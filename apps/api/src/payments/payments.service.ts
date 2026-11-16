@@ -847,7 +847,13 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
       .update(rawSignature)
       .digest('hex');
 
-    if (signature !== expectedSignature) {
+    const sigBuffer = Buffer.from(String(signature), 'utf8');
+    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+    const isSignatureValid =
+      sigBuffer.length === expectedBuffer.length &&
+      crypto.timingSafeEqual(sigBuffer, expectedBuffer);
+
+    if (!isSignatureValid) {
       console.error('[MoMo IPN] Invalid signature. Expected:', expectedSignature, 'Got:', signature);
       throw new BadRequestException('Chữ ký MoMo IPN không hợp lệ');
     }

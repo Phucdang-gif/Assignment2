@@ -210,21 +210,6 @@ export default function CheckoutPage() {
     }
   }, [hasHydrated, pendingOrderId, activeItems.length, router]);
 
-  useEffect(() => {
-    if (!hasHydrated) return;
-    const store = useCartStore.getState();
-    const hasItems =
-      (store.checkoutItems && store.checkoutItems.length > 0) ||
-      (store.items && store.items.length > 0);
-    if (!hasItems) return;
-
-    const isExpiredOrMissing =
-      !store.checkoutExpiresAt || store.checkoutExpiresAt <= Date.now();
-    if (isExpiredOrMissing) {
-      startCheckout(CHECKOUT_DURATION_MINUTES);
-    }
-  }, [hasHydrated, startCheckout]);
-
   const handleTimeout = useCallback(async () => {
     const orderIdToCancel = createdOrderData?.id || useCartStore.getState().pendingOrderId;
     if (orderIdToCancel && token) {
@@ -248,6 +233,24 @@ export default function CheckoutPage() {
     }
     router.push("/cart?reason=timeout");
   }, [createdOrderData?.id, token, restoreCheckoutToCart, router]);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    const store = useCartStore.getState();
+    const hasItems =
+      (store.checkoutItems && store.checkoutItems.length > 0) ||
+      (store.items && store.items.length > 0);
+    if (!hasItems) return;
+
+    if (store.checkoutExpiresAt && store.checkoutExpiresAt <= Date.now()) {
+      handleTimeout();
+      return;
+    }
+
+    if (!store.checkoutExpiresAt) {
+      startCheckout(CHECKOUT_DURATION_MINUTES);
+    }
+  }, [hasHydrated, startCheckout, handleTimeout]);
 
   const { secondsLeft, isUrgent } = useCheckoutTimer({
     enabled: hasHydrated,
