@@ -1,7 +1,7 @@
 'use client';
 import { API_URL } from '@/services/api';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
@@ -127,6 +127,9 @@ export default function CartPage() {
     code: string;
     discountAmount: number;
     description?: string;
+    discountType?: string;
+    discountValue?: number;
+    minOrderValue?: number;
   } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
@@ -214,7 +217,19 @@ export default function CartPage() {
       : 'Đồng';
 
   const memberDiscount = Math.round((subtotal * discountPercent) / 100);
-  const voucherDiscount = appliedVoucher ? Number(appliedVoucher.discountAmount || 0) : 0;
+  const voucherDiscount = useMemo(() => {
+    if (!appliedVoucher) return 0;
+    if (appliedVoucher.minOrderValue && subtotal < appliedVoucher.minOrderValue) {
+      return 0;
+    }
+    if (appliedVoucher.discountType === 'PERCENTAGE' || appliedVoucher.discountType === 'MEMBERSHIP_TIER') {
+      return Math.round((subtotal * (appliedVoucher.discountValue || 0)) / 100);
+    }
+    if (appliedVoucher.discountType === 'FIXED_AMOUNT' || appliedVoucher.discountValue) {
+      return Math.min(subtotal, appliedVoucher.discountValue || appliedVoucher.discountAmount || 0);
+    }
+    return Number(appliedVoucher.discountAmount || 0);
+  }, [appliedVoucher, subtotal]);
   const totalDiscount = Math.min(subtotal, memberDiscount + voucherDiscount);
   const grandTotal = Math.max(0, subtotal - totalDiscount);
 
@@ -233,6 +248,9 @@ export default function CartPage() {
         code: data.code,
         discountAmount: Number(data.discountAmount || 0),
         description: data.description,
+        discountType: data.discountType,
+        discountValue: Number(data.discountValue || 0),
+        minOrderValue: Number(data.minOrderValue || 0),
       });
       setCartAlert({
         type: 'success',
@@ -279,6 +297,14 @@ export default function CartPage() {
         message: 'Vui lòng đăng nhập để tiến hành thanh toán đơn hàng.',
       });
       router.push('/login?redirect=/cart');
+      return;
+    }
+
+    if (appliedVoucher && appliedVoucher.minOrderValue && subtotal < appliedVoucher.minOrderValue) {
+      setCartAlert({
+        type: 'error',
+        message: `Đơn hàng cần đạt tối thiểu ${appliedVoucher.minOrderValue.toLocaleString('vi-VN')}đ để áp dụng voucher "${appliedVoucher.code}". Vui lòng chọn thêm món hoặc gỡ bỏ voucher.`,
+      });
       return;
     }
 
@@ -641,14 +667,28 @@ export default function CartPage() {
                 </label>
 
                 {appliedVoucher ? (
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <div
+                    className={`flex items-center justify-between p-3 rounded-xl border ${
+                      appliedVoucher.minOrderValue && subtotal < appliedVoucher.minOrderValue
+                        ? 'bg-amber-50 border-amber-200 text-amber-800'
+                        : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    }`}
+                  >
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-800">
+                      <div className="flex items-center gap-1.5 font-bold text-xs">
                         <span>🎟️</span>
                         <span>{appliedVoucher.code}</span>
                       </div>
-                      <p className="text-[11px] text-emerald-700 truncate mt-0.5">
-                        {appliedVoucher.description || `Đã giảm ${appliedVoucher.discountAmount.toLocaleString('vi-VN')}đ`}
+                      <p
+                        className={`text-[11px] truncate mt-0.5 ${
+                          appliedVoucher.minOrderValue && subtotal < appliedVoucher.minOrderValue
+                            ? 'text-amber-700 font-medium'
+                            : 'text-emerald-700'
+                        }`}
+                      >
+                        {appliedVoucher.minOrderValue && subtotal < appliedVoucher.minOrderValue
+                          ? `Đơn cần tối thiểu ${appliedVoucher.minOrderValue.toLocaleString('vi-VN')}đ (còn thiếu ${(appliedVoucher.minOrderValue - subtotal).toLocaleString('vi-VN')}đ)`
+                          : (appliedVoucher.description || `Đã giảm ${voucherDiscount.toLocaleString('vi-VN')}đ`)}
                       </p>
                     </div>
                     <button

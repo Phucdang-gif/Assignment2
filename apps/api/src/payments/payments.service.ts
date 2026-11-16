@@ -168,29 +168,25 @@ export class PaymentsService implements OnModuleInit {
 
       // Đưa toàn bộ việc cộng điểm tích lũy vào trong Transaction nguyên tử
       if (pointsEarned > 0 && order.userId) {
-        try {
-          const updatedUser = await tx.user.update({
-            where: { id: order.userId },
+        const updatedUser = await tx.user.update({
+          where: { id: order.userId },
+          data: {
+            loyaltyPoints: {
+              increment: pointsEarned,
+            },
+          },
+        });
+        if ((tx as any).loyaltyTransaction) {
+          await (tx as any).loyaltyTransaction.create({
             data: {
-              loyaltyPoints: {
-                increment: pointsEarned,
-              },
+              userId: order.userId,
+              orderId: BigInt(orderId),
+              points: pointsEarned,
+              type: 'EARN',
+              balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
+              reason: `Tích điểm thanh toán đơn hàng #${orderId}`,
             },
           });
-          if ((tx as any).loyaltyTransaction) {
-            await (tx as any).loyaltyTransaction.create({
-              data: {
-                userId: order.userId,
-                orderId: BigInt(orderId),
-                points: pointsEarned,
-                type: 'EARN',
-                balanceAfter: Number(updatedUser?.loyaltyPoints ?? pointsEarned),
-                reason: `Tích điểm thanh toán đơn hàng #${orderId}`,
-              },
-            });
-          }
-        } catch (err) {
-          console.warn('[Payments] Lỗi tích điểm thưởng cho người dùng:', err);
         }
       }
 
