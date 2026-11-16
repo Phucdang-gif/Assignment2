@@ -315,14 +315,23 @@ export default function CartPage() {
       }
 
       const orderId = Number(orderData.orderId);
+      const orderTotal = Number(orderData.total);
+      const orderRawTotal = Number(orderData.rawTotal ?? orderData.subtotal ?? 0);
+      const orderDiscount = Number(orderData.discount ?? orderData.discountAmount ?? 0);
 
       isNavigatingRef.current = true;
 
       const store = useCartStore.getState();
+      const orderSummary = {
+        total: orderTotal,
+        rawTotal: orderRawTotal,
+        discount: orderDiscount,
+      };
+
       if (typeof startCheckout === 'function') {
-        startCheckout(CHECKOUT_DURATION_MINUTES, orderId);
+        startCheckout(CHECKOUT_DURATION_MINUTES, orderId, orderSummary);
       } else if (store && typeof store.startCheckout === 'function') {
-        store.startCheckout(CHECKOUT_DURATION_MINUTES, orderId);
+        store.startCheckout(CHECKOUT_DURATION_MINUTES, orderId, orderSummary);
       }
 
       router.push('/checkout');

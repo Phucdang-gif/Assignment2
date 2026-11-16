@@ -123,7 +123,7 @@ export default function Header() {
           >
             <CartIcon className="w-5 h-5" />
             {isMounted && totalItems > 0 && (
-              <span className="absolute 0 top-0.5 right-0.5 bg-[#8D6E63] text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full shadow-sm">
+              <span className="absolute top-0.5 right-0.5 bg-[#8D6E63] text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full shadow-sm">
                 {totalItems > 99 ? '99+' : totalItems}
               </span>
             )}

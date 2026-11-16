@@ -568,8 +568,15 @@ export class OrdersService {
     });
   }
 
-  async markPaymentFailed(id: number) {
+  async markPaymentFailed(id: number, userId?: number) {
     const order = await this.findOne(id);
+    if (userId !== undefined && Number(order.userId) !== userId) {
+      const user = await this.usersService.findOne(userId);
+      const isStaff = isStaffRole((user as any)?.role);
+      if (!isStaff) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đơn hàng này');
+      }
+    }
     this.assertTransition(order.status, order_status.PAYMENT_FAILED);
 
     return this.prisma.order.update({

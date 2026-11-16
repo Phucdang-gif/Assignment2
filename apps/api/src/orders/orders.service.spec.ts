@@ -675,5 +675,16 @@ describe('OrdersService', () => {
         ),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('chặn người dùng khác đánh dấu payment-failed đơn hàng không thuộc về mình (IDOR protection)', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(88),
+        userId: BigInt(1),
+        status: order_status.PENDING,
+      });
+      mockUsersService.findOne.mockResolvedValue({ id: 2, role: 'CUSTOMER' });
+
+      await expect(service.markPaymentFailed(88, 2)).rejects.toThrow(ForbiddenException);
+    });
   });
 });

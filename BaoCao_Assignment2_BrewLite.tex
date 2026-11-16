@@ -522,7 +522,7 @@ $$\textbf{Customer} \longrightarrow \textbf{Next.js UI} \longrightarrow \textbf{
     \item \textbf{Giai đoạn 4 -- Phân nhánh kết quả thanh toán (Nhánh Alt):}
     \begin{itemize}[leftmargin=*,noitemsep]
         \item \textbf{[Thanh toán Thành công]:} Dịch vụ thanh toán phản hồi \texttt{SUCCESS}. Backend cập nhật trạng thái đơn hàng sang \texttt{PAID}, tạo bản ghi giao dịch trong bảng \texttt{Payment}, tính toán điểm thưởng và ghi nhận vào bảng \texttt{LoyaltyTransaction}, hoàn tất transaction và trả về HTTP \texttt{200 OK}. Giao diện Client dọn sạch giỏ hàng và chuyển sang trang \texttt{/orders/:id}.
-        \item \textbf{[Thanh toán Thất bại]:} Dịch vụ thanh toán phản hồi \texttt{FAILED}. Backend cập nhật đơn hàng thành \texttt{PAYMENT\_FAILED}, kích hoạt hoàn trả số lượng nguyên liệu đã trừ, trả về lỗi HTTP \texttt{402 Payment Required}. Giao diện Client giữ nguyên giỏ hàng và hiển thị thông báo lỗi kèm nút cho phép thử lại an toàn.
+        \item \textbf{[Thanh toán Thất bại]:} Dịch vụ thanh toán phản hồi \texttt{FAILED}. Backend cập nhật đơn hàng thành \texttt{PAYMENT\_FAILED}, kích hoạt hoàn trả số lượng nguyên liệu đã trừ, trả về lỗi HTTP \texttt{400 Bad Request}. Giao diện Client giữ nguyên giỏ hàng và hiển thị thông báo lỗi kèm nút cho phép thử lại an toàn.
     \end{itemize}
 \end{enumerate}
 
@@ -728,7 +728,7 @@ Sơ đồ triển khai phản ánh kiến trúc hạ tầng Production thực t�
     \item \textbf{Ranh giới Nền tảng Render Cloud (Backend \& Database Runtime):}
     \begin{itemize}[leftmargin=*,noitemsep]
         \item \textbf{Render Ingress Proxy / Load Balancer:} Tiếp nhận kết nối HTTPS công khai tại cổng \texttt{443}, thực hiện giải mã SSL (TLS Termination) và chuyển tiếp lưu lượng vào cổng nội bộ \texttt{3001} của container.
-        \item \textbf{Docker Container Backend API (\texttt{brewlite-api}):} Đóng gói dựa trên Dockerfile tối ưu đa tầng (Multi-stage build Node 20 Alpine), chạy ứng dụng NestJS tại cổng nội bộ \texttt{3001}. Cung cấp endpoint \texttt{GET /health} để Render thực hiện liveness probe mỗi 30 giây.
+        \item \textbf{Docker Container Backend API (\texttt{brewlite-api}):} Đóng gói dựa trên Dockerfile tối ưu đa tầng (Multi-stage build Node 24 Alpine), chạy ứng dụng NestJS tại cổng nội bộ \texttt{3001}. Cung cấp endpoint \texttt{GET /health} để Render thực hiện liveness probe mỗi 30 giây.
         \item \textbf{Docker Container Database (\texttt{brewlite-postgres}):} Chạy phiên bản \texttt{postgres:16-alpine} tại cổng nội bộ \texttt{5432} nằm hoàn toàn trong mạng nội bộ (\textbf{Render Private Network VPC}). \textbf{Tuyệt đối không mở cổng 5432 ra ngoài Internet}, đảm bảo an toàn dữ liệu 100\%.
         \item \textbf{Render Persistent Disk Storage:} Gắn ổ đĩa cứng bền vững tại thư mục \texttt{/var/lib/postgresql/data}, đảm bảo toàn bộ dữ liệu đơn hàng và tài khoản không bị mất khi container khởi động lại.
     \end{itemize}
@@ -770,7 +770,7 @@ Container \texttt{brewlite-api} & Container \texttt{postgres} & TCP/IP Wire & 54
 
 \subsection{Task 4.1 -- Thiết Lập Repository và Quy Trình Làm Việc Nhóm}
 
-Tài liệu tham chiếu bắt buộc: \texttt{docs/team-workflow.md}, \texttt{docs/conventions.md} và \texttt{README.md}.
+Tài liệu tham chiếu bắt buộc: \texttt{docs/delivery/team-workflow.md}, \texttt{docs/delivery/conventions.md} và \texttt{README.md}.
 
 \subsubsection{Cấu trúc Monorepo Chuẩn Hóa}
 Dự án được khởi tạo và tổ chức theo mô hình \textbf{Monorepo} thống nhất tại kho lưu trữ Git:
@@ -783,8 +783,8 @@ brewlite/
 |   |-- requirements/      # Task 1 (Context & Scope, SRS, Use-case checkout)
 |   |-- diagrams/          # Task 2 & 3 (Activity, Sequence, Class, C4, Deployment)
 |   |-- architecture/adr/  # Task 3 (6 ban ghi quyet dinh kien truc ADR-001 -> ADR-006)
+|   |-- delivery/          # Task 4 & Review (team-workflow, conventions, ci-evidence)
 |   |-- deployment.md      # Task 3.2 (Dac ta moi truong Cloud Render & Vercel)
-|   |-- ci-evidence.md     # Task 4.4 (Bao cao & Minh chung Pipeline CI Pass/Fail)
 |   `-- traceability-matrix.md # Muc 8 (Ma tran truy vet yeu cau toan he thong)
 |-- tests/                 # Kich ban kiem thu tich hop & End-to-End (ordering-flow.e2e.test.mjs)
 |-- .github/workflows/     # Pipeline CI/CD tu dong (ci.yml va cd.yml)
@@ -866,7 +866,7 @@ Phiên bản MVP đầu tiên được hoàn thành và kiểm chứng trực ti
 \begin{itemize}[leftmargin=*,noitemsep]
     \item \texttt{GET /api/products}: Trả về danh sách toàn bộ sản phẩm đang kinh doanh kèm mã định danh, tên gọi, danh mục, giá gốc, hình ảnh và trạng thái còn hàng.
     \item \texttt{GET /api/products/:id}: Tra cứu thông tin chi tiết của một món đồ uống kèm danh sách các loại toppings có thể chọn thêm.
-    \item \textbf{Dữ liệu mẫu (Database Seed):} Kịch bản \texttt{apps/api/prisma/seed.js} kết hợp tệp \texttt{brewlite\_seed\_data.sql} nạp tự động 12 sản phẩm cà phê/trà, 4 danh mục và 5 loại topping phục vụ chạy thử nghiệm.
+    \item \textbf{Dữ liệu mẫu (Database Seed):} Kịch bản \texttt{apps/api/prisma/seed.js} kết hợp tệp \texttt{brewlite\_seed\_data.sql} nạp tự động 12 sản phẩm cà phê/trà, 4 danh mục và 3 loại topping phục vụ chạy thử nghiệm.
 \end{itemize}
 
 \subsubsection{Phân hệ Frontend Next.js Menu Mobile-First \& Xử lý 3 Trạng thái}
@@ -883,7 +883,7 @@ Tập tin kiểm thử tự động \texttt{apps/api/src/products/products.servi
 \newpage
 \subsection{Task 4.4 -- Tích Hợp Liên Tục (Continuous Integration -- CI)}
 
-Tài liệu tham chiếu bắt buộc: \texttt{docs/ci-evidence.md} và tệp workflow \texttt{.github/workflows/ci.yml}.
+Tài liệu tham chiếu bắt buộc: \texttt{docs/delivery/ci-evidence.md} và tệp workflow \texttt{.github/workflows/ci.yml}.
 
 Theo yêu cầu mục 6.4, nhóm thiết lập pipeline CI chạy tự động trên GitHub Actions runner \texttt{ubuntu-latest} mỗi khi mở Pull Request hoặc push code vào nhánh \texttt{main}/\texttt{develop}. Pipeline thực thi nghiêm ngặt chuỗi kiểm soát chất lượng 4 bước:
 $$\textbf{Install} \longrightarrow \textbf{Lint} \longrightarrow \textbf{Unit Test} \longrightarrow \textbf{Build}$$
@@ -1171,7 +1171,7 @@ Hệ thống BrewLite đã được bàn giao và vận hành ổn định trên
     \end{itemize}
     \item \textbf{Những điểm cần cải thiện (What could be improved):}
     \begin{itemize}[leftmargin=*,noitemsep]
-        \item Giai đoạn đầu còn gặp một số xung đột (merge conflict) do các thành viên chưa tạo thói quen pull code mới nhất về trước khi lập trình. Nhóm đã khắc phục triệt để bằng quy chuẩn làm việc nhóm \texttt{docs/team-workflow.md}.
+        \item Giai đoạn đầu còn gặp một số xung đột (merge conflict) do các thành viên chưa tạo thói quen pull code mới nhất về trước khi lập trình. Nhóm đã khắc phục triệt để bằng quy chuẩn làm việc nhóm \texttt{docs/delivery/team-workflow.md}.
         \item Môi trường Cloud Render gói miễn phí có độ trễ khởi động lại (cold start). Giải pháp trong tương lai là duy trì gói nâng cấp hoặc cấu hình cron job tự động ping health check giữ ấm server.
     \end{itemize}
     \item \textbf{Bài học kinh nghiệm (Key Takeaways):} Việc đầu tư thiết kế kỹ lưỡng ngay từ Task 1 (SRS) và Task 2 (UML Diagrams) giúp quá trình lập trình ở Task 4 và Task 5 diễn ra nhanh chóng, đúng hướng và không bị lệch yêu cầu.

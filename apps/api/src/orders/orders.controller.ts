@@ -129,8 +129,9 @@ export class OrdersController {
   @Patch(':id/payment-failed')
   markPaymentFailed(
     @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: { userId: number; email: string } },
   ) {
-    return this.ordersService.markPaymentFailed(id);
+    return this.ordersService.markPaymentFailed(id, Number(req.user.userId));
   }
 
   @Get('statuses')

@@ -17,7 +17,7 @@ import {
 function HomeContent() {
   const searchParams = useSearchParams();
 
-  const { products: apiProducts, isLoading } = useProducts();
+  const { products: apiProducts, isLoading, error, refetch } = useProducts();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | "ALL">("ALL");
@@ -206,6 +206,25 @@ function HomeContent() {
               <p className="text-sm font-semibold text-[#8D6E63]">
                 Đang tải dữ liệu từ cửa hàng...
               </p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-16 bg-white rounded-2xl border border-red-200 p-8 space-y-3">
+              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                !
+              </div>
+              <p className="text-lg font-bold text-[#3E2723]">
+                Không thể tải danh sách sản phẩm
+              </p>
+              <p className="text-sm text-red-600 max-w-md mx-auto">
+                {error}
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3E2723] hover:bg-[#2E1C12] text-white font-bold text-xs shadow-md transition cursor-pointer"
+              >
+                Thử lại
+              </button>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-[#E8DFD8] p-8">
