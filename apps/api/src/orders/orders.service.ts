@@ -68,7 +68,7 @@ export class OrdersService {
         userId: BigInt(userId) as any,
         status: order_status.PENDING,
         createdAt: {
-          lt: new Date(Date.now() - 60000), // tự động hủy các đơn treo quá 1 phút của user
+          lt: new Date(Date.now() - 5 * 60 * 1000), // tự động hủy các đơn treo quá thời gian giữ đơn (5 phút) của user
         },
       },
       include: { OrderItem: true },

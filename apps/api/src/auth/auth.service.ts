@@ -17,11 +17,11 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersService.findByEmailWithHash(dto.email);
+    const user = await this.usersService.findByEmailOrPhoneWithHash(dto.email);
     const isMatch = user ? await bcrypt.compare(dto.password, user.passwordHash) : false;
 
     if (!user || !isMatch) {
-      throw new UnauthorizedException('Sai email hoặc mật khẩu');
+      throw new UnauthorizedException('Sai email, số điện thoại hoặc mật khẩu');
     }
 
     const payload = { sub: Number(user.id), email: user.email, role: (user as any).role };
