@@ -11,6 +11,9 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { VerifyPayOSDto } from './dto/verify-payos.dto';
 import { isStaffRole } from '../auth/roles.guard';
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 let PayOSConstructor: any = null;
 try {
@@ -34,6 +37,41 @@ export interface PaymentProcessResult {
 export class PaymentsService implements OnModuleInit {
   private payOS: any = null;
   private latestOrderCodes = new Map<number, number>();
+
+  private saveOrderCode(orderId: number, code: number) {
+    this.latestOrderCodes.set(orderId, code);
+    try {
+      const cachePath = path.join(os.tmpdir(), 'brewlite_payos_codes.json');
+      let data: Record<string, number> = {};
+      if (fs.existsSync(cachePath)) {
+        data = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+      }
+      data[String(orderId)] = code;
+      fs.writeFileSync(cachePath, JSON.stringify(data), 'utf8');
+    } catch {
+      // ignore cache write errors
+    }
+  }
+
+  private getOrderCode(orderId: number): number | null {
+    if (this.latestOrderCodes.has(orderId)) {
+      return this.latestOrderCodes.get(orderId)!;
+    }
+    try {
+      const cachePath = path.join(os.tmpdir(), 'brewlite_payos_codes.json');
+      if (fs.existsSync(cachePath)) {
+        const data = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+        if (data[String(orderId)]) {
+          const code = Number(data[String(orderId)]);
+          this.latestOrderCodes.set(orderId, code);
+          return code;
+        }
+      }
+    } catch {
+      // ignore cache read errors
+    }
+    return null;
+  }
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -343,7 +381,7 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     let currentOrder: any = existingOrder;
 
     if (existingOrder.status === order_status.PENDING && this.payOS) {
-      const cachedCode = this.latestOrderCodes.get(orderId);
+      const cachedCode = this.getOrderCode(orderId);
       if (cachedCode) {
         try {
           const payosInfo = await this.payOS.paymentRequests.get(cachedCode);
@@ -422,7 +460,7 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
 
     const timestampSuffix = Math.floor(100000 + Math.random() * 900000);
     const orderCode = Number(order.id) * 1000000 + timestampSuffix;
-    this.latestOrderCodes.set(Number(order.id), orderCode);
+    this.saveOrderCode(Number(order.id), orderCode);
 
     const amount = Math.round(Number(order.total));
     const formattedOrderId = String(orderId).padStart(8, '0');
@@ -541,8 +579,9 @@ async assertOrderAccess(orderId: number, userId: number, allowStaff = false) {
     let parsedOrderCode: number | null = null;
     if (body.orderCode) {
       parsedOrderCode = Number(body.orderCode);
-    } else if (this.latestOrderCodes.has(orderId)) {
-      parsedOrderCode = this.latestOrderCodes.get(orderId)!;
+      this.saveOrderCode(orderId, parsedOrderCode);
+    } else {
+      parsedOrderCode = this.getOrderCode(orderId);
     }
 
     if (!this.payOS) {
