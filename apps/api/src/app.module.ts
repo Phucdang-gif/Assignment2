@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -17,6 +18,13 @@ import { PaymentsModule } from './payments/payments.module';
       isGlobal: true,
       envFilePath: ['.env', '../.env', '../../.env'],
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 5,
+        skipIf: () => process.env.NODE_ENV === 'test' || process.env.DISABLE_THROTTLER === 'true',
+      },
+    ]),
     PrismaModule,
     CategoriesModule,
     ProductsModule,

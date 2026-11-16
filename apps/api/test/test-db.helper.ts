@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -186,7 +187,10 @@ export async function createTestNestApp(): Promise<TestNestAppContext> {
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideGuard(ThrottlerGuard)
+    .useValue({ canActivate: () => true })
+    .compile();
 
   const app = moduleFixture.createNestApplication();
   app.useGlobalPipes(

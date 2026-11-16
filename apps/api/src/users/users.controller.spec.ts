@@ -43,10 +43,11 @@ describe('UsersController (Security & Guards)', () => {
     );
   });
 
-  it('phải yêu cầu vai trò barista hoặc admin cho UsersController', () => {
+  it('chỉ cho phép vai trò admin cho UsersController (barista không có quyền)', () => {
     const roles = reflector.get<string[]>(ROLES_KEY, UsersController);
     expect(roles).toBeDefined();
-    expect(roles).toEqual(expect.arrayContaining(['barista']));
+    expect(roles).toEqual(['admin']);
+    expect(roles).not.toContain('barista');
   });
 
   it('findAll gọi usersService.findAll', async () => {

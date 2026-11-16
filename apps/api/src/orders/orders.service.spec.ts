@@ -675,5 +675,18 @@ describe('OrdersService', () => {
         ),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('markPaymentFailed chặn người dùng đánh dấu lỗi thanh toán trên đơn hàng của người khác (IDOR/BOLA)', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(700),
+        userId: BigInt(10),
+        status: order_status.PENDING,
+        OrderItem: [],
+        Payment: [],
+      });
+
+      await expect(service.markPaymentFailed(700, 99)).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    });
   });
 });
