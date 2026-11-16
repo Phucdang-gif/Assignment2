@@ -371,7 +371,13 @@ export default function CheckoutPage() {
           console.error("Không thể tạo PayOS link cho MoMo:", e);
         }
 
-        setCreatedOrderData({ id: orderId, total: payableAmount });
+        setCreatedOrderData((prev) => ({
+          id: orderId,
+          total: payableAmount,
+          subtotal: prev?.subtotal,
+          discountAmount: prev?.discountAmount,
+          voucherCode: prev?.voucherCode,
+        }));
         setShowMomoModal(true);
         return;
       }
@@ -719,7 +725,7 @@ export default function CheckoutPage() {
                       <div className="flex justify-between py-1">
                         <span className="text-gray-500">Số tiền:</span>
                         <span className="font-extrabold text-[#8D6E63] text-sm">
-                          {grandTotal.toLocaleString("vi-VN")}đ
+                          {displayGrandTotal.toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                       <div className="flex justify-between py-1.5 bg-[#F5F0E6] px-3 rounded-lg border border-[#E8DFD8]">
@@ -789,7 +795,7 @@ export default function CheckoutPage() {
                       <div className="flex justify-between py-1">
                         <span className="text-gray-500">Số tiền:</span>
                         <span className="font-extrabold text-[#A50064] text-sm">
-                          {grandTotal.toLocaleString("vi-VN")}đ
+                          {displayGrandTotal.toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                       <div className="flex justify-between py-1.5 bg-[#FFF0F6] px-3 rounded-lg border border-[#F3D1E4]">
