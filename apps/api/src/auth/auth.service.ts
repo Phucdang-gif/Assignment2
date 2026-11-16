@@ -17,7 +17,9 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersService.findByEmailOrPhoneWithHash(dto.email);
+    const user = typeof this.usersService.findByEmailOrPhoneWithHash === 'function'
+      ? await this.usersService.findByEmailOrPhoneWithHash(dto.email)
+      : await this.usersService.findByEmailWithHash(dto.email);
     const isMatch = user ? await bcrypt.compare(dto.password, user.passwordHash) : false;
 
     if (!user || !isMatch) {
