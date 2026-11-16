@@ -4,22 +4,27 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 
 function createFakeUsersService() {
-  const users: { id: number; email: string; passwordHash: string; loyaltyPoints: number }[] = [];
+  const users: { id: number; email: string; phone?: string; passwordHash: string; loyaltyPoints: number }[] = [];
   let nextId = 1;
   const bcrypt = require('bcrypt');
 
   return {
-    async create(dto: { email: string; password: string }) {
+    async create(dto: { email: string; password: string; phone?: string }) {
       if (users.find((u) => u.email === dto.email)) {
         throw new ConflictException('Email đã được sử dụng');
       }
       const passwordHash = await bcrypt.hash(dto.password, 10);
-      const user = { id: nextId++, email: dto.email, passwordHash, loyaltyPoints: 0 };
+      const user = { id: nextId++, email: dto.email, phone: dto.phone, passwordHash, loyaltyPoints: 0 };
       users.push(user);
-      return { id: user.id, email: user.email };
+      return { id: user.id, email: user.email, phone: user.phone };
     },
     async findByEmailWithHash(email: string) {
       return users.find((u) => u.email === email) ?? null;
+    },
+    async findByEmailOrPhoneWithHash(identifier: string) {
+      const clean = identifier.trim().toLowerCase();
+      const phoneFormat = clean.replace(/[\s.-]/g, '');
+      return users.find((u) => u.email === clean || (u.phone && u.phone === phoneFormat)) ?? null;
     },
   } as unknown as UsersService;
 }
@@ -48,6 +53,12 @@ describe('AuthService', () => {
   it('đăng nhập đúng -> trả về access_token', async () => {
     await service.register({ email: 'a@test.com', password: 'Abc12345' } as any);
     const result = await service.login({ email: 'a@test.com', password: 'Abc12345' } as any);
+    expect(result.access_token).toEqual(expect.any(String));
+  });
+
+  it('đăng nhập bằng số điện thoại hợp lệ -> trả về access_token', async () => {
+    await service.register({ email: 'phone@test.com', phone: '0901234567', password: 'Password123' } as any);
+    const result = await service.login({ email: '0901234567', password: 'Password123' } as any);
     expect(result.access_token).toEqual(expect.any(String));
   });
 

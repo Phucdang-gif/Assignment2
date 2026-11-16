@@ -178,14 +178,8 @@ function OrderConfirmationContent() {
 
     setLoading(true);
     verifyAndFetchOrder()
-      .then((data) => {
-        if (data) {
-          clearActiveCart();
-          clearCheckoutItems();
-        }
-      })
       .finally(() => setLoading(false));
-  }, [orderId, token, verifyAndFetchOrder, clearActiveCart, clearCheckoutItems]);
+  }, [orderId, token, verifyAndFetchOrder]);
 
   const currentOrderStatus = order?.status;
 
@@ -237,7 +231,7 @@ function OrderConfirmationContent() {
     setConfirmMessage(null);
 
     try {
-      const res = await fetch(`${API_URL}/payments`, {
+      const res = await fetch(`${API_URL}/payments/payos-verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -245,21 +239,24 @@ function OrderConfirmationContent() {
         },
         body: JSON.stringify({
           orderId: Number(order.id),
-          amount: Number(order.total),
-          method: 'WALLET',
-          idempotencyKey: generateUUIDv4(),
+          orderCode: orderCode ? Number(orderCode) : undefined,
+          code: payosCode || undefined,
         }),
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setConfirmMessage('✅ Xác nhận thanh toán thành công! Đơn hàng đang được chuẩn bị.');
+      if (res.ok && data.isPaid) {
+        setConfirmMessage('✅ Ngân hàng đã xác nhận thanh toán! Đơn hàng đang được chuẩn bị.');
+        clearActiveCart();
+        clearCheckoutItems();
         await fetchOrder();
       } else {
-        setConfirmMessage(`⚠️ ${data.message || 'Không thể xác nhận. Vui lòng thử lại.'}`);
+        setConfirmMessage(
+          `⚠️ ${data.message || 'Hệ thống chưa nhận được tiền từ ngân hàng. Nếu bạn đã chuyển khoản, vui lòng đợi 15-30 giây rồi bấm kiểm tra lại.'}`
+        );
       }
     } catch {
-      setConfirmMessage('⚠️ Có lỗi xảy ra. Vui lòng thử lại.');
+      setConfirmMessage('⚠️ Lỗi kết nối cổng thanh toán. Vui lòng thử lại sau.');
     } finally {
       setIsConfirming(false);
     }
@@ -533,7 +530,7 @@ function OrderConfirmationContent() {
                     <span className="font-medium">Đang chờ xác nhận thanh toán từ ngân hàng...</span>
                   </div>
                   <p className="text-[11px] text-amber-600">
-                    Nếu bạn đã chuyển khoản xong nhưng trạng thái chưa cập nhật, bấm nút bên dưới để xác nhận thủ công.
+                    Nếu bạn đã chuyển khoản xong nhưng trạng thái chưa cập nhật, bấm nút bên dưới để kiểm tra đối soát với ngân hàng.
                   </p>
                   {confirmMessage && (
                     <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
@@ -545,7 +542,7 @@ function OrderConfirmationContent() {
                     disabled={isConfirming}
                     className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded-lg text-xs transition cursor-pointer"
                   >
-                    {isConfirming ? 'Đang xác nhận...' : '✅ Tôi đã chuyển khoản - Xác nhận thanh toán'}
+                    {isConfirming ? 'Đang đối soát...' : '🔄 Kiểm tra thanh toán từ ngân hàng'}
                   </button>
                 </div>
               )}

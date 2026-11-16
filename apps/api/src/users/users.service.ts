@@ -82,6 +82,19 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  findByEmailOrPhoneWithHash(identifier: string) {
+    const clean = identifier.trim().toLowerCase();
+    const phoneFormat = clean.replace(/[\s.-]/g, '');
+    return this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: clean },
+          { phone: phoneFormat },
+        ],
+      },
+    });
+  }
+
   addLoyaltyPoints(userId: number, points: number) {
     return this.prisma.user.update({
       where: { id: userId },
