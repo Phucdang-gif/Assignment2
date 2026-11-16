@@ -124,6 +124,13 @@ export class OrdersService {
                 });
               }
             }
+
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                version: { increment: 1 },
+              },
+            });
           }
         });
       }

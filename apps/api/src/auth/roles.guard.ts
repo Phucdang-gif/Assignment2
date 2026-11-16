@@ -72,4 +72,5 @@ export const AdminOnly = () =>
 export const BaristaOnly = () =>
   applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...BARISTA_ROLES));
 
-export const StaffOnly = AdminOnly;
+export const StaffOnly = () =>
+  applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...STAFF_ROLES));
