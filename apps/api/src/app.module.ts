@@ -22,6 +22,7 @@ import { PaymentsModule } from './payments/payments.module';
       {
         ttl: 60000,
         limit: 5,
+        skipIf: () => process.env.NODE_ENV === 'test' || process.env.DISABLE_THROTTLER === 'true',
       },
     ]),
     PrismaModule,
