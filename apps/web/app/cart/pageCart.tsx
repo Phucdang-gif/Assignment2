@@ -274,10 +274,16 @@ export default function CartPage() {
   // Kiểm tra xem có sản phẩm nào đang vượt quá số lượng tồn kho hay không
   const hasOverStockItem = safeItems.some((item) => {
     if (item.stock === undefined || item.stock === null) return false;
-    const sameProductTotalQty = safeItems
-      .filter((i) => Number(i.productId) === Number(item.productId))
+    const sameItems = safeItems.filter((i) => Number(i.productId) === Number(item.productId));
+    const allSameStock = sameItems.every((i) => i.stock === item.stock);
+    if (allSameStock) {
+      const sameProductTotalQty = sameItems.reduce((sum, i) => sum + Number(i.quantity || 0), 0);
+      return sameProductTotalQty > Number(item.stock);
+    }
+    const sameVariantQty = safeItems
+      .filter((i) => Number(i.productId) === Number(item.productId) && i.size === item.size)
       .reduce((sum, i) => sum + Number(i.quantity || 0), 0);
-    return sameProductTotalQty > Number(item.stock);
+    return sameVariantQty > Number(item.stock);
   });
 
   const handleProceedToCheckout = async () => {
@@ -533,7 +539,13 @@ export default function CartPage() {
 
               const hasStockLimit = item.stock !== undefined && item.stock !== null;
               const itemStock = hasStockLimit ? Math.max(0, Number(item.stock)) : 999;
-              const maxAllowed = hasStockLimit ? Math.max(1, itemStock - otherQtySameProduct) : 999;
+              const sameItems = safeItems.filter((i) => Number(i.productId) === Number(item.productId));
+              const allSameStock = sameItems.every((i) => i.stock === item.stock);
+              const maxAllowed = hasStockLimit
+                ? allSameStock
+                  ? Math.max(1, itemStock - otherQtySameProduct)
+                  : itemStock
+                : 999;
               const isOverStock = hasStockLimit && item.quantity > maxAllowed;
 
               return (

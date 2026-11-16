@@ -312,6 +312,34 @@ export default function CheckoutPage() {
         return;
       }
 
+      if (payableAmount === 0) {
+        // Đơn hàng miễn phí (100% giảm giá qua voucher hoặc điểm), hoàn tất trực tiếp
+        const freePayRes = await fetch(`${API_URL}/payments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            orderId,
+            amount: 0,
+            method: "WALLET",
+            idempotencyKey: generateUUIDv4(),
+          }),
+        });
+
+        if (!freePayRes.ok) {
+          const errData = await freePayRes.json().catch(() => ({}));
+          throw new Error(errData.message || "Không thể hoàn tất đơn hàng 0đ");
+        }
+
+        isNavigatingToOrderRef.current = true;
+        clearCheckoutItems?.();
+        clearActiveCart();
+        router.push(`/orders/${orderId}?status=PAID`);
+        return;
+      }
+
       if (paymentMethod === "VIETQR") {
         const origin = typeof window !== "undefined" ? window.location.origin : "";
         const payosResponse = await fetch(
@@ -353,6 +381,27 @@ export default function CheckoutPage() {
       }
 
       if (paymentMethod === "MOMO") {
+        try {
+          const momoRes = await fetch(`${API_URL}/payments/momo-payment`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ orderId }),
+          });
+
+          if (momoRes.ok) {
+            const momoData = await momoRes.json();
+            if (momoData.payUrl) {
+              window.location.href = momoData.payUrl;
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Chưa cấu hình MoMo Gateway API, hiển thị mã thanh toán QR:", e);
+        }
+
         try {
           const payosResponse = await fetch(
             `${API_URL}/payments/create-payos-link`,
@@ -450,62 +499,32 @@ export default function CheckoutPage() {
   const handleConfirmMomoPaid = async () => {
     if (!createdOrderData || !token) return;
 
-    if (!momoIdempotencyKeyRef.current) {
-      momoIdempotencyKeyRef.current = generateUUIDv4();
-    }
-
     try {
       setIsPaying(true);
-      const paymentResponse = await fetch(
-        `${API_URL}/payments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            orderId: Number(createdOrderData.id),
-            amount: Math.round(Number(createdOrderData.total)),
-            method: "WALLET",
-            idempotencyKey: momoIdempotencyKeyRef.current || generateUUIDv4(),
-          }),
-        },
-      );
+      const res = await fetch(`${API_URL}/orders/${createdOrderData.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const paymentData = await paymentResponse.json();
-      if (!paymentResponse.ok) {
-        const errorMsg = Array.isArray(paymentData.message)
-          ? paymentData.message.join(", ")
-          : paymentData.message || "Không thể xác nhận thanh toán";
+      if (res.ok) {
+        const order = await res.json();
         if (
-          errorMsg.includes("đã được thanh toán") ||
-          errorMsg.includes("PAID")
+          order.status === "PAID" ||
+          order.status === "PREPARING" ||
+          order.status === "READY" ||
+          order.status === "COMPLETED"
         ) {
-          // Đơn hàng đã được thanh toán (qua webhook hoặc polling), tiếp tục chuyển trang
-        } else {
-          throw new Error(errorMsg);
+          isNavigatingToOrderRef.current = true;
+          setShowMomoModal(false);
+          clearCheckoutItems();
+          clearActiveCart();
+          router.push(`/orders/${createdOrderData.id}?status=PAID`);
+          return;
         }
       }
 
-      if (paymentData.pointsEarned) {
-        const currentPoints = useAuthStore.getState().user?.loyaltyPoints || 0;
-        useAuthStore
-          .getState()
-          .updateLoyaltyPoints(
-            currentPoints + Number(paymentData.pointsEarned),
-          );
-      }
-
-      isNavigatingToOrderRef.current = true;
-      const targetOrderId = createdOrderData.id;
-      momoIdempotencyKeyRef.current = null;
-      setShowMomoModal(false);
-      clearCheckoutItems();
-      clearActiveCart();
-      router.push(`/orders/${targetOrderId}?status=PAID`);
+      alert("Hệ thống chưa nhận được thông báo chuyển tiền từ MoMo. Nếu bạn vừa chuyển khoản, vui lòng đợi 10-15 giây rồi kiểm tra lại.");
     } catch (err: unknown) {
-      alert((err as Error)?.message || "Lỗi xác nhận thanh toán MoMo");
+      alert((err as Error)?.message || "Lỗi kiểm tra trạng thái đơn hàng");
     } finally {
       setIsPaying(false);
     }
@@ -1105,15 +1124,15 @@ export default function CheckoutPage() {
                 <img
                   src={
                     payosPaymentData?.accountNumber
-                      ? `https://img.vietqr.io/image/970448-${payosPaymentData.accountNumber}-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(payosPaymentData.description || `BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent(payosPaymentData.accountName || "VO DUONG THANH LE")}`
-                      : `https://img.vietqr.io/image/970448-0962629594-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(`BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent("VO DUONG THANH LE")}`
+                      ? `https://img.vietqr.io/image/970448-${payosPaymentData.accountNumber}-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(payosPaymentData.description || `BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent(payosPaymentData.accountName || "BrewLite Coffee")}`
+                      : `https://img.vietqr.io/image/970448-0962629594-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(`BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent("BrewLite Coffee")}`
                   }
                   alt="MoMo VietQR"
                   className="w-full h-full object-contain"
                 />
               </div>
               <span className="text-xs font-bold text-[#A50064] mt-2.5">
-                VO DUONG THANH LE — 0962 6295 94
+                {payosPaymentData?.accountName || "BrewLite Coffee"} — {payosPaymentData?.accountNumber || "0962 629 594"}
               </span>
               <span className="text-xl font-black text-[#A50064] mt-0.5">
                 {createdOrderData.total.toLocaleString("vi-VN")}đ
@@ -1132,12 +1151,12 @@ export default function CheckoutPage() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Người nhận:</span>
                 <span className="font-bold text-gray-800">
-                  VO DUONG THANH LE
+                  {payosPaymentData?.accountName || "BrewLite Coffee"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Số MoMo:</span>
-                <span className="font-bold text-[#A50064]">0962 6295 94</span>
+                <span className="text-gray-500">Số tài khoản / MoMo:</span>
+                <span className="font-bold text-[#A50064]">{payosPaymentData?.accountNumber || "0962 629 594"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">
@@ -1158,8 +1177,8 @@ export default function CheckoutPage() {
                 className="w-full bg-[#A50064] hover:bg-[#880052] disabled:opacity-50 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-[#A50064]/25 text-sm cursor-pointer"
               >
                 {isPaying
-                  ? "Đang xác nhận..."
-                  : "✅ Tôi đã chuyển tiền MoMo thành công"}
+                  ? "Đang kiểm tra..."
+                  : "🔄 Tôi đã chuyển tiền — Kiểm tra trạng thái đơn"}
               </button>
               <button
                 type="button"

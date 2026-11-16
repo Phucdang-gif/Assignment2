@@ -85,9 +85,14 @@ export const useCartStore = create<CartStore>()(
         const stockLimit = hasStockLimit ? Math.max(0, Number(newItem.stock)) : 999;
 
         // Tổng số lượng của productId này hiện đã có trong giỏ hàng
-        const existingProductTotalQty = currentItems
-          .filter((item) => Number(item.productId) === pId)
-          .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+        // Nếu các size dùng chung stock thì cộng gộp, nếu có stock riêng từng size thì tính theo size
+        const matchingProductItems = currentItems.filter((item) => Number(item.productId) === pId);
+        const allSameStock = matchingProductItems.every((item) => item.stock === stockLimit);
+        const existingProductTotalQty = allSameStock
+          ? matchingProductItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+          : currentItems
+              .filter((item) => Number(item.productId) === pId && item.size === newItem.size)
+              .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
         if (hasStockLimit && stockLimit <= 0) {
           return {
@@ -191,11 +196,15 @@ export const useCartStore = create<CartStore>()(
 
           if (itemToUpdate && itemToUpdate.stock !== undefined && itemToUpdate.stock !== null) {
             const stockLimit = Number(itemToUpdate.stock);
-            const otherItemsQty = (state.items.length > 0 ? state.items : state.checkoutItems)
+            const pool = state.items.length > 0 ? state.items : state.checkoutItems;
+            const sameProductItems = pool.filter((i) => Number(i.productId) === Number(itemToUpdate.productId));
+            const allSameStock = sameProductItems.every((i) => i.stock === itemToUpdate.stock);
+            const otherItemsQty = pool
               .filter(
                 (i) =>
                   Number(i.productId) === Number(itemToUpdate.productId) &&
-                  i.cartItemId !== cartItemId
+                  i.cartItemId !== cartItemId &&
+                  (allSameStock || i.size === itemToUpdate.size)
               )
               .reduce((sum, i) => sum + Number(i.quantity || 0), 0);
 
@@ -235,8 +244,33 @@ export const useCartStore = create<CartStore>()(
       loadCartForUser: (email) =>
         set((state) => {
           const savedUserItems = state.cartsByUser[email] ?? [];
-          const effectiveItems =
-            state.items.length > 0 ? state.items : savedUserItems;
+          let effectiveItems: CartItem[];
+
+          // Nếu giỏ hàng hiện tại có món từ khách vãng lai (activeUserEmail === null):
+          if (!state.activeUserEmail && state.items.length > 0) {
+            if (savedUserItems.length > 0) {
+              const merged = [...savedUserItems];
+              for (const guestItem of state.items) {
+                const existingIndex = merged.findIndex((m) => m.cartItemId === guestItem.cartItemId);
+                if (existingIndex !== -1) {
+                  merged[existingIndex] = {
+                    ...merged[existingIndex],
+                    quantity: Number(merged[existingIndex].quantity) + Number(guestItem.quantity),
+                  };
+                } else {
+                  merged.push(guestItem);
+                }
+              }
+              effectiveItems = merged;
+            } else {
+              effectiveItems = state.items;
+            }
+          } else if (state.activeUserEmail === email) {
+            effectiveItems = state.items.length > 0 ? state.items : savedUserItems;
+          } else {
+            // Đổi người dùng hoặc giỏ trống: tải giỏ hàng đã lưu của chính tài khoản này
+            effectiveItems = savedUserItems;
+          }
 
           return {
             activeUserEmail: email,
@@ -318,6 +352,7 @@ export const useCartStore = create<CartStore>()(
       clearActiveCart: () =>
         set({
           items: [],
+          activeUserEmail: null,
         }),
     }),
     {

@@ -47,7 +47,7 @@ export class ProductsService {
     const sizes = Array.from(new Set(recipes.map((r) => r.size)));
     if (sizes.length === 0) return 0;
     const capacities = sizes.map((s) => this.calculateStock(recipes, s));
-    return Math.min(...capacities);
+    return Math.max(...capacities);
   }
 
   async create(createProductDto: CreateProductDto) {

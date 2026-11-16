@@ -53,10 +53,15 @@ export default function ProductDetailPage() {
   }, [product, selectedSize]);
   const alreadyInCart = useMemo(() => {
     if (!product) return 0;
+    const hasSizeStock = product.sizeStock && product.sizeStock[selectedSize] !== undefined;
     return cartItems
-      .filter((item) => Number(item.productId) === Number(product.id))
+      .filter(
+        (item) =>
+          Number(item.productId) === Number(product.id) &&
+          (!hasSizeStock || item.size === selectedSize),
+      )
       .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  }, [cartItems, product]);
+  }, [cartItems, product, selectedSize]);
 
   const availableToBuy = Math.max(0, maxStock - alreadyInCart);
   const isOutOfStock = maxStock <= 0;
