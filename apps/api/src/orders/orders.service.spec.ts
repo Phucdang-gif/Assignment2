@@ -684,6 +684,7 @@ describe('OrdersService', () => {
         OrderItem: [],
         Payment: [],
       });
+      mockUsersService.findOne.mockResolvedValue({ id: 99, role: 'CUSTOMER' });
 
       await expect(service.markPaymentFailed(700, 99)).rejects.toThrow(ForbiddenException);
       expect(mockPrisma.order.update).not.toHaveBeenCalled();

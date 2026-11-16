@@ -6,8 +6,8 @@ export class CreateUserDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsNotEmpty({ message: 'Vui lòng nhập email' })
   @IsEmail({}, { message: 'Email không hợp lệ' })
-  @Matches(/@(gmail\.com|yahoo\.com|outlook\.com|hotmail\.com|icloud\.com|.+\.edu\.vn)$/, {
-  message: 'Chỉ hỗ trợ email Gmail, Yahoo, Outlook, Hotmail, iCloud hoặc .edu.vn',
+  @Matches(/@(gmail\.com|yahoo\.com|outlook\.com|hotmail\.com|icloud\.com|brewlite\.com|.+\.edu\.vn)$/, {
+    message: 'Chỉ hỗ trợ email Gmail, Yahoo, Outlook, Hotmail, iCloud, BrewLite hoặc .edu.vn',
   })
   @MaxLength(255)
   email: string;

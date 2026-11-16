@@ -11,9 +11,6 @@ import {
   ArrowLeftIcon,
   BankIcon,
   BagIcon,
-  TrashIcon,
-  PlusIcon,
-  MinusIcon,
   InfoIcon,
 } from '@/components/Icons';
 import {
@@ -21,95 +18,6 @@ import {
   CHECKOUT_DURATION_MINUTES,
   formatTimer,
 } from '@/hooks/useCheckoutTimer';
-
-
-function CheckoutItemQuantityControl({
-  quantity,
-  max = 999,
-  onChange,
-  onRemove,
-}: {
-  quantity: number;
-  max?: number;
-  onChange: (qty: number) => void;
-  onRemove: () => void;
-}) {
-  const [inputValue, setInputValue] = useState(String(quantity));
-
-  useEffect(() => {
-    setInputValue(String(quantity));
-  }, [quantity]);
-
-  const commitValue = (val: string) => {
-    const parsed = parseInt(val, 10);
-    if (isNaN(parsed) || parsed < 1) {
-      setInputValue('1');
-      onChange(1);
-    } else if (parsed > max) {
-      setInputValue(String(max));
-      onChange(max);
-    } else {
-      setInputValue(String(parsed));
-      onChange(parsed);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/^\d*$/.test(val)) {
-      setInputValue(val);
-      const parsed = parseInt(val, 10);
-      if (!isNaN(parsed) && parsed >= 1) {
-        onChange(Math.min(max, parsed));
-      }
-    }
-  };
-
-  return (
-    <div className="flex items-center border border-gray-200 rounded-lg bg-[#FDFBF7] focus-within:border-[#8D6E63] focus-within:ring-1 focus-within:ring-[#8D6E63] transition-all">
-      <button
-        type="button"
-        onClick={() => {
-          if (quantity > 1) {
-            onChange(quantity - 1);
-          } else {
-            onRemove();
-          }
-        }}
-        className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-black cursor-pointer"
-        aria-label="Giảm số lượng"
-      >
-        <MinusIcon className="w-2.5 h-2.5" />
-      </button>
-      <input
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={inputValue}
-        onChange={handleInputChange}
-        onBlur={() => commitValue(inputValue)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            (e.target as HTMLInputElement).blur();
-          }
-        }}
-        className="w-7 text-center font-bold text-[11px] text-[#3E2723] bg-transparent focus:outline-none focus:bg-white rounded px-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        aria-label="Nhập số lượng"
-        title={`Tối đa: ${max}`}
-      />
-      <button
-        type="button"
-        onClick={() => onChange(Math.min(max, quantity + 1))}
-        disabled={quantity >= max}
-        className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-black disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-        aria-label="Tăng số lượng"
-        title={quantity >= max ? `Đã đạt giới hạn tồn kho (${max})` : 'Tăng 1'}
-      >
-        <PlusIcon className="w-2.5 h-2.5" />
-      </button>
-    </div>
-  );
-}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -119,8 +27,9 @@ export default function CheckoutPage() {
     items,
     checkoutItems,
     pendingOrderId,
-    removeFromCart,
-    updateQuantity,
+    pendingOrderTotal,
+    pendingOrderDiscount,
+    pendingOrderRawTotal,
     startCheckout,
     restoreCheckoutToCart,
     clearCheckoutItems,
@@ -145,7 +54,20 @@ export default function CheckoutPage() {
   const [createdOrderData, setCreatedOrderData] = useState<{
     id: number;
     total: number;
-  } | null>(null);
+    subtotal?: number;
+    discountAmount?: number;
+    voucherCode?: string;
+  } | null>(() => {
+    if (pendingOrderId && pendingOrderTotal !== null) {
+      return {
+        id: pendingOrderId,
+        total: Number(pendingOrderTotal),
+        subtotal: pendingOrderRawTotal !== null ? Number(pendingOrderRawTotal) : undefined,
+        discountAmount: pendingOrderDiscount !== null ? Number(pendingOrderDiscount) : undefined,
+      };
+    }
+    return null;
+  });
   const [payosPaymentData, setPayosPaymentData] = useState<{
     qrCode?: string;
     accountNumber?: string;
@@ -213,7 +135,15 @@ export default function CheckoutPage() {
   }, [subtotal, membership.discountPercent]);
 
   const grandTotal = Math.max(0, subtotal - discountAmount);
-  const earnedPointsPreview = Math.floor(grandTotal / 10000);
+
+  const displaySubtotal = createdOrderData?.subtotal ?? subtotal;
+  const displayDiscount = createdOrderData?.discountAmount !== undefined
+    ? Number(createdOrderData.discountAmount)
+    : discountAmount;
+  const displayGrandTotal = createdOrderData?.total !== undefined
+    ? Number(createdOrderData.total)
+    : grandTotal;
+  const earnedPointsPreview = Math.floor(displayGrandTotal / 10000);
 
   useEffect(() => {
     setHasHydrated(true);
@@ -235,6 +165,27 @@ export default function CheckoutPage() {
   }, [token]);
 
   useEffect(() => {
+    if (pendingOrderId && token) {
+      fetch(`${API_URL}/orders/${pendingOrderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((order) => {
+          if (order) {
+            setCreatedOrderData({
+              id: Number(order.id),
+              total: Number(order.total),
+              subtotal: Number(order.subtotal),
+              discountAmount: Number(order.discountAmount || 0),
+              voucherCode: order.Promotion?.code || order.promotion?.code,
+            });
+          }
+        })
+        .catch((err) => console.error("Lỗi đồng bộ đơn hàng:", err));
+    }
+  }, [pendingOrderId, token]);
+
+  useEffect(() => {
     if (hasHydrated && !token) {
       alert("Vui lòng đăng nhập để thanh toán đơn hàng!");
       router.push("/login?redirect=/checkout");
@@ -243,9 +194,14 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (pendingOrderId && (!createdOrderData || createdOrderData.id !== pendingOrderId)) {
-      setCreatedOrderData({ id: pendingOrderId, total: grandTotal });
+      setCreatedOrderData({
+        id: pendingOrderId,
+        total: pendingOrderTotal !== null ? Number(pendingOrderTotal) : grandTotal,
+        subtotal: pendingOrderRawTotal !== null ? Number(pendingOrderRawTotal) : subtotal,
+        discountAmount: pendingOrderDiscount !== null ? Number(pendingOrderDiscount) : discountAmount,
+      });
     }
-  }, [pendingOrderId, createdOrderData, grandTotal]);
+  }, [pendingOrderId, pendingOrderTotal, pendingOrderRawTotal, pendingOrderDiscount, createdOrderData, grandTotal, subtotal, discountAmount]);
 
   useEffect(() => {
     if (isNavigatingToOrderRef.current) return;
@@ -345,7 +301,7 @@ export default function CheckoutPage() {
       setIsPaying(true);
 
       const orderId = createdOrderData?.id || useCartStore.getState().pendingOrderId;
-      const payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : grandTotal;
+      const payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : displayGrandTotal;
 
       if (!orderId) {
         alert("Phiên thanh toán không tồn tại hoặc đã hết hạn. Vui lòng quay lại giỏ hàng!");
@@ -938,39 +894,23 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      {(() => {
-  const otherQtySameProduct = activeItems
-    .filter(
-      (i) =>
-        Number(i.productId) === Number(item.productId) &&
-        i.cartItemId !== item.cartItemId
-    )
-    .reduce((sum, i) => sum + Number(i.quantity || 0), 0);
-  const hasStockLimit = item.stock !== undefined && item.stock !== null;
-  const itemStock = hasStockLimit ? Math.max(0, Number(item.stock)) : 999;
-  const maxAllowed = hasStockLimit ? Math.max(1, itemStock - otherQtySameProduct) : 999;
-
-  return (
-    <CheckoutItemQuantityControl
-      quantity={item.quantity}
-      max={maxAllowed}
-      onChange={(newQty) => updateQuantity(item.cartItemId, newQty)}
-      onRemove={() => removeFromCart(item.cartItemId)}
-    />
-  );
-})()}
-
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.cartItemId)}
-                        className="text-gray-300 hover:text-red-500 p-1 cursor-pointer"
-                        title="Xóa"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                      <span className="text-xs font-bold text-[#5C4D44] bg-[#F5F0E6] px-2.5 py-1 rounded-lg">
+                        x{item.quantity}
+                      </span>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD8] text-[11px] text-[#8D6E63] flex items-center justify-between">
+                <span>Món và số lượng đã được giữ kho cho bạn.</span>
+                <button
+                  type="button"
+                  onClick={handleBackToCart}
+                  className="font-bold text-[#763A1E] hover:underline cursor-pointer"
+                >
+                  Sửa món / giỏ hàng
+                </button>
               </div>
 
               <div className="pt-2 border-t border-gray-100 space-y-3">
@@ -1061,23 +1001,22 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-[#5C4D44]">
                   <span>Tạm tính ({activeItems.length} món)</span>
                   <span className="font-bold text-[#2E1810]">
-                    {subtotal.toLocaleString("vi-VN")}đ
+                    {displaySubtotal.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
 
-                {discountAmount > 0 ? (
+                {displayDiscount > 0 ? (
                   <div className="flex justify-between text-emerald-600 font-medium">
                     <span>
-                      Giảm giá thành viên (Hạng {membership.tier} -
-                      {membership.discountPercent}%)
+                      Giảm giá {createdOrderData?.voucherCode ? `(Mã: ${createdOrderData.voucherCode})` : (membership.discountPercent > 0 ? `(Hạng ${membership.tier} - ${membership.discountPercent}%)` : '')}
                     </span>
                     <span className="font-bold">
-                      -{discountAmount.toLocaleString("vi-VN")}đ
+                      -{displayDiscount.toLocaleString("vi-VN")}đ
                     </span>
                   </div>
                 ) : (
                   <div className="flex justify-between text-gray-400">
-                    <span>Giảm giá thành viên</span>
+                    <span>Giảm giá</span>
                     <span>0đ</span>
                   </div>
                 )}
@@ -1095,7 +1034,7 @@ export default function CheckoutPage() {
                   Tổng cộng
                 </span>
                 <span className="font-extrabold text-2xl text-[#3E2723]">
-                  {grandTotal.toLocaleString("vi-VN")}đ
+                  {displayGrandTotal.toLocaleString("vi-VN")}đ
                 </span>
               </div>
 

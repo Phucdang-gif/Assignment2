@@ -139,7 +139,7 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
+                placeholder="Nhập mật khẩu (từ 8 đến 30 ký tự)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

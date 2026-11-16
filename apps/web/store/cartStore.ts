@@ -30,15 +30,25 @@ interface CartStore {
   checkoutItems: CartItem[];
   checkoutExpiresAt: number | null;
   pendingOrderId: number | null;
+  pendingOrderTotal: number | null;
+  pendingOrderDiscount: number | null;
+  pendingOrderRawTotal: number | null;
 
   setPendingOrderId: (orderId: number | null) => void;
+  setPendingOrderDetails: (
+    details: { id: number; total: number; rawTotal?: number; discount?: number } | null
+  ) => void;
   addToCart: (newItem: CartItem) => AddToCartResult;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   loadCartForUser: (email: string) => void;
   clearActiveCart: () => void;
 
-  startCheckout: (durationMinutes?: number, orderId?: number | null) => void;
+  startCheckout: (
+    durationMinutes?: number,
+    orderId?: number | null,
+    orderSummary?: { total: number; rawTotal?: number; discount?: number } | null
+  ) => void;
   restoreCheckoutToCart: () => void;
   clearCheckoutItems: () => void;
 }
@@ -52,8 +62,18 @@ export const useCartStore = create<CartStore>()(
       checkoutItems: [],
       checkoutExpiresAt: null,
       pendingOrderId: null,
+      pendingOrderTotal: null,
+      pendingOrderDiscount: null,
+      pendingOrderRawTotal: null,
 
       setPendingOrderId: (orderId) => set({ pendingOrderId: orderId }),
+      setPendingOrderDetails: (details) =>
+        set({
+          pendingOrderId: details ? details.id : null,
+          pendingOrderTotal: details ? details.total : null,
+          pendingOrderRawTotal: details?.rawTotal ?? null,
+          pendingOrderDiscount: details?.discount ?? null,
+        }),
 
       addToCart: (newItem) => {
         const authUser = useAuthStore.getState().user;
@@ -228,7 +248,11 @@ export const useCartStore = create<CartStore>()(
           };
         }),
 
-      startCheckout: (durationMinutes = CHECKOUT_DURATION_MINUTES, orderId?: number | null) =>
+      startCheckout: (
+        durationMinutes = CHECKOUT_DURATION_MINUTES,
+        orderId?: number | null,
+        orderSummary?: { total: number; rawTotal?: number; discount?: number } | null
+      ) =>
         set((state) => {
           const authUser = useAuthStore.getState().user;
           const email = authUser?.email || state.activeUserEmail;
@@ -240,6 +264,9 @@ export const useCartStore = create<CartStore>()(
             checkoutItems: [...currentItems],
             checkoutExpiresAt: expiresAt,
             pendingOrderId: orderId !== undefined ? orderId : state.pendingOrderId,
+            pendingOrderTotal: orderSummary ? orderSummary.total : state.pendingOrderTotal,
+            pendingOrderRawTotal: orderSummary ? (orderSummary.rawTotal ?? null) : state.pendingOrderRawTotal,
+            pendingOrderDiscount: orderSummary ? (orderSummary.discount ?? null) : state.pendingOrderDiscount,
             cartsByUser: email
               ? {
                   ...state.cartsByUser,
@@ -266,6 +293,9 @@ export const useCartStore = create<CartStore>()(
             checkoutItems: [],
             checkoutExpiresAt: null,
             pendingOrderId: null,
+            pendingOrderTotal: null,
+            pendingOrderRawTotal: null,
+            pendingOrderDiscount: null,
             cartsByUser: email
               ? {
                   ...state.cartsByUser,
@@ -280,6 +310,9 @@ export const useCartStore = create<CartStore>()(
           checkoutItems: [],
           checkoutExpiresAt: null,
           pendingOrderId: null,
+          pendingOrderTotal: null,
+          pendingOrderRawTotal: null,
+          pendingOrderDiscount: null,
         }),
 
       clearActiveCart: () =>
@@ -296,6 +329,9 @@ export const useCartStore = create<CartStore>()(
         checkoutItems: state.checkoutItems,
         checkoutExpiresAt: state.checkoutExpiresAt,
         pendingOrderId: state.pendingOrderId,
+        pendingOrderTotal: state.pendingOrderTotal,
+        pendingOrderRawTotal: state.pendingOrderRawTotal,
+        pendingOrderDiscount: state.pendingOrderDiscount,
       }),
     }
   )
