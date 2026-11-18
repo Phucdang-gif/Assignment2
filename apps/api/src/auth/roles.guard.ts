@@ -14,12 +14,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
 
-export const ADMIN_ROLES = ['admin'] as const;
-export const BARISTA_ROLES = ['barista', 'admin'] as const;
-export const STAFF_ROLES = BARISTA_ROLES;
-
-export const isAdminRole = (role?: string | null): boolean =>
-  !!role && (ADMIN_ROLES as readonly string[]).includes(role);
+export const STAFF_ROLES = ['barista', 'admin'] as const;
 
 export const isStaffRole = (role?: string | null): boolean =>
   !!role && (STAFF_ROLES as readonly string[]).includes(role);
@@ -65,12 +60,6 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
-
-export const AdminOnly = () =>
-  applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...ADMIN_ROLES));
-
-export const BaristaOnly = () =>
-  applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...BARISTA_ROLES));
 
 export const StaffOnly = () =>
   applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...STAFF_ROLES));
