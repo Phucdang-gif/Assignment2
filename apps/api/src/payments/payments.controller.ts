@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -27,11 +28,22 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   /**
-   * API Thanh toán Ví/Thẻ mô phỏng với cơ chế Idempotency Key
+   * API Thanh toán Ví/Thẻ mô phỏng với cơ chế Idempotency Key.
+   * Chỉ khả dụng trong môi trường test tự động hoặc khi bật ALLOW_MOCK_PAYMENT=true (ngoài production).
    */
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() dto: CreatePaymentDto, @Request() req: AuthReq) {
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    const isMockExplicitlyAllowed =
+      process.env.ALLOW_MOCK_PAYMENT === 'true' && process.env.NODE_ENV !== 'production';
+
+    if (!isTestEnv && !isMockExplicitlyAllowed) {
+      throw new ForbiddenException(
+        'Tính năng thanh toán mô phỏng đã bị vô hiệu hóa. Vui lòng thanh toán qua PayOS hoặc MoMo.',
+      );
+    }
+
     await this.paymentsService.assertOrderAccess(dto.orderId, Number(req.user.userId));
     return this.paymentsService.create(dto);
   }
