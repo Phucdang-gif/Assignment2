@@ -1,4 +1,6 @@
+import { ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { payment_method } from '@prisma/client';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -7,9 +9,11 @@ import { UsersService } from '../users/users.service';
 
 describe('PaymentsController (Security & Guards)', () => {
   let controller: PaymentsController;
+  const originalEnv = process.env;
 
   const mockPaymentsService = {
     create: jest.fn(),
+    assertOrderAccess: jest.fn(),
     verifyPayOSPayment: jest.fn(),
     createPayOSLink: jest.fn(),
     handlePayOSWebhook: jest.fn(),
@@ -21,6 +25,9 @@ describe('PaymentsController (Security & Guards)', () => {
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
       providers: [
@@ -36,6 +43,10 @@ describe('PaymentsController (Security & Guards)', () => {
     }).compile();
 
     controller = module.get<PaymentsController>(PaymentsController);
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
   });
 
   it('phải được định nghĩa', () => {
@@ -76,5 +87,57 @@ describe('PaymentsController (Security & Guards)', () => {
     const confirmUrlGuards = Reflect.getMetadata('__guards__', controller.confirmPayOSWebhookUrl);
     expect(confirmUrlGuards).toBeDefined();
     expect(confirmUrlGuards).toEqual(expect.arrayContaining([JwtAuthGuard, RolesGuard]));
+  });
+
+  describe('POST /api/payments (Chặn thanh toán mô phỏng ở môi trường thực tế)', () => {
+    const sampleDto = {
+      orderId: 1,
+      amount: 50000,
+      method: payment_method.WALLET,
+      idempotencyKey: '550e8400-e29b-41d4-a716-446655440000',
+    };
+    const sampleReq = { user: { userId: 10 } };
+
+    it('chặn (403 Forbidden) khi chạy ở môi trường production ngay cả khi bật ALLOW_MOCK_PAYMENT=true', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.ALLOW_MOCK_PAYMENT = 'true';
+
+      await expect(controller.create(sampleDto, sampleReq)).rejects.toThrow(ForbiddenException);
+      expect(mockPaymentsService.assertOrderAccess).not.toHaveBeenCalled();
+      expect(mockPaymentsService.create).not.toHaveBeenCalled();
+    });
+
+    it('chặn (403 Forbidden) khi chạy ở môi trường development và chưa bật ALLOW_MOCK_PAYMENT', async () => {
+      process.env.NODE_ENV = 'development';
+      delete process.env.ALLOW_MOCK_PAYMENT;
+
+      await expect(controller.create(sampleDto, sampleReq)).rejects.toThrow(ForbiddenException);
+      expect(mockPaymentsService.assertOrderAccess).not.toHaveBeenCalled();
+      expect(mockPaymentsService.create).not.toHaveBeenCalled();
+    });
+
+    it('cho phép chạy khi ở môi trường test (NODE_ENV=test)', async () => {
+      process.env.NODE_ENV = 'test';
+      delete process.env.ALLOW_MOCK_PAYMENT;
+      mockPaymentsService.assertOrderAccess.mockResolvedValue(undefined);
+      mockPaymentsService.create.mockResolvedValue({ success: true });
+
+      const result = await controller.create(sampleDto, sampleReq);
+      expect(result).toEqual({ success: true });
+      expect(mockPaymentsService.assertOrderAccess).toHaveBeenCalledWith(1, 10);
+      expect(mockPaymentsService.create).toHaveBeenCalledWith(sampleDto);
+    });
+
+    it('cho phép chạy khi ở môi trường development và bật ALLOW_MOCK_PAYMENT=true', async () => {
+      process.env.NODE_ENV = 'development';
+      process.env.ALLOW_MOCK_PAYMENT = 'true';
+      mockPaymentsService.assertOrderAccess.mockResolvedValue(undefined);
+      mockPaymentsService.create.mockResolvedValue({ success: true });
+
+      const result = await controller.create(sampleDto, sampleReq);
+      expect(result).toEqual({ success: true });
+      expect(mockPaymentsService.assertOrderAccess).toHaveBeenCalledWith(1, 10);
+      expect(mockPaymentsService.create).toHaveBeenCalledWith(sampleDto);
+    });
   });
 });
