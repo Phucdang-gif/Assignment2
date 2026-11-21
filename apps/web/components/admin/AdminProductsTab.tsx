@@ -6,7 +6,9 @@ import {
   createAdminProduct,
   deleteAdminProduct,
   ProductPayload,
+  resolveAdminImageUrl,
   updateAdminProduct,
+  UpdateProductPayload,
 } from '@/services/adminService';
 import { formatVnd } from './adminConstants';
 
@@ -85,23 +87,34 @@ export default function AdminProductsTab({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: ProductPayload = {
-      name: form.name.trim(),
-      price: Math.round(Number(form.price) || 0),
-      status: form.status,
-      ...(form.categoryId ? { categoryId: Number(form.categoryId) } : {}),
-      ...(form.imageUrl.trim() ? { imageUrl: form.imageUrl.trim() } : {}),
-      ...(form.description.trim() ? { description: form.description.trim() } : {}),
-    };
+    const trimmedName = form.name.trim();
+    const trimmedImage = form.imageUrl.trim();
+    const trimmedDesc = form.description.trim();
 
     try {
       setBusy(true);
       if (form.id) {
-        await updateAdminProduct(form.id, payload);
-        onNotify('success', `Đã cập nhật "${payload.name}"`);
+        const updatePayload: UpdateProductPayload = {
+          name: trimmedName,
+          price: Math.round(Number(form.price) || 0),
+          status: form.status,
+          categoryId: form.categoryId ? Number(form.categoryId) : null,
+          imageUrl: trimmedImage || null,
+          description: trimmedDesc || null,
+        };
+        await updateAdminProduct(form.id, updatePayload);
+        onNotify('success', `Đã cập nhật "${trimmedName}"`);
       } else {
-        await createAdminProduct(payload);
-        onNotify('success', `Đã thêm sản phẩm "${payload.name}"`);
+        const createPayload: ProductPayload = {
+          name: trimmedName,
+          price: Math.round(Number(form.price) || 0),
+          status: form.status,
+          ...(form.categoryId ? { categoryId: Number(form.categoryId) } : {}),
+          ...(trimmedImage ? { imageUrl: trimmedImage } : {}),
+          ...(trimmedDesc ? { description: trimmedDesc } : {}),
+        };
+        await createAdminProduct(createPayload);
+        onNotify('success', `Đã thêm sản phẩm "${trimmedName}"`);
       }
       setModalOpen(false);
       await onRefresh();
@@ -217,7 +230,7 @@ export default function AdminProductsTab({
                         <div className="flex items-center gap-3">
                           {p.imageUrl ? (
                             <img
-                              src={p.imageUrl}
+                              src={resolveAdminImageUrl(p.imageUrl)}
                               alt={p.name}
                               className="w-11 h-11 rounded-xl object-cover border border-[#E8DFD8] shrink-0"
                             />
@@ -353,13 +366,13 @@ export default function AdminProductsTab({
 
             <div>
               <label className="block text-xs font-semibold text-[#5C4D44] mb-1">
-                URL hình ảnh (https://...)
+                URL hình ảnh (https://... hoặc /images/...)
               </label>
               <input
-                type="url"
+                type="text"
                 value={form.imageUrl}
                 onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                placeholder="https://images.unsplash.com/..."
+                placeholder="https://images.unsplash.com/... hoặc /images/coffee.jpg"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD8] text-sm focus:outline-none focus:ring-2 focus:ring-[#D7A86E]"
               />
             </div>

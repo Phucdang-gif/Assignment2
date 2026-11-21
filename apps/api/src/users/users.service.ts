@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -56,7 +56,18 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, dto: UpdateUserDto) {
+  async update(id: number, dto: UpdateUserDto, actorUserId?: number) {
+    if (
+      actorUserId !== undefined &&
+      Number(actorUserId) === Number(id) &&
+      dto.role &&
+      dto.role !== 'admin'
+    ) {
+      throw new BadRequestException(
+        'Không thể tự hạ quyền tài khoản quản trị đang đăng nhập',
+      );
+    }
+
     const data: Prisma.UserUpdateInput = {};
     if (dto.email) data.email = dto.email;
     if (dto.fullName) data.fullName = dto.fullName;
@@ -71,7 +82,11 @@ export class UsersService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, actorUserId?: number) {
+    if (actorUserId !== undefined && Number(actorUserId) === Number(id)) {
+      throw new BadRequestException('Không thể tự xóa tài khoản đang đăng nhập');
+    }
+
     try {
       await this.prisma.user.delete({ where: { id } });
     } catch (e) {

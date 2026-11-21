@@ -150,8 +150,12 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('admin/all')
-  findAllAdmin(@Query('status') status?: string) {
-    return this.ordersService.findAllAdmin(status);
+  findAllAdmin(@Query('status') status?: string, @Query('limit') limit?: string) {
+    const parsedLimit = limit ? Number(limit) : undefined;
+    return this.ordersService.findAllAdmin(
+      status,
+      Number.isFinite(parsedLimit) ? parsedLimit : undefined,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

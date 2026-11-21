@@ -75,11 +75,12 @@ export default function AdminUsersTab({
     try {
       setBusy(true);
       if (form.id) {
+        const isEditingSelf = Number(form.id) === Number(currentUserId);
         await updateAdminUser(form.id, {
           fullName: form.fullName.trim() || undefined,
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
-          role: form.role,
+          ...(isEditingSelf ? {} : { role: form.role }),
           ...(form.password.trim() ? { password: form.password.trim() } : {}),
         });
         onNotify('success', 'Đã cập nhật tài khoản');
@@ -326,18 +327,24 @@ export default function AdminUsersTab({
                 </label>
                 <select
                   value={form.role}
+                  disabled={Number(form.id) === Number(currentUserId)}
                   onChange={(e) =>
                     setForm({
                       ...form,
                       role: e.target.value as 'customer' | 'barista' | 'admin',
                     })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD8] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#D7A86E]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD8] text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D7A86E]"
                 >
                   <option value="customer">Khách hàng (customer)</option>
                   <option value="barista">Barista (barista)</option>
                   <option value="admin">Quản trị viên (admin)</option>
                 </select>
+                {Number(form.id) === Number(currentUserId) && (
+                  <p className="text-[11px] text-[#8D6E63] mt-1">
+                    Không thể tự thay đổi vai trò của tài khoản đang đăng nhập.
+                  </p>
+                )}
               </div>
             )}
 

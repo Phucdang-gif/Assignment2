@@ -816,14 +816,17 @@ export class OrdersService {
     return this.updateStatus(orderId, newStatus);
   }
 
-  async findAllAdmin(status?: string) {
+  async findAllAdmin(status?: string, limit = 200) {
     const whereClause: any = {};
     if (status && status !== 'ALL' && Object.values(order_status).includes(status as order_status)) {
       whereClause.status = status as order_status;
     }
 
+    const safeLimit = Math.min(Math.max(1, Math.floor(limit || 200)), 500);
+
     return this.prisma.order.findMany({
       where: whereClause,
+      take: safeLimit,
       include: {
         OrderItem: {
           include: {

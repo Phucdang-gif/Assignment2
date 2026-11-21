@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -17,11 +18,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard, Roles, STAFF_ROLES } from '../auth/roles.guard';
+import { RolesGuard, Roles, ADMIN_ROLES } from '../auth/roles.guard';
 
 @Controller(['api/users', 'users'])
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(...STAFF_ROLES)
+@Roles(...ADMIN_ROLES)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -41,13 +42,22 @@ export class UsersController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+    @Request() req?: { user?: { userId?: number } },
+  ) {
+    const actorId = req?.user?.userId !== undefined ? Number(req.user.userId) : undefined;
+    return this.usersService.update(id, dto, actorId);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req?: { user?: { userId?: number } },
+  ) {
+    const actorId = req?.user?.userId !== undefined ? Number(req.user.userId) : undefined;
+    return this.usersService.remove(id, actorId);
   }
 }
