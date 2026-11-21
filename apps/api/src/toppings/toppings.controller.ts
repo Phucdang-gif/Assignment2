@@ -19,6 +19,12 @@ export class ToppingsController {
     return this.toppingsService.findAll();
   }
 
+  @StaffOnly()
+  @Get('admin/all')
+  findAllAdmin() {
+    return this.toppingsService.findAllAdmin();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.toppingsService.findOne(id);

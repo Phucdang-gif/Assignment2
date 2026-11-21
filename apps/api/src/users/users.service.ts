@@ -111,6 +111,11 @@ export class UsersService {
         if (t.includes('phone')) throw new ConflictException('Số điện thoại đã được sử dụng');
         throw new ConflictException('Email đã được sử dụng');
       }
+      if (e.code === 'P2003') {
+        throw new ConflictException(
+          'Không thể xóa tài khoản này vì đã có lịch sử đơn hàng. Vui lòng giữ lại để đảm bảo dữ liệu đối soát.',
+        );
+      }
       if (e.code === 'P2025') throw new NotFoundException(`User ${id} không tồn tại`);
     }
     throw e;

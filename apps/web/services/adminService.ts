@@ -85,7 +85,7 @@ export async function deleteAdminCategory(id: number): Promise<void> {
 
 // --- Toppings ---
 export async function fetchAdminToppings(): Promise<ToppingItem[]> {
-  const res = await fetchApi<{ data?: ToppingItem[] } | ToppingItem[]>('/toppings');
+  const res = await fetchApi<{ data?: ToppingItem[] } | ToppingItem[]>('/toppings/admin/all');
   const list = Array.isArray(res) ? res : res.data || [];
   return list.map((t) => ({
     id: Number(t.id),

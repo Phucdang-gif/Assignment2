@@ -106,7 +106,13 @@ export default function AdminUsersTab({
       onNotify('error', 'Không thể tự xóa tài khoản đang đăng nhập');
       return;
     }
-    if (!window.confirm(`Xóa tài khoản ${u.email}?`)) return;
+    if (
+      !window.confirm(
+        `Xóa tài khoản ${u.email}?\n\nLưu ý: Các tài khoản đã phát sinh đơn hàng sẽ được hệ thống chặn xóa để bảo toàn lịch sử giao dịch và đối soát doanh thu.`,
+      )
+    ) {
+      return;
+    }
     try {
       setBusy(true);
       await deleteAdminUser(u.id);
@@ -121,6 +127,10 @@ export default function AdminUsersTab({
 
   return (
     <div className="space-y-5">
+      <div className="bg-amber-50/80 border border-amber-200 rounded-2xl px-4 py-3 text-xs text-amber-900">
+        🛡️ <strong>Bảo toàn dữ liệu đối soát:</strong> Hệ thống chỉ cho phép xóa tài khoản chưa phát sinh đơn hàng. Tài khoản đã mua hàng được bảo vệ để tránh sai lệch báo cáo doanh thu.
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl border border-[#E8DFD8] p-4 shadow-xs">
         <div>
           <p className="text-sm font-bold text-[#3E2723]">

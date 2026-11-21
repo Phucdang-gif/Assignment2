@@ -80,7 +80,13 @@ export default function AdminToppingsTab({
   };
 
   const handleDelete = async (t: ToppingItem) => {
-    if (!window.confirm(`Xóa topping "${t.name}"?`)) return;
+    if (
+      !window.confirm(
+        `Xóa vĩnh viễn topping "${t.name}"?\n\nLưu ý: Nếu quầy tạm hết hàng, nên bấm đổi trạng thái sang "Tạm hết" thay vì xóa. Topping đã từng xuất hiện trong đơn hàng sẽ không thể xóa để bảo toàn lịch sử.`,
+      )
+    ) {
+      return;
+    }
     try {
       setBusy(true);
       await deleteAdminTopping(t.id);
@@ -95,6 +101,11 @@ export default function AdminToppingsTab({
 
   return (
     <div className="space-y-6">
+      <div className="bg-amber-50/80 border border-amber-200 rounded-2xl px-4 py-3 text-xs text-amber-900">
+        💡 <strong>Khuyến nghị vận hành:</strong> Khi quầy tạm hết nguyên liệu topping, hãy bấm vào nút{' '}
+        <strong>Còn hàng / Tạm hết</strong> thay vì xóa. Nút <strong>Xóa</strong> chỉ áp dụng cho topping mới tạo chưa có trong đơn hàng nào.
+      </div>
+
       <form
         onSubmit={handleCreate}
         className="bg-white rounded-2xl border border-[#E8DFD8] p-5 shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-3"
