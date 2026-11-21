@@ -192,6 +192,19 @@ export default function Header() {
                       </span>
                     </Link>
 
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center justify-between px-4 py-2.5 text-sm text-[#3E2723] hover:bg-[#FDFBF7] font-bold"
+                      >
+                        <span>Quản trị hệ thống</span>
+                        <span className="text-[10px] bg-[#3E2723] text-[#FDFBF7] px-1.5 py-0.5 rounded">
+                          Admin
+                        </span>
+                      </Link>
+                    )}
+
                     <div className="border-t border-gray-100 mt-1 pt-1">
                       <button
                         onClick={handleLogout}

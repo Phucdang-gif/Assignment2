@@ -62,6 +62,7 @@ export class UsersService {
     if (dto.fullName) data.fullName = dto.fullName;
     if (dto.phone) data.phone = dto.phone;
     if (dto.password) data.passwordHash = await bcrypt.hash(dto.password, 10);
+    if (dto.role) data.role = dto.role;
 
     try {
       return await this.prisma.user.update({ where: { id }, data, select: userSelect });

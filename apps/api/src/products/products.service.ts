@@ -81,6 +81,25 @@ export class ProductsService {
     }));
   }
 
+  async findAllAdmin() {
+    const products = await this.prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        category: true,
+        ProductRecipeItem: {
+          include: {
+            Ingredient: true,
+          },
+        },
+      },
+    });
+
+    return products.map((p) => ({
+      ...p,
+      stock: this.calculateStock(p.ProductRecipeItem as any),
+    }));
+  }
+
   async findOne(id: number) {
     const product = await this.prisma.product.findUnique({
       where: { id },

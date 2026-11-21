@@ -815,4 +815,37 @@ export class OrdersService {
 
     return this.updateStatus(orderId, newStatus);
   }
+
+  async findAllAdmin(status?: string) {
+    const whereClause: any = {};
+    if (status && status !== 'ALL' && Object.values(order_status).includes(status as order_status)) {
+      whereClause.status = status as order_status;
+    }
+
+    return this.prisma.order.findMany({
+      where: whereClause,
+      include: {
+        OrderItem: {
+          include: {
+            Product: true,
+            OrderItemTopping: {
+              include: {
+                Topping: true,
+              },
+            },
+          },
+        },
+        User: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }

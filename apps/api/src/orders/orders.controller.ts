@@ -147,6 +147,13 @@ export class OrdersController {
     return this.ordersService.validateVoucher(code, Number(subtotal || 0));
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('admin/all')
+  findAllAdmin(@Query('status') status?: string) {
+    return this.ordersService.findAllAdmin(status);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(
