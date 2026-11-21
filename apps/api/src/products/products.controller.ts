@@ -18,6 +18,12 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
+  @StaffOnly()
+  @Get('admin/all')
+  findAllAdmin() {
+    return this.productsService.findAllAdmin();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findOne(id);
