@@ -8,16 +8,17 @@ import {
   UsersListResponse,
 } from '@/types/types';
 
+export function resolveAdminImageUrl(url?: string | null): string {
+  if (!url) return '';
+  return url.startsWith('http') ? url : assetUrl(url);
+}
+
 function normalizeProduct(p: Product): Product {
   return {
     id: Number(p.id),
     name: p.name,
     price: Number(p.price),
-    imageUrl: p.imageUrl
-      ? p.imageUrl.startsWith('http')
-        ? p.imageUrl
-        : assetUrl(p.imageUrl)
-      : '',
+    imageUrl: p.imageUrl || '',
     description: p.description || '',
     status: p.status || 'active',
     stock: p.stock !== undefined ? Number(p.stock) : 0,
@@ -41,6 +42,15 @@ export interface ProductPayload {
   categoryId?: number;
 }
 
+export interface UpdateProductPayload {
+  name?: string;
+  price?: number;
+  imageUrl?: string | null;
+  description?: string | null;
+  status?: 'active' | 'inactive';
+  categoryId?: number | null;
+}
+
 export async function createAdminProduct(payload: ProductPayload): Promise<Product> {
   const created = await fetchApi<Product>('/products', {
     method: 'POST',
@@ -51,7 +61,7 @@ export async function createAdminProduct(payload: ProductPayload): Promise<Produ
 
 export async function updateAdminProduct(
   id: number,
-  payload: Partial<ProductPayload>,
+  payload: UpdateProductPayload,
 ): Promise<Product> {
   const updated = await fetchApi<Product>(`/products/${id}`, {
     method: 'PATCH',

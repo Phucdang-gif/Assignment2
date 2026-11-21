@@ -9,9 +9,13 @@ export class ToppingsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createToppingDto: CreateToppingDto) {
-    return this.prisma.topping.create({
-      data: createToppingDto,
-    });
+    try {
+      return await this.prisma.topping.create({
+        data: createToppingDto,
+      });
+    } catch (e) {
+      this.handleError(e);
+    }
   }
 
   async findAll() {
@@ -34,10 +38,14 @@ export class ToppingsService {
   }
 
   async update(id: number, updateToppingDto: UpdateToppingDto) {
-    return this.prisma.topping.update({
-      where: { id },
-      data: updateToppingDto,
-    });
+    try {
+      return await this.prisma.topping.update({
+        where: { id },
+        data: updateToppingDto,
+      });
+    } catch (e) {
+      this.handleError(e, id);
+    }
   }
 
   async remove(id: number) {
@@ -46,17 +54,24 @@ export class ToppingsService {
         where: { id },
       });
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') {
-          throw new ConflictException(
-            'Không thể xóa topping này vì đã xuất hiện trong lịch sử đơn hàng. Vui lòng chuyển sang trạng thái "Tạm hết" thay vì xóa.',
-          );
-        }
-        if (e.code === 'P2025') {
-          throw new NotFoundException(`Topping #${id} không tồn tại`);
-        }
-      }
-      throw e;
+      this.handleError(e, id);
     }
+  }
+
+  private handleError(e: unknown, id?: number): never {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === 'P2002') {
+        throw new ConflictException('Tên topping đã tồn tại');
+      }
+      if (e.code === 'P2003') {
+        throw new ConflictException(
+          'Không thể xóa topping này vì đã xuất hiện trong lịch sử đơn hàng. Vui lòng chuyển sang trạng thái "Tạm hết" thay vì xóa.',
+        );
+      }
+      if (e.code === 'P2025') {
+        throw new NotFoundException(`Topping #${id} không tồn tại`);
+      }
+    }
+    throw e;
   }
 }

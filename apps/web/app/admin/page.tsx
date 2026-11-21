@@ -69,8 +69,34 @@ export default function AdminDashboardPage() {
 
   const isAdmin = isMounted && user?.role === 'admin';
 
+  const loadUsers = useCallback(
+    async (pageToLoad: number) => {
+      if (!token || user?.role !== 'admin') return;
+      try {
+        const userRes = await fetchAdminUsers(pageToLoad, USERS_PAGE_SIZE);
+        const items = userRes.items || [];
+        const total = userRes.total || 0;
+        if (items.length === 0 && pageToLoad > 1 && total > 0) {
+          const prevPage = pageToLoad - 1;
+          setUsersPage(prevPage);
+          const prevRes = await fetchAdminUsers(prevPage, USERS_PAGE_SIZE);
+          setUsers(prevRes.items || []);
+          setUsersTotal(prevRes.total || 0);
+          return;
+        }
+        setUsers(items);
+        setUsersTotal(total);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : 'Không thể tải danh sách người dùng';
+        setError(message);
+      }
+    },
+    [token, user?.role],
+  );
+
   const loadAllData = useCallback(
-    async (pageToLoad = usersPage) => {
+    async (pageToLoad = 1) => {
       if (!token || user?.role !== 'admin') {
         setLoading(false);
         return;
@@ -91,8 +117,18 @@ export default function AdminDashboardPage() {
         setCategories(catList);
         setToppings(topList);
         setOrders(orderList);
-        setUsers(userRes.items || []);
-        setUsersTotal(userRes.total || 0);
+        const items = userRes.items || [];
+        const total = userRes.total || 0;
+        if (items.length === 0 && pageToLoad > 1 && total > 0) {
+          const prevPage = pageToLoad - 1;
+          setUsersPage(prevPage);
+          const prevRes = await fetchAdminUsers(prevPage, USERS_PAGE_SIZE);
+          setUsers(prevRes.items || []);
+          setUsersTotal(prevRes.total || 0);
+        } else {
+          setUsers(items);
+          setUsersTotal(total);
+        }
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : 'Không thể tải dữ liệu quản trị';
@@ -101,14 +137,19 @@ export default function AdminDashboardPage() {
         setLoading(false);
       }
     },
-    [token, user?.role, usersPage],
+    [token, user?.role],
   );
 
   useEffect(() => {
     if (isMounted) {
-      loadAllData(usersPage);
+      loadAllData(1);
     }
-  }, [isMounted, usersPage, loadAllData]);
+  }, [isMounted, loadAllData]);
+
+  const handleUsersPageChange = (nextPage: number) => {
+    setUsersPage(nextPage);
+    void loadUsers(nextPage);
+  };
 
   const handleLogout = () => {
     logout();
@@ -373,8 +414,8 @@ export default function AdminDashboardPage() {
                   page={usersPage}
                   limit={USERS_PAGE_SIZE}
                   currentUserId={user.id}
-                  onPageChange={(nextPage) => setUsersPage(nextPage)}
-                  onRefresh={() => loadAllData(usersPage)}
+                  onPageChange={handleUsersPageChange}
+                  onRefresh={() => loadUsers(usersPage)}
                   onNotify={notify}
                 />
               )}

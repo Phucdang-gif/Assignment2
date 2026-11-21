@@ -89,6 +89,17 @@ describe('ToppingsService', () => {
       expect(newTopping.name).toBe('Trân châu trắng');
       expect(mockPrisma.topping.create).toHaveBeenCalled();
     });
+    it('ném ConflictException khi tạo topping trùng tên (P2002)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('Unique failed', {
+        code: 'P2002',
+        clientVersion: '5.22.0',
+      });
+      mockPrisma.topping.create.mockRejectedValueOnce(prismaError);
+
+      await expect(
+        service.create({ name: 'Trân châu đen hoàng gia', price: 10000 }),
+      ).rejects.toThrow(ConflictException);
+    });
   });
 
   describe('update', () => {
@@ -96,6 +107,28 @@ describe('ToppingsService', () => {
       const updated = await service.update(1, { price: 12000 });
       expect(updated.price).toBe(12000);
       expect(mockPrisma.topping.update).toHaveBeenCalled();
+    });
+
+    it('ném ConflictException khi cập nhật trùng tên topping (P2002)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('Unique failed', {
+        code: 'P2002',
+        clientVersion: '5.22.0',
+      });
+      mockPrisma.topping.update.mockRejectedValueOnce(prismaError);
+
+      await expect(
+        service.update(1, { name: 'Thạch củ năng' }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('ném NotFoundException khi cập nhật topping không tồn tại (P2025)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('Not found', {
+        code: 'P2025',
+        clientVersion: '5.22.0',
+      });
+      mockPrisma.topping.update.mockRejectedValueOnce(prismaError);
+
+      await expect(service.update(999, { price: 15000 })).rejects.toThrow(NotFoundException);
     });
   });
 
