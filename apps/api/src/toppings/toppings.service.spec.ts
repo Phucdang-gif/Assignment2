@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConflictException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { ToppingsService } from './toppings.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -97,6 +99,16 @@ describe('ToppingsService', () => {
     });
   });
 
+  describe('findAllAdmin', () => {
+    it('lấy toàn bộ topping (bao gồm cả tạm hết) cho admin', async () => {
+      const toppings = await service.findAllAdmin();
+      expect(toppings).toHaveLength(3);
+      expect(mockPrisma.topping.findMany).toHaveBeenCalledWith({
+        orderBy: { id: 'asc' },
+      });
+    });
+  });
+
   describe('remove', () => {
     it('xóa topping thành công', async () => {
       const removed = await service.remove(1);
@@ -104,6 +116,26 @@ describe('ToppingsService', () => {
       expect(mockPrisma.topping.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
+    });
+
+    it('ném ConflictException thân thiện khi topping đã có trong đơn hàng (P2003)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('FK failed', {
+        code: 'P2003',
+        clientVersion: '5.22.0',
+      });
+      mockPrisma.topping.delete.mockRejectedValueOnce(prismaError);
+
+      await expect(service.remove(1)).rejects.toThrow(ConflictException);
+    });
+
+    it('ném NotFoundException khi topping không tồn tại (P2025)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('Not found', {
+        code: 'P2025',
+        clientVersion: '5.22.0',
+      });
+      mockPrisma.topping.delete.mockRejectedValueOnce(prismaError);
+
+      await expect(service.remove(999)).rejects.toThrow(NotFoundException);
     });
   });
 });

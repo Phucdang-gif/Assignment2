@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CreateToppingDto } from './dto/create-topping.dto';
 import { UpdateToppingDto } from './dto/update-topping.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -20,6 +21,12 @@ export class ToppingsService {
     });
   }
 
+  async findAllAdmin() {
+    return this.prisma.topping.findMany({
+      orderBy: { id: 'asc' },
+    });
+  }
+
   async findOne(id: number) {
     return this.prisma.topping.findUnique({
       where: { id },
@@ -34,8 +41,22 @@ export class ToppingsService {
   }
 
   async remove(id: number) {
-    return this.prisma.topping.delete({
-      where: { id },
-    });
+    try {
+      return await this.prisma.topping.delete({
+        where: { id },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2003') {
+          throw new ConflictException(
+            'Không thể xóa topping này vì đã xuất hiện trong lịch sử đơn hàng. Vui lòng chuyển sang trạng thái "Tạm hết" thay vì xóa.',
+          );
+        }
+        if (e.code === 'P2025') {
+          throw new NotFoundException(`Topping #${id} không tồn tại`);
+        }
+      }
+      throw e;
+    }
   }
 }

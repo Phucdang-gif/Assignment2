@@ -198,6 +198,16 @@ describe('UsersService', () => {
         where: { id: 1 },
       });
     });
+
+    it('ném ConflictException thân thiện khi người dùng đã có lịch sử đơn hàng (P2003)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('FK failed', {
+        code: 'P2003',
+        clientVersion: '5.22.0',
+      });
+      mockPrismaService.user.delete.mockRejectedValueOnce(prismaError);
+
+      await expect(service.remove(1)).rejects.toThrow(ConflictException);
+    });
   });
 
   describe('addLoyaltyPoints', () => {
