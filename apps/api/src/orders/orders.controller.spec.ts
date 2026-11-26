@@ -49,7 +49,7 @@ describe('OrdersController (Security & Guards)', () => {
     expect(controller).toBeDefined();
   });
 
-  it('các route cập nhật trạng thái của barista phải yêu cầu JwtAuthGuard và RolesGuard với role barista', () => {
+  it('các route cập nhật trạng thái của barista phải yêu cầu JwtAuthGuard và RolesGuard với chỉ role barista (không cho admin)', () => {
     const baristaRoutes = [
       controller.updateOrderStatus,
       controller.prepareOrder,
@@ -63,8 +63,8 @@ describe('OrdersController (Security & Guards)', () => {
       expect(guards).toEqual(expect.arrayContaining([JwtAuthGuard, RolesGuard]));
 
       const roles = reflector.get<string[]>(ROLES_KEY, route);
-      expect(roles).toBeDefined();
-      expect(roles).toEqual(expect.arrayContaining(['barista']));
+      expect(roles).toEqual(['barista']);
+      expect(roles).not.toContain('admin');
     }
   });
 

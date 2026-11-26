@@ -112,6 +112,28 @@ describe('OrdersService', () => {
         }),
       );
     });
+    it('Admin có thể xem toàn bộ đơn hàng trong hàng đợi (chỉ xem)', async () => {
+      const adminId = 9;
+      mockUsersService.findOne.mockResolvedValue({
+        id: adminId,
+        email: 'admin@brewlite.com',
+        role: 'admin',
+      });
+      mockPrisma.order.findMany.mockResolvedValue([
+        { id: BigInt(1), userId: BigInt(10), status: order_status.PAID },
+      ]);
+
+      await service.findBaristaQueue(adminId);
+
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(adminId);
+      expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({
+            userId: expect.anything(),
+          }),
+        }),
+      );
+    });
   });
 
   describe('baristaUpdateStatus (Quyền chỉnh sửa trạng thái đơn hàng)', () => {
@@ -160,8 +182,19 @@ describe('OrdersService', () => {
       expect(mockPrisma.order.update).toHaveBeenCalled();
     });
 
-    it('cho phép admin cập nhật trạng thái đơn như barista', async () => {
-      mockUsersService.findOne.mockResolvedValue({ id: 9, role: 'admin' });
+    it('Admin chỉ có quyền xem, không được nhận/cập nhật trạng thái đơn -> ném ForbiddenException', async () => {
+      const adminId = 9;
+      mockUsersService.findOne.mockResolvedValue({
+        id: adminId,
+        email: 'admin@brewlite.com',
+        role: 'admin',
+      });
+
+      await expect(
+        service.baristaUpdateStatus(1, order_status.PREPARING, adminId),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
     });
   });
 

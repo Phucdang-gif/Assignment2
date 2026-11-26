@@ -139,16 +139,6 @@ export async function fetchAdminOrders(status = 'ALL'): Promise<AdminOrder[]> {
   return Array.isArray(data) ? data : [];
 }
 
-export async function updateAdminOrderStatus(
-  id: number | string,
-  status: string,
-): Promise<AdminOrder> {
-  return fetchApi<AdminOrder>(`/orders/${id}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ status }),
-  });
-}
-
 // --- Users ---
 export async function fetchAdminUsers(page = 1, limit = 10): Promise<UsersListResponse> {
   return fetchApi<UsersListResponse>(`/users?page=${page}&limit=${limit}`);

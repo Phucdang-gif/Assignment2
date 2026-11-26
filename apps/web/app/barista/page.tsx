@@ -75,7 +75,9 @@ export default function BaristaDashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
-  const isBarista = user?.role === 'barista' || user?.role === 'admin';
+  const isBarista = user?.role === 'barista';
+  const isAdmin = user?.role === 'admin';
+  const canViewAllQueue = isBarista || isAdmin;
 
   const fetchQueue = useCallback(
     async (isSilent = false) => {
@@ -136,7 +138,7 @@ export default function BaristaDashboardPage() {
   ) => {
     if (!token) return;
     if (!isBarista) {
-      alert('Khách hàng không có quyền chỉnh sửa trạng thái đơn hàng!');
+      alert('Chỉ nhân viên Barista mới có quyền nhận và chỉnh sửa trạng thái đơn hàng!');
       return;
     }
     try {
@@ -201,22 +203,26 @@ export default function BaristaDashboardPage() {
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-3xl">☕</span>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                {isBarista
-                  ? 'Barista Dashboard - Quản lý đơn hàng'
+                {canViewAllQueue
+                  ? 'Barista Dashboard - Hàng đợi pha chế'
                   : 'Barista Dashboard - Đơn hàng của bạn'}
               </h1>
-              {!isBarista ? (
-                <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full font-semibold">
-                  Chế độ Khách hàng (Chỉ xem)
-                </span>
-              ) : (
+              {isBarista ? (
                 <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full font-semibold">
                   Tài khoản Barista
+                </span>
+              ) : isAdmin ? (
+                <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full font-semibold">
+                  Tài khoản Admin (Chỉ xem)
+                </span>
+              ) : (
+                <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full font-semibold">
+                  Chế độ Khách hàng (Chỉ xem)
                 </span>
               )}
             </div>
             <p className="text-gray-400 text-sm mt-1">
-              {isBarista
+              {canViewAllQueue
                 ? 'Hàng đợi pha chế thời gian thực • Tự động làm mới mỗi 10 giây'
                 : 'Theo dõi tiến độ pha chế các đơn hàng của bạn thời gian thực • Tự động làm mới mỗi 10 giây'}{' '}
               (Lần cuối: {lastUpdated.toLocaleTimeString('vi-VN')})
@@ -257,10 +263,21 @@ export default function BaristaDashboardPage() {
           <div className="bg-amber-950/40 border border-amber-500/40 text-amber-200 px-5 py-4 rounded-2xl text-sm flex items-start sm:items-center gap-3 shadow-md">
             <span className="text-2xl shrink-0">ℹ️</span>
             <div>
-              <p className="font-bold text-white text-base">Chế độ xem dành cho Khách hàng</p>
+              <p className="font-bold text-white text-base">
+                {isAdmin ? 'Chế độ chỉ xem dành cho Quản trị viên' : 'Chế độ xem dành cho Khách hàng'}
+              </p>
               <p className="text-xs text-amber-200/90 mt-0.5 leading-relaxed">
-                Bạn chỉ có thể xem tiến độ các đơn hàng của chính mình trong Barista Dashboard.
-                Khách hàng <strong>không có quyền chỉnh sửa trạng thái đơn hàng</strong> (quyền này chỉ thuộc về nhân viên Barista).
+                {isAdmin ? (
+                  <>
+                    Bạn có thể theo dõi toàn bộ hàng đợi pha chế theo thời gian thực.
+                    Quản trị viên <strong>không có quyền nhận đơn hoặc chỉnh sửa trạng thái đơn hàng</strong> (quyền này chỉ thuộc về nhân viên Barista).
+                  </>
+                ) : (
+                  <>
+                    Bạn chỉ có thể xem tiến độ các đơn hàng của chính mình trong Barista Dashboard.
+                    Khách hàng <strong>không có quyền chỉnh sửa trạng thái đơn hàng</strong> (quyền này chỉ thuộc về nhân viên Barista).
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -276,7 +293,7 @@ export default function BaristaDashboardPage() {
             }`}
           >
             <div className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-              {isBarista ? 'Tất cả trong hàng' : 'Đơn của bạn'}
+              {canViewAllQueue ? 'Tất cả trong hàng' : 'Đơn của bạn'}
             </div>
             <div className="text-2xl font-black mt-1">{orders.length}</div>
           </button>
@@ -290,7 +307,7 @@ export default function BaristaDashboardPage() {
             }`}
           >
             <div className="text-xs uppercase font-bold text-emerald-400/80 tracking-wider">
-              {isBarista ? 'Chờ nhận đơn' : 'Chờ pha chế'}
+              {canViewAllQueue ? 'Chờ nhận đơn' : 'Chờ pha chế'}
             </div>
             <div className="text-2xl font-black mt-1 text-emerald-400">{paidCount}</div>
           </button>
@@ -318,7 +335,7 @@ export default function BaristaDashboardPage() {
             }`}
           >
             <div className="text-xs uppercase font-bold text-purple-300/80 tracking-wider">
-              {isBarista ? 'Chờ giao khách' : 'Sẵn sàng nhận'}
+              {canViewAllQueue ? 'Chờ giao khách' : 'Sẵn sàng nhận'}
             </div>
             <div className="text-2xl font-black mt-1 text-purple-300">{readyCount}</div>
           </button>
@@ -346,19 +363,19 @@ export default function BaristaDashboardPage() {
         {!loading && filteredOrders.length === 0 && (
           <div className="bg-[#16213e]/60 border border-gray-800 rounded-2xl p-16 text-center">
             <div className="w-20 h-20 bg-gray-800/80 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-              {isBarista ? '🎉' : '☕'}
+              {canViewAllQueue ? '🎉' : '☕'}
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
-              {isBarista ? 'Hàng đợi trống' : 'Chưa có đơn hàng nào cần xử lý'}
+              {canViewAllQueue ? 'Hàng đợi trống' : 'Chưa có đơn hàng nào cần xử lý'}
             </h2>
             <p className="text-gray-400 max-w-md mx-auto mb-4">
-              {isBarista
+              {canViewAllQueue
                 ? filterStatus === 'ALL'
                   ? 'Hiện không có đơn hàng nào cần xử lý. Tuyệt vời!'
                   : `Hiện không có đơn hàng nào ở trạng thái ${filterStatus}.`
                 : 'Bạn chưa có đơn hàng nào trong hàng đợi pha chế. Đơn hàng đã thanh toán sẽ hiển thị tại đây để bạn theo dõi.'}
             </p>
-            {!isBarista && (
+            {!canViewAllQueue && (
               <Link
                 href="/"
                 className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl transition text-sm"
