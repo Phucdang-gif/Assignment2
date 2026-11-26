@@ -403,7 +403,6 @@ export default function AdminDashboardPage() {
                 <AdminOrdersTab
                   orders={orders}
                   onRefresh={() => loadAllData(usersPage)}
-                  onNotify={notify}
                 />
               )}
 

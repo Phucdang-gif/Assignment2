@@ -2,13 +2,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { AdminOrder } from '@/types/types';
-import { updateAdminOrderStatus } from '@/services/adminService';
 import { formatDateTime, formatVnd, ORDER_STATUS_META } from './adminConstants';
 
 interface AdminOrdersTabProps {
   orders: AdminOrder[];
   onRefresh: () => Promise<void>;
-  onNotify: (type: 'success' | 'error', message: string) => void;
 }
 
 const FILTER_OPTIONS = [
@@ -22,20 +20,12 @@ const FILTER_OPTIONS = [
   { value: 'PAYMENT_FAILED', label: 'Lỗi thanh toán' },
 ];
 
-const NEXT_STATUS_ACTION: Record<string, { next: string; label: string }> = {
-  PAID: { next: 'PREPARING', label: 'Nhận pha chế' },
-  PREPARING: { next: 'READY', label: 'Báo xong' },
-  READY: { next: 'COMPLETED', label: 'Hoàn tất' },
-};
-
 export default function AdminOrdersTab({
   orders,
   onRefresh,
-  onNotify,
 }: AdminOrdersTabProps) {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [search, setSearch] = useState('');
-  const [updatingId, setUpdatingId] = useState<string | number | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -50,24 +40,15 @@ export default function AdminOrdersTab({
     });
   }, [orders, statusFilter, search]);
 
-  const handleStatusChange = async (orderId: string | number, nextStatus: string) => {
-    try {
-      setUpdatingId(orderId);
-      await updateAdminOrderStatus(orderId, nextStatus);
-      onNotify('success', `Đơn #${orderId} đã chuyển sang ${nextStatus}`);
-      await onRefresh();
-    } catch (err: unknown) {
-      onNotify(
-        'error',
-        err instanceof Error ? err.message : 'Không thể cập nhật trạng thái đơn',
-      );
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   return (
     <div className="space-y-5">
+      {/* View-only notice */}
+      <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl px-4 py-3 text-xs flex items-center justify-between gap-3">
+        <span>
+          <strong>Chế độ chỉ xem:</strong> Quản trị viên chỉ theo dõi danh sách và tiến độ đơn hàng. Việc nhận đơn và cập nhật trạng thái pha chế do nhân viên <strong>Barista</strong> thực hiện.
+        </span>
+      </div>
+
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-[#E8DFD8] p-4 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
@@ -117,13 +98,12 @@ export default function AdminOrdersTab({
                 <th className="px-5 py-3.5 font-semibold">Tổng tiền</th>
                 <th className="px-5 py-3.5 font-semibold">Trạng thái</th>
                 <th className="px-5 py-3.5 font-semibold">Thời gian</th>
-                <th className="px-5 py-3.5 font-semibold text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F5F0E6]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-[#8D6E63]">
+                  <td colSpan={6} className="px-5 py-10 text-center text-[#8D6E63]">
                     Không có đơn hàng nào khớp với bộ lọc.
                   </td>
                 </tr>
@@ -133,8 +113,6 @@ export default function AdminOrdersTab({
                     label: order.status,
                     badgeClass: 'bg-gray-100 text-gray-700',
                   };
-                  const action = NEXT_STATUS_ACTION[order.status];
-                  const isUpdating = updatingId === order.id;
 
                   return (
                     <tr key={String(order.id)} className="hover:bg-[#FDFBF7] align-top">
@@ -184,20 +162,6 @@ export default function AdminOrdersTab({
                       </td>
                       <td className="px-5 py-3.5 text-xs text-[#8D6E63] whitespace-nowrap">
                         {formatDateTime(order.createdAt)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                        {action ? (
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleStatusChange(order.id, action.next)}
-                            className="px-3 py-1.5 rounded-lg bg-[#3E2723] text-white text-xs font-semibold hover:bg-[#2E1C12] disabled:opacity-50 cursor-pointer"
-                          >
-                            {isUpdating ? '...' : action.label}
-                          </button>
-                        ) : (
-                          <span className="text-xs text-[#8D6E63]">—</span>
-                        )}
                       </td>
                     </tr>
                   );

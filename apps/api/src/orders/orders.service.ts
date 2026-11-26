@@ -807,10 +807,12 @@ export class OrdersService {
 
   async baristaUpdateStatus(orderId: number, newStatus: string, userId: number) {
     const user = await this.usersService.findOne(userId);
-    const isBarista = isStaffRole((user as any)?.role);
+    const isBarista = (user as any)?.role === 'barista';
 
     if (!isBarista) {
-      throw new ForbiddenException('Khách hàng không có quyền chỉnh sửa trạng thái đơn hàng');
+      throw new ForbiddenException(
+        'Chỉ nhân viên Barista mới có quyền nhận và cập nhật trạng thái đơn hàng',
+      );
     }
 
     return this.updateStatus(orderId, newStatus);
