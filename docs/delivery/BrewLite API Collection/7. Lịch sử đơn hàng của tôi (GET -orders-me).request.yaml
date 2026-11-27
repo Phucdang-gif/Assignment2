@@ -1,0 +1,9 @@
+$kind: http-request
+name: 7. Lịch sử đơn hàng của tôi (GET /orders/me)
+url: http://localhost:3001/api/orders/me
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"
+order: 7000

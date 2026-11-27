@@ -1,0 +1,33 @@
+$kind: http-request
+name: 5. Tạo đơn hàng (POST /orders) - Task 6
+url: http://localhost:3001/api/orders
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "items": [
+        {
+          "productId": 1,
+          "size": "M",
+          "qty": 2,
+          "price": 35000,
+          "toppings": [
+            "Trân châu đen hoàng gia"
+          ]
+        },
+        {
+          "productId": 3,
+          "size": "L",
+          "qty": 1,
+          "price": 45000
+        }
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"
+order: 5000

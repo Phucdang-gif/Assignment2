@@ -272,10 +272,11 @@ erDiagram
 
 ### 3. Tài khoản kiểm thử có sẵn (Seeded Accounts)
 
-Hệ thống đi kèm dữ liệu mẫu được nạp sẵn 3 tài khoản để kiểm thử ngay:
+Hệ thống đi kèm dữ liệu mẫu được nạp sẵn 4 tài khoản để kiểm thử ngay:
 
+- **Quản trị viên (Admin)**: `admin@brewlite.com` / Mật khẩu: `barista123` (Truy cập trang quản trị `/admin`; theo dõi đơn hàng ở chế độ chỉ xem)
 - **Barista**: `barista@brewlite.com` / Mật khẩu: `barista123` (Truy cập giao diện pha chế tại `/barista`)
-- **Khách hàng thân thiết**: `customer@brewlite.com` / Mật khẩu: `customer123` (Đã có 50 điểm loyalty - Hạng Vàng được giảm giá 10%)
+- **Khách hàng thân thiết**: `customer@brewlite.com` / Mật khẩu: `customer123` (Đã có 63 điểm loyalty - Hạng Vàng được giảm giá 10%)
 - **Khách hàng mới**: `khachhang2@example.com` / Mật khẩu: `password123` (Đã có 20 điểm loyalty - Hạng Bạc được giảm giá 5%)
 
 ---
@@ -555,7 +556,7 @@ brewlite/
 │   │   ├── conventions.md      # Task 4.1: Quy ước nhánh, Conventional Commits & Definition of Done
 │   │   ├── team-workflow.md    # Quy trình phối hợp Git Feature Branch & PR Review
 │   │   ├── api-testing-guide.md# Hướng dẫn kiểm thử API
-│   │   ├── brewlite-collection.postman_collection.json # Collection Postman / Thunder Client
+│   │   ├── BrewLite API Collection/ # Collection YAML kiểm thử API (Postman / Bruno)
 │   │   └── sprint-review-retrospective.md  # Task 5.4: Sprint Review & Retrospective + Demo Runbook
 │   ├── traceability-matrix.md  # Mục 8: Ma trận truy vết yêu cầu (FR/NFR ➔ Diagram ➔ Code ➔ Test)
 │   ├── deployment.md           # Task 3.2 & 5.4: Kiến trúc triển khai Production & Handover Checklist
@@ -703,7 +704,7 @@ Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố t
 3. **Thanh toán & Đăng nhập**:
    Tại trang Giỏ hàng / Checkout, khi bấm "Thanh toán", nếu chưa đăng nhập hệ thống sẽ yêu cầu đăng nhập. Giỏ hàng được giữ nguyên sau khi đăng nhập thành công.
 4. **Ưu đãi thành viên theo loyaltyPoints & Thanh toán**:
-   Tại màn hình Checkout, hệ thống tự động nhận diện hạng thành viên và số điểm tích lũy (`loyaltyPoints`) của khách hàng để áp dụng chiết khấu tự động (ví dụ tài khoản `customer@brewlite.com` có 50 điểm -> Hạng Vàng được giảm ngay 10%). Chọn phương thức Ví điện tử (VietQR / MoMo) và nhấn Thanh toán. Hệ thống sinh `idempotencyKey` và chuyển đơn sang `PAID` _(Lưu ý: Để test quét mã QR thực tế, cần cấu hình Ngrok theo [PAYMENT_SETUP.md](apps/api/PAYMENT_SETUP.md))_.
+   Tại màn hình Checkout, hệ thống tự động nhận diện hạng thành viên và số điểm tích lũy (`loyaltyPoints`) của khách hàng để áp dụng chiết khấu tự động (ví dụ tài khoản `customer@brewlite.com` có 63 điểm -> Hạng Vàng được giảm ngay 10%). Chọn phương thức Ví điện tử (VietQR / MoMo) và nhấn Thanh toán. Hệ thống sinh `idempotencyKey` và chuyển đơn sang `PAID` _(Lưu ý: Để test quét mã QR thực tế, cần cấu hình Ngrok theo [PAYMENT_SETUP.md](apps/api/PAYMENT_SETUP.md))_.
 5. **Xác nhận & Điểm thưởng**:
    Chuyển hướng đến trang xác nhận `/orders/:id`, hiển thị mã đơn, trạng thái và điểm thưởng vừa được tích lũy.
 6. **Barista nhận đơn & Pha chế**:
@@ -717,10 +718,12 @@ Dự án được thực hiện bởi nhóm sinh viên Khoa Công nghệ Thông 
 
 | STT | Họ và tên | MSSV | Vai trò chính | Phân công phụ trách chi tiết (Assignment 2) |
 | :-: | :--- | :---: | :--- | :--- |
-| **1** | **Châu Chí Hải** | *[Điền MSSV]* | **Project Lead / Backend Dev** | • Quản lý chung dự án & Product Backlog<br>• Thiết kế CSDL PostgreSQL, Prisma Schema & Migrations<br>• Xây dựng Backend API (Categories, Products, Stock control)<br>• Cấu hình Docker Compose và điều phối dịch vụ |
-| **2** | **Đặng Hoàng Phúc** | *[Điền MSSV]* | **Fullstack Dev / DevOps** | • **Task 4.1**: Thiết lập Monorepo (`apps/web`, `apps/api`), Branch Strategy, PR Template, DoD<br>• **Task 4.4 & 5.3**: Thiết lập Pipeline CI/CD GitHub Actions<br>• Tối ưu hóa UI Mobile-first PWA & Responsive |
-| **3** | **Lê Quốc Việt** | **3124410185** | **Backend Dev / Payments** | • **Task 1.3 & 2.2**: Đặc tả Use-case & Sequence Diagram Thanh toán<br>• Hiện thực Module Payments (VietQR, MoMo), cơ chế Idempotency Key<br>• Máy trạng thái đơn hàng (Order State Machine) & Unit Test Task 10 |
-| **4** | **Trần Duy** | *[Điền MSSV]* | **Frontend Dev / UI-UX** | • **Task 2.1**: Thiết kế Activity Diagram luồng End-to-End<br>• **Task 4.3**: Hiện thực màn hình Menu mobile-first bằng Next.js (Loading, Empty, Error)<br>• Hiện thực giao diện Giỏ hàng, Chi tiết món & Phân hệ Barista |
+| **1** | **Đặng Hoàng Phúc** | **3124410280** | **Backend / DevOps** | • **Task 4.1**: Thiết lập Monorepo, Docker Compose, Branch Strategy & Triển khai Cloud (Task 5.4)<br>• Xây dựng Catalog API (`products`, `categories`), Atomic Transaction đặt đơn (`FR-05`) |
+| **2** | **Châu Chí Hải** | **3124410076** | **Backend Lead / QA** | • **Task 1–3**: Prisma Schema, Migrations & Seed SQL (`brewlite_seed_data.sql`)<br>• Tích hợp PayOS/MoMo, Barista State Machine, History & Loyalty API, CI Test Gate |
+| **3** | **Võ Dương Thành Lê** | **3124410185** | **Fullstack / CI-CD** | • **Task 4.4 & 5.3**: Thiết lập GitHub Actions CI/CD Pipeline & GHCR/Render Deploy<br>• Zustand Cart Store, Checkout & Payment API (Idempotency Key) |
+| **4** | **Trần Quang Duy** | **3124410051** | **Backend Security / Auth** | • **Task 5.1C**: Đăng ký, Đăng nhập `bcrypt` + JWT (`JwtAuthGuard`, `RolesGuard`, `ThrottlerGuard`)<br>• Phân quyền RBAC (`customer`, `barista`, `admin`) và kiểm thử bảo mật |
+| **5** | **Thiều Đình Trung Hiếu** | **3124410099** | **Frontend Dev / UI-UX** | • Giao diện Chi tiết món (`/product/[id]`), Giỏ hàng (`/cart`), Barista KDS (`/barista`)<br>• Giao diện Admin Dashboard (`/admin`) với 6 tab quản lý |
+| **6** | **Lê Quốc Việt** | **3124410405** | **Frontend Dev / Docs** | • **Task 1.3 & 2.2**: Đặc tả Use-case, Sequence Diagram & Tài liệu kiểm thử<br>• **Task 4.3**: Giao diện Menu mobile-first (`page.tsx` 3 trạng thái), UI Đăng nhập & Lịch sử đơn hàng |
 
 ---
 

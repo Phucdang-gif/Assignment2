@@ -40,15 +40,16 @@ rectangle "Hệ thống Đặt đồ uống BrewLite" as BrewLiteSystem #F8FAFC 
   usecase "UC-06: Đặt hàng mới" as UC_Order
   usecase "UC-07: Thanh toán trực tuyến" as UC_Payment
   usecase "UC-08: Theo dõi trạng thái đơn" as UC_Tracking
-  usecase "UC-09: Xem lịch sử & tích điểm" as UC_History
+  usecase "UC-09: Lịch sử & tích điểm" as UC_History
 
-  usecase "UC-12: Tiếp nhận đơn đã thanh toán" as UC_ReceiveOrder
+  usecase "UC-12: Tiếp nhận đơn đã trả tiền" as UC_ReceiveOrder
   usecase "UC-13: Cập nhật tiến độ pha chế" as UC_UpdateStatus
 
-  usecase "UC-14: Bật/tắt món & topping" as UC_ManageItems
+  usecase "UC-14: Quản lý sản phẩm, danh mục & topping" as UC_ManageItems
+  usecase "UC-15: Thống kê, xem đơn & người dùng" as UC_AdminOrders
 
   ' CỘT 2: Use-case mở rộng & xác thực (Nằm ngay cạnh Use-case gốc ở bên phải)
-  usecase "UC-02: Tìm kiếm & lọc đồ uống" as UC_Search
+  usecase "UC-02: Tìm kiếm & lọc món" as UC_Search
   usecase "UC-04: Tùy biến Size & Topping" as UC_Customize
   usecase "UC-11: Đăng nhập cấp JWT" as UC_Login
 
@@ -63,6 +64,7 @@ rectangle "Hệ thống Đặt đồ uống BrewLite" as BrewLiteSystem #F8FAFC 
   UC_History -[hidden]right- UC_ReceiveOrder
   UC_ReceiveOrder -[hidden]right- UC_UpdateStatus
   UC_UpdateStatus -[hidden]right- UC_ManageItems
+  UC_ManageItems -[hidden]right- UC_AdminOrders
   ' ==================== QUAN HỆ INCLUDE / EXTEND (ĐI NGANG SANG CỘT 2) ====================
   UC_Menu <.. UC_Search : <<extend>>
   UC_Detail <.. UC_Customize : <<extend>>
@@ -76,6 +78,8 @@ rectangle "Hệ thống Đặt đồ uống BrewLite" as BrewLiteSystem #F8FAFC 
   UC_Payment ..> UC_Login : <<include>>
   UC_History ..> UC_Login : <<include>>
   UC_UpdateStatus ..> UC_Login : <<include>>
+  UC_ManageItems ..> UC_Login : <<include>>
+  UC_AdminOrders ..> UC_Login : <<include>>
 }
 
 ' ==================== ĐƯỜNG NỐI THẲNG KHÔNG MŨI TÊN (ACTOR -- USECASE) ====================
@@ -97,6 +101,7 @@ Barista -- UC_Login
 
 ' Quản lý cửa hàng
 Manager -- UC_ManageItems
+Manager -- UC_AdminOrders
 Manager -- UC_Login
 
 ' Cổng thanh toán (Đặt bên phải hệ thống)

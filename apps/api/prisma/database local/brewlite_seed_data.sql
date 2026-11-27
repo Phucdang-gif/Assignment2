@@ -18,12 +18,12 @@ ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     "updatedAt" = now();
 
--- 2. Tài khoản người dùng (User) - Barista: 'barista123', Admin: 'Admin@BrewLite#2026!'
+-- 2. Tài khoản người dùng (User) - Barista & Admin: 'barista123'
 INSERT INTO "User" (id, "fullName", email, phone, "passwordHash", "loyaltyPoints", role, "createdAt", "updatedAt") VALUES
     (1, 'Nguyễn Văn Barista', 'barista@brewlite.com',   '0901234567', '$2b$10$mP5dJ.qWueg02XGw/Bu/AevZNCBtware14sA3KYotm2IgfCBoUv7e', 100, 'barista',  now(), now()),
     (2, 'Trần Thị Khách Hàng', 'customer@brewlite.com',  '0912345678', '$2b$10$ptgUmawGGT9c4RLeqIoLx.OQj6vuIOfjrhOq/clKVgO5cNhPTyvF2',  63, 'customer', now(), now()),
     (3, 'Lê Văn Khách Hàng 2', 'khachhang2@example.com', '0987654321', '$2b$10$vaMHsq05UxbqkciIo9skZes9eoqKkO3wHyIx3ZYY76GvDHvM5lj4m',  20, 'customer', now(), now()),
-    (4, 'Quản Trị Viên Hệ Thống', 'admin@brewlite.com',   '0909999999', '$2b$10$u9pxRACQMSz86Yuf9CAsueio0VjHOUx0El6cwzQ8QiGQOpPPFK73.', 500, 'admin',    now(), now())
+    (4, 'Quản Trị Viên Hệ Thống', 'admin@brewlite.com',   '0909999999', '$2b$10$mP5dJ.qWueg02XGw/Bu/AevZNCBtware14sA3KYotm2IgfCBoUv7e', 500, 'admin',    now(), now())
 ON CONFLICT (id) DO UPDATE SET
     "fullName" = EXCLUDED."fullName",
     email = EXCLUDED.email,
