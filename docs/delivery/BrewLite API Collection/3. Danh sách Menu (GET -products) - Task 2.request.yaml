@@ -1,0 +1,5 @@
+$kind: http-request
+name: 3. Danh sách Menu (GET /products) - Task 2
+url: http://localhost:3001/api/products
+method: GET
+order: 3000

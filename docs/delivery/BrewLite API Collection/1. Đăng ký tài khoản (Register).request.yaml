@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://localhost:3001/api/auth/register
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "nguyenvana@gmail.com",
+      "password": "Password123@",
+      "fullName": "Nguyễn Văn A",
+      "phone": "0987654321"
+    }
+order: 1000

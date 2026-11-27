@@ -272,10 +272,11 @@ erDiagram
 
 ### 3. Tài khoản kiểm thử có sẵn (Seeded Accounts)
 
-Hệ thống đi kèm dữ liệu mẫu được nạp sẵn 3 tài khoản để kiểm thử ngay:
+Hệ thống đi kèm dữ liệu mẫu được nạp sẵn 4 tài khoản để kiểm thử ngay:
 
+- **Quản trị viên (Admin)**: `admin@brewlite.com` / Mật khẩu: `barista123` (Truy cập trang quản trị `/admin`; theo dõi đơn hàng ở chế độ chỉ xem)
 - **Barista**: `barista@brewlite.com` / Mật khẩu: `barista123` (Truy cập giao diện pha chế tại `/barista`)
-- **Khách hàng thân thiết**: `customer@brewlite.com` / Mật khẩu: `customer123` (Đã có 50 điểm loyalty - Hạng Vàng được giảm giá 10%)
+- **Khách hàng thân thiết**: `customer@brewlite.com` / Mật khẩu: `customer123` (Đã có 63 điểm loyalty - Hạng Vàng được giảm giá 10%)
 - **Khách hàng mới**: `khachhang2@example.com` / Mật khẩu: `password123` (Đã có 20 điểm loyalty - Hạng Bạc được giảm giá 5%)
 
 ---
@@ -555,7 +556,7 @@ brewlite/
 │   │   ├── conventions.md      # Task 4.1: Quy ước nhánh, Conventional Commits & Definition of Done
 │   │   ├── team-workflow.md    # Quy trình phối hợp Git Feature Branch & PR Review
 │   │   ├── api-testing-guide.md# Hướng dẫn kiểm thử API
-│   │   ├── brewlite-collection.postman_collection.json # Collection Postman / Thunder Client
+│   │   ├── BrewLite API Collection/ # Collection YAML kiểm thử API (Postman / Bruno)
 │   │   └── sprint-review-retrospective.md  # Task 5.4: Sprint Review & Retrospective + Demo Runbook
 │   ├── traceability-matrix.md  # Mục 8: Ma trận truy vết yêu cầu (FR/NFR ➔ Diagram ➔ Code ➔ Test)
 │   ├── deployment.md           # Task 3.2 & 5.4: Kiến trúc triển khai Production & Handover Checklist
@@ -703,7 +704,7 @@ Khi phiên bản mới gặp lỗi lúc Smoke Test hoặc phát sinh sự cố t
 3. **Thanh toán & Đăng nhập**:
    Tại trang Giỏ hàng / Checkout, khi bấm "Thanh toán", nếu chưa đăng nhập hệ thống sẽ yêu cầu đăng nhập. Giỏ hàng được giữ nguyên sau khi đăng nhập thành công.
 4. **Ưu đãi thành viên theo loyaltyPoints & Thanh toán**:
-   Tại màn hình Checkout, hệ thống tự động nhận diện hạng thành viên và số điểm tích lũy (`loyaltyPoints`) của khách hàng để áp dụng chiết khấu tự động (ví dụ tài khoản `customer@brewlite.com` có 50 điểm -> Hạng Vàng được giảm ngay 10%). Chọn phương thức Ví điện tử (VietQR / MoMo) và nhấn Thanh toán. Hệ thống sinh `idempotencyKey` và chuyển đơn sang `PAID` _(Lưu ý: Để test quét mã QR thực tế, cần cấu hình Ngrok theo [PAYMENT_SETUP.md](apps/api/PAYMENT_SETUP.md))_.
+   Tại màn hình Checkout, hệ thống tự động nhận diện hạng thành viên và số điểm tích lũy (`loyaltyPoints`) của khách hàng để áp dụng chiết khấu tự động (ví dụ tài khoản `customer@brewlite.com` có 63 điểm -> Hạng Vàng được giảm ngay 10%). Chọn phương thức Ví điện tử (VietQR / MoMo) và nhấn Thanh toán. Hệ thống sinh `idempotencyKey` và chuyển đơn sang `PAID` _(Lưu ý: Để test quét mã QR thực tế, cần cấu hình Ngrok theo [PAYMENT_SETUP.md](apps/api/PAYMENT_SETUP.md))_.
 5. **Xác nhận & Điểm thưởng**:
    Chuyển hướng đến trang xác nhận `/orders/:id`, hiển thị mã đơn, trạng thái và điểm thưởng vừa được tích lũy.
 6. **Barista nhận đơn & Pha chế**:

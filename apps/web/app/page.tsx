@@ -264,7 +264,7 @@ function HomeContent() {
                 }}
                 className="mt-4 inline-block text-xs font-bold text-[#3E2723] underline cursor-pointer"
               >
-                Xem tất cả món
+                Quay về trang chủ
               </button>
             </div>
           ) : (
@@ -285,7 +285,9 @@ function HomeContent() {
                     <img
                       src={product.imageUrl}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
+                        isOutOfStock ? "opacity-65 grayscale-[30%]" : ""
+                      }`}
                       loading="lazy"
                     />
                     {isOutOfStock && (
@@ -327,7 +329,7 @@ function HomeContent() {
                         href={`/product/${product.id}`}
                         className="text-xs font-semibold text-[#8D6E63] hover:text-[#3E2723] hover:underline"
                       >
-                        Tùy chọn size & topping
+                        {isOutOfStock ? "Xem chi tiết món" : "Tùy chọn size & topping"}
                       </Link>
 
                       <Link
