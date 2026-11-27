@@ -718,10 +718,12 @@ Dự án được thực hiện bởi nhóm sinh viên Khoa Công nghệ Thông 
 
 | STT | Họ và tên | MSSV | Vai trò chính | Phân công phụ trách chi tiết (Assignment 2) |
 | :-: | :--- | :---: | :--- | :--- |
-| **1** | **Châu Chí Hải** | *[Điền MSSV]* | **Project Lead / Backend Dev** | • Quản lý chung dự án & Product Backlog<br>• Thiết kế CSDL PostgreSQL, Prisma Schema & Migrations<br>• Xây dựng Backend API (Categories, Products, Stock control)<br>• Cấu hình Docker Compose và điều phối dịch vụ |
-| **2** | **Đặng Hoàng Phúc** | *[Điền MSSV]* | **Fullstack Dev / DevOps** | • **Task 4.1**: Thiết lập Monorepo (`apps/web`, `apps/api`), Branch Strategy, PR Template, DoD<br>• **Task 4.4 & 5.3**: Thiết lập Pipeline CI/CD GitHub Actions<br>• Tối ưu hóa UI Mobile-first PWA & Responsive |
-| **3** | **Lê Quốc Việt** | **3124410185** | **Backend Dev / Payments** | • **Task 1.3 & 2.2**: Đặc tả Use-case & Sequence Diagram Thanh toán<br>• Hiện thực Module Payments (VietQR, MoMo), cơ chế Idempotency Key<br>• Máy trạng thái đơn hàng (Order State Machine) & Unit Test Task 10 |
-| **4** | **Trần Duy** | *[Điền MSSV]* | **Frontend Dev / UI-UX** | • **Task 2.1**: Thiết kế Activity Diagram luồng End-to-End<br>• **Task 4.3**: Hiện thực màn hình Menu mobile-first bằng Next.js (Loading, Empty, Error)<br>• Hiện thực giao diện Giỏ hàng, Chi tiết món & Phân hệ Barista |
+| **1** | **Đặng Hoàng Phúc** | **3124410280** | **Backend / DevOps** | • **Task 4.1**: Thiết lập Monorepo, Docker Compose, Branch Strategy & Triển khai Cloud (Task 5.4)<br>• Xây dựng Catalog API (`products`, `categories`), Atomic Transaction đặt đơn (`FR-05`) |
+| **2** | **Châu Chí Hải** | **3124410076** | **Backend Lead / QA** | • **Task 1–3**: Prisma Schema, Migrations & Seed SQL (`brewlite_seed_data.sql`)<br>• Tích hợp PayOS/MoMo, Barista State Machine, History & Loyalty API, CI Test Gate |
+| **3** | **Võ Dương Thành Lê** | **3124410185** | **Fullstack / CI-CD** | • **Task 4.4 & 5.3**: Thiết lập GitHub Actions CI/CD Pipeline & GHCR/Render Deploy<br>• Zustand Cart Store, Checkout & Payment API (Idempotency Key) |
+| **4** | **Trần Quang Duy** | **3124410051** | **Backend Security / Auth** | • **Task 5.1C**: Đăng ký, Đăng nhập `bcrypt` + JWT (`JwtAuthGuard`, `RolesGuard`, `ThrottlerGuard`)<br>• Phân quyền RBAC (`customer`, `barista`, `admin`) và kiểm thử bảo mật |
+| **5** | **Thiều Đình Trung Hiếu** | **3124410099** | **Frontend Dev / UI-UX** | • Giao diện Chi tiết món (`/product/[id]`), Giỏ hàng (`/cart`), Barista KDS (`/barista`)<br>• Giao diện Admin Dashboard (`/admin`) với 6 tab quản lý |
+| **6** | **Lê Quốc Việt** | **3124410405** | **Frontend Dev / Docs** | • **Task 1.3 & 2.2**: Đặc tả Use-case, Sequence Diagram & Tài liệu kiểm thử<br>• **Task 4.3**: Giao diện Menu mobile-first (`page.tsx` 3 trạng thái), UI Đăng nhập & Lịch sử đơn hàng |
 
 ---
 

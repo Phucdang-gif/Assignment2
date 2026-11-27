@@ -78,6 +78,11 @@ Dự án được tổ chức theo mô hình phát triển lặp tăng trưởng
 - **Frontend E2E Flow Test**: 8 bước end-to-end từ `/health` ➔ Menu ➔ Đăng nhập ➔ Tạo đơn ➔ Thanh toán Idempotent ➔ Barista hoàn tất (`tests/e2e/ordering-flow.e2e.test.mjs`).
 - **CI/CD Pipelines**: Cả `BrewLite CI Pipeline` (`ci.yml`) và `BrewLite CD Pipeline` (`cd.yml`) đều đạt trạng thái **Success** trên nhánh `main` (Run `#43552738455` và `#43552738435`).
 
+### 4.3. Cập nhật bổ sung sau `v1.0.1` và các PR `#60–#65`
+- **Phân hệ Quản trị & Bảo mật RBAC (`PR #60–#65`)**: Hoàn thiện trang Admin Dashboard (`/admin` với 6 tab quản lý `@AdminOnly`), thắt chặt bảo mật chống tự hạ quyền admin, đồng thời tại **PR `#65`** giới hạn tài khoản Admin ở chế độ **chỉ xem đơn hàng** (việc nhận đơn và cập nhật trạng thái pha chế chỉ dành riêng cho nhân viên `@Roles('barista')`).
+- **Hoàn thiện đơn `0đ` & UI Menu**: Hỗ trợ hoàn tất đơn hàng `0đ` qua `POST /api/payments` (đối chiếu `order.total === 0` trong DB), bổ sung Loading Skeleton, badge `Hết hàng` trên Menu trang chủ và đổi mật khẩu seed tài khoản `admin@brewlite.com` đồng bộ về `barista123`.
+- **Chỉ số kiểm thử hiện hành**: Backend đạt **11 suites / 118 unit test cases passed** (`cd apps/api && npm test`) và Frontend unit tests đạt **6/6 tests passed** (`apps/web/__tests__/frontend.unit.test.mjs`).
+
 ---
 
 ## 5. Sprint 2 Retrospective
