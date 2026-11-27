@@ -71,7 +71,7 @@ frame "PRODUCTION (Internet, HTTPS)" as PROD #F0FFF4 {
       DATABASE_URL, JWT_SECRET, PORT,
       PAYOS_CLIENT_ID / API_KEY / CHECKSUM_KEY,
       MOMO_PARTNER_CODE / ACCESS_KEY / SECRET_KEY,
-      FRONTEND_URL (CORS, returnUrl)
+      CORS_ORIGIN, FRONTEND_URL
     end note
 
     frame "Render private network\n(cùng region + workspace, không có URL công khai)" as PRIV #E6FFFA {
@@ -88,9 +88,9 @@ frame "PRODUCTION (Internet, HTTPS)" as PROD #F0FFF4 {
 
 ' ====================== DỊCH VỤ BÊN THỨ BA ======================
 frame "DỊCH VỤ BÊN THỨ BA (ngoài hệ thống)" as EXT #FFFAF0 {
-  node "[N-09] GHCR (ghcr.io)\n(GitHub Container Registry)" <<registry>> as HUB
-  cloud "[N-10] PayOS\n(VietQR, simulated/sandbox)" as PAYOS
-  cloud "[N-11] MoMo sandbox\n(simulated/sandbox)" as MOMO
+  node "[N-09] GHCR\nghcr.io\n(container registry công khai)" <<registry>> as HUB
+  cloud "[N-10] PayOS\n(VietQR, sandbox/merchant)" as PAYOS
+  cloud "[N-11] MoMo sandbox\ntest-payment.momo.vn" as MOMO
 }
 
 ' ====================== CI ======================
@@ -99,16 +99,16 @@ frame "CI (GitHub)" as CI #EBF8FF {
     artifact "docs/, apps/web/, apps/api/,\n.github/workflows/{ci,cd}.yml" as REPO
   }
   node "[N-13] GitHub Actions runner\nubuntu-latest" <<execution environment>> as RUNNER {
-    artifact "Install -> Lint -> Unit Test -> Build\n(chặn merge nếu thất bại)" as PIPE
+    artifact "Install -> Lint -> Migrate/Test/E2E -> Build\n(chặn merge nếu thất bại)" as PIPE
   }
 }
 
 ' ====================== LOCAL ======================
 frame "LOCAL (máy lập trình viên)" as LOCAL #F7FAFC {
   node "[N-14] Máy lập trình viên\nDocker Compose" <<device>> as DEV {
-    node "container brewlite-frontend\nhost :3000 -> :3000" <<container>> as LFE
-    node "container brewlite-backend\nhost :3001 -> :3001" <<container>> as LBE
-    node "container brewlite-db (postgres:16-alpine)\nhost :5433 -> :5432\nvolume pgdata" <<container>> as LDB
+    node "container brewlite-web\nhost :3000 -> :3000" <<container>> as LFE
+    node "container brewlite-api\nhost :3001 -> :3001" <<container>> as LBE
+    node "container assignment2-db (postgres:16-alpine)\nhost :5433 -> :5432\nvolume pgdata" <<container>> as LDB
     artifact ".env (không commit)\n.env.example (mẫu)" as ENVF
     artifact "Mã nguồn (working copy git)\napps/web/, apps/api/, docs/" as SRC
     LFE -down-> LBE : HTTP
