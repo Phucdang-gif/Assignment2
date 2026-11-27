@@ -609,7 +609,7 @@ Hệ thống đã triển khai đầy đủ 4 tiêu chí cốt lõi của Task 1
 Hệ thống bao phủ đầy đủ 3 tầng kiểm thử (Unit Test, Integration Test và End-to-End Test):
 
 ```bash
-# 1. Chạy toàn bộ Unit Tests tại Backend (90 test cases qua 11 suites)
+# 1. Chạy toàn bộ Unit Tests tại Backend (118 test cases qua 11 suites)
 cd apps/api
 npm test
 
@@ -652,7 +652,7 @@ docker compose build
 
 Hệ thống triển khai tự động qua GitHub Actions ([`.github/workflows/cd.yml`](.github/workflows/cd.yml)) mỗi khi merge vào `main`, đẩy Git tag `v*.*.*`, hoặc kích hoạt thủ công (`workflow_dispatch`):
 
-1. **Chặng 1 – Quality Gate**: Chạy `oxlint`, `npx prisma migrate deploy`, `node prisma/seed.js`, `npm test` (90 unit tests), `npm run test:e2e`, `npm run build` trên `apps/api`; chạy `eslint`, `npm test` và `next build` (với `NEXT_PUBLIC_API_URL`) trên `apps/web`.
+1. **Chặng 1 – Quality Gate**: Chạy `oxlint`, `npx prisma migrate deploy`, `node prisma/seed.js`, `npm test` (118 unit tests), `npm run test:e2e`, `npm run build` trên `apps/api`; chạy `eslint`, `npm test` và `next build` (với `NEXT_PUBLIC_API_URL`) trên `apps/web`.
 2. **Chặng 2 – Đóng gói & Đẩy Docker Image**: Build `apps/api/Dockerfile` (Node 24 Alpine multi-stage) và đẩy lên GitHub Container Registry (`ghcr.io/phucdang-gif/assignment2/brewlite-api:<sha|tag|latest>`).
 3. **Chặng 3 – Kích hoạt Deploy lên Cloud**:
    - **Backend (`apps/api`)**: Triển khai trên **Render Cloud** qua `RENDER_API_KEY` + `RENDER_SERVICE_ID` hoặc `RENDER_DEPLOY_HOOK`. Container tự động chạy `npx prisma migrate deploy && node dist/main.js` (tuyệt đối không dùng `db push` hay tự re-seed đè dữ liệu production).

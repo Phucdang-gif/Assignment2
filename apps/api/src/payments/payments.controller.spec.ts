@@ -139,5 +139,18 @@ describe('PaymentsController (Security & Guards)', () => {
       expect(mockPaymentsService.assertOrderAccess).toHaveBeenCalledWith(1, 10);
       expect(mockPaymentsService.create).toHaveBeenCalledWith(sampleDto);
     });
+
+    it('cho phép hoàn tất đơn hàng 0đ ở môi trường production (đối chiếu tổng tiền DB)', async () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.ALLOW_MOCK_PAYMENT;
+      const freeDto = { ...sampleDto, amount: 0 };
+      mockPaymentsService.assertOrderAccess.mockResolvedValue(undefined);
+      mockPaymentsService.create.mockResolvedValue({ success: true });
+
+      const result = await controller.create(freeDto, sampleReq);
+      expect(result).toEqual({ success: true });
+      expect(mockPaymentsService.assertOrderAccess).toHaveBeenCalledWith(1, 10);
+      expect(mockPaymentsService.create).toHaveBeenCalledWith(freeDto);
+    });
   });
 });

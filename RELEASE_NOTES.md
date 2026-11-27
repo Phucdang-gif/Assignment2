@@ -42,7 +42,7 @@
   - Trang theo dõi tiến độ & lịch sử đơn (`/orders`, `/orders/:id`) và giao diện quầy pha chế (`/barista`).
 
 ### 🧪 Kiểm thử & Đảm bảo chất lượng (Task 5.2)
-- **Backend Unit Tests**: 11 suites, 90 test cases pass 100% (`npm test` tại `apps/api`).
+- **Backend Unit Tests**: 11 suites, 118 test cases pass 100% (`npm test` tại `apps/api`).
 - **Backend Integration Tests**: Kiểm thử trực tiếp với PostgreSQL 16 (`apps/api/test/app.e2e-spec.ts` & `apps/api/test/orders-payments.e2e-spec.ts`) cho luồng tạo đơn, khóa lạc quan, thanh toán idempotent và phân quyền JWT.
 - **End-to-End Flow Test**: Kiểm thử luồng 8 bước hoàn chỉnh từ Health Check đến Barista hoàn tất đơn (`tests/e2e/ordering-flow.e2e.test.mjs`).
 

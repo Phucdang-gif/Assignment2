@@ -201,11 +201,31 @@ function HomeContent() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-[#E8DFD8] p-8">
-              <div className="w-8 h-8 border-4 border-[#3E2723] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm font-semibold text-[#8D6E63]">
-                Đang tải dữ liệu từ cửa hàng...
-              </p>
+            <div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
+              aria-busy="true"
+              aria-label="Đang tải thực đơn đồ uống"
+            >
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white rounded-2xl border border-[#E8DFD8] overflow-hidden shadow-sm flex flex-col animate-pulse"
+                >
+                  <div className="w-full aspect-square bg-[#EDE6DD]" />
+                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                    <div className="space-y-2">
+                      <div className="h-4 bg-[#E8DFD8] rounded-md w-3/4" />
+                      <div className="h-3 bg-[#F2ECE4] rounded-md w-full" />
+                      <div className="h-3 bg-[#F2ECE4] rounded-md w-2/3" />
+                      <div className="h-4 bg-[#E8DFD8] rounded-md w-1/3 mt-2" />
+                    </div>
+                    <div className="pt-3 mt-2 flex items-center justify-between border-t border-gray-100">
+                      <div className="h-3 bg-[#F2ECE4] rounded w-1/2" />
+                      <div className="w-8 h-8 rounded-full bg-[#E8DFD8]" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-red-200 p-8 space-y-3">
@@ -223,14 +243,16 @@ function HomeContent() {
                 onClick={() => refetch()}
                 className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3E2723] hover:bg-[#2E1C12] text-white font-bold text-xs shadow-md transition cursor-pointer"
               >
-                Thử lại
+                Thử lại ngay
               </button>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-[#E8DFD8] p-8">
               <CoffeeCupIcon className="w-12 h-12 text-[#D7A86E] mx-auto mb-3" />
               <p className="text-lg font-bold text-[#3E2723]">
-                Không tìm thấy đồ uống phù hợp
+                {!searchTerm.trim()
+                  ? "Hiện chưa có sản phẩm nào trong danh mục này"
+                  : "Không tìm thấy đồ uống phù hợp"}
               </p>
               <p className="text-sm text-[#756C65] mt-1">
                 Hãy thử chọn danh mục khác hoặc xóa từ khóa tìm kiếm.
@@ -240,17 +262,21 @@ function HomeContent() {
                   setSelectedCategory("ALL");
                   setSearchTerm("");
                 }}
-                className="mt-4 inline-block text-xs font-bold text-[#3E2723] underline"
+                className="mt-4 inline-block text-xs font-bold text-[#3E2723] underline cursor-pointer"
               >
                 Xem tất cả món
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product) => {
+                const isOutOfStock = (product.stock ?? 0) <= 0;
+                return (
                 <div
                   key={product.id}
-                  className="group bg-white rounded-2xl border border-[#E8DFD8] overflow-hidden shadow-sm hover:shadow-xl hover:border-[#D7A86E] transition-all duration-300 flex flex-col"
+                  className={`group bg-white rounded-2xl border border-[#E8DFD8] overflow-hidden shadow-sm hover:shadow-xl hover:border-[#D7A86E] transition-all duration-300 flex flex-col ${
+                    isOutOfStock ? "opacity-80" : ""
+                  }`}
                 >
                   <Link
                     href={`/product/${product.id}`}
@@ -262,16 +288,30 @@ function HomeContent() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
+                    {isOutOfStock && (
+                      <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex items-center justify-center">
+                        <span className="bg-red-600 text-white font-extrabold text-xs px-3 py-1.5 rounded-lg shadow-md">
+                          Hết hàng
+                        </span>
+                      </div>
+                    )}
                   </Link>
 
                   <div className="p-4 flex-1 flex flex-col justify-between">
                     <div>
-                      <Link
-                        href={`/product/${product.id}`}
-                        className="font-bold text-base text-[#2E1810] group-hover:text-[#8D6E63] transition-colors line-clamp-1"
-                      >
-                        {product.name}
-                      </Link>
+                      <div className="flex items-start justify-between gap-2">
+                        <Link
+                          href={`/product/${product.id}`}
+                          className="font-bold text-base text-[#2E1810] group-hover:text-[#8D6E63] transition-colors line-clamp-1"
+                        >
+                          {product.name}
+                        </Link>
+                        {isOutOfStock && (
+                          <span className="shrink-0 text-[10px] font-bold bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full border border-red-200">
+                            Hết hàng
+                          </span>
+                        )}
+                      </div>
                       {product.description && (
                         <p className="text-xs text-[#756C65] mt-1 line-clamp-2 leading-relaxed">
                           {product.description}
@@ -293,14 +333,19 @@ function HomeContent() {
                       <Link
                         href={`/product/${product.id}`}
                         aria-label={`Thêm ${product.name}`}
-                        className="w-8 h-8 rounded-full bg-[#3E2723] hover:bg-[#2E1C12] text-white flex items-center justify-center transition-transform active:scale-90 shadow-sm"
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-sm ${
+                          isOutOfStock
+                            ? "bg-gray-300 text-gray-500"
+                            : "bg-[#3E2723] hover:bg-[#2E1C12] text-white"
+                        }`}
                       >
                         <PlusIcon className="w-4 h-4" />
                       </Link>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -330,7 +375,7 @@ function HomeContent() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#D7A86E]" />
-                  <span>Thanh toán QR / Thẻ</span>
+                  <span>Thanh toán VietQR / Ví MoMo</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#D7A86E]" />
