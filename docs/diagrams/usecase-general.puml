@@ -100,6 +100,6 @@ Manager -- UC_ManageItems
 Manager -- UC_Login
 
 ' Cổng thanh toán (Đặt bên phải hệ thống)
-UC_Payment -- PaymentService : <<interact>>
+UC_Payment -- PaymentService
 
 @enduml
