@@ -123,7 +123,7 @@ export default function Header() {
           >
             <CartIcon className="w-5 h-5" />
             {isMounted && totalItems > 0 && (
-              <span className="absolute 0 top-0.5 right-0.5 bg-[#8D6E63] text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full shadow-sm">
+              <span className="absolute top-0.5 right-0.5 bg-[#8D6E63] text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full shadow-sm">
                 {totalItems > 99 ? '99+' : totalItems}
               </span>
             )}
@@ -191,6 +191,19 @@ export default function Header() {
                         Staff
                       </span>
                     </Link>
+
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center justify-between px-4 py-2.5 text-sm text-[#3E2723] hover:bg-[#FDFBF7] font-bold"
+                      >
+                        <span>Quản trị hệ thống</span>
+                        <span className="text-[10px] bg-[#3E2723] text-[#FDFBF7] px-1.5 py-0.5 rounded">
+                          Admin
+                        </span>
+                      </Link>
+                    )}
 
                     <div className="border-t border-gray-100 mt-1 pt-1">
                       <button

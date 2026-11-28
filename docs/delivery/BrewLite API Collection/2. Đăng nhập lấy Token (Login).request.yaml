@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://localhost:3001/api/auth/login
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "customer@brewlite.com",
+      "password": "customer123"
+    }
+order: 2000

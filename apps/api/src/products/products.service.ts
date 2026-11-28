@@ -47,7 +47,7 @@ export class ProductsService {
     const sizes = Array.from(new Set(recipes.map((r) => r.size)));
     if (sizes.length === 0) return 0;
     const capacities = sizes.map((s) => this.calculateStock(recipes, s));
-    return Math.min(...capacities);
+    return Math.max(...capacities);
   }
 
   async create(createProductDto: CreateProductDto) {
@@ -65,6 +65,25 @@ export class ProductsService {
     const products = await this.prisma.product.findMany({
       where: { status: 'active' },
       orderBy: { createdAt: 'asc' },
+      include: {
+        category: true,
+        ProductRecipeItem: {
+          include: {
+            Ingredient: true,
+          },
+        },
+      },
+    });
+
+    return products.map((p) => ({
+      ...p,
+      stock: this.calculateStock(p.ProductRecipeItem as any),
+    }));
+  }
+
+  async findAllAdmin() {
+    const products = await this.prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
       include: {
         category: true,
         ProductRecipeItem: {

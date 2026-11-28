@@ -89,7 +89,7 @@ model Product {
   version           Int                 @default(0)
   status            ProductStatus       @default(active)
   createdAt         DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt         DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
   category          Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   OrderItem         OrderItem[]
   ProductRecipeItem ProductRecipeItem[]
@@ -158,7 +158,7 @@ model Order {
   discountAmount     Decimal              @default(0) @db.Decimal(12, 2)
   total              Decimal              @default(0) @db.Decimal(12, 2)
   createdAt          DateTime             @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @db.Timestamptz(6)
   User               User                 @relation(fields: [userId], references: [id], onUpdate: NoAction)
   Promotion          Promotion?           @relation(fields: [promotionId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   OrderItem          OrderItem[]

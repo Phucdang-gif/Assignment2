@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MaxLength, IsInt, Min, IsOptional, IsUrl, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsInt, Min, IsOptional, Matches, IsEnum } from 'class-validator';
 import { ProductStatus } from '@prisma/client';
 export class CreateProductDto {
   @IsString({ message: 'Tên sản phẩm phải là chuỗi' })
@@ -14,7 +14,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsString({ message: 'URL hình ảnh phải là chuỗi' })
   @MaxLength(500, { message: 'URL hình ảnh không được vượt quá 500 ký tự' })
-  @IsUrl({}, { message: 'Định dạng URL không hợp lệ' })
+  @Matches(/^(https?:\/\/\S+|\/\S+)$/, { message: 'Định dạng URL không hợp lệ' })
   imageUrl?: string;
 
   @IsOptional()

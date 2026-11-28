@@ -1,0 +1,1943 @@
+=== PAGE 1 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+KHOA CÔNG NGHỆ THÔNG TIN
+CÔNG NGHỆ PHẦN MỀM
+BrewLite
+Hệ thống Đặt đồ uống & Thanh toán Trực tuyến
+BÁO CÁO BÀI TẬP LỚN – ASSIGNMENT 2 (REQUIREMENTS TO DEPLOYMENT)
+GVHD: ThS. Từ Lãng Phiêu
+Thành viên (Nhóm 6):
+– Đặng Hoàng Phúc – 3124410280
+– Châu Chí Hải – 3124410076
+– Võ Dương Thành Lê – 3124410185
+– Trần Quang Duy – 3124410051
+– Thiều Đình Trung Hiếu – 3124410099
+– Lê Quốc Việt – 3124410405
+TP. HỒ CHÍ MINH, THÁNG 11/2026
+Học kỳ I – Năm học 2026–2027
+
+=== PAGE 2 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Mục lục
+1 TASK 1: KHAI THÁC VÀ ĐẶC TẢ YÊU CẦU 3
+1.1 Task 1.1 – Bối cảnh, Stakeholder và Phạm vi Hệ thống . . . . . . . . . . . . . . . . . . 3
+1.1.1 Vấn đề nghiệp vụ cần giải quyết . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.1.2 Bảng phân tích các bên liên quan (Stakeholder Matrix) . . . . . . . . . . . . . 4
+1.1.3 Phạm vi hệ thống (In-Scope và Out-of-Scope) . . . . . . . . . . . . . . . . . . . 4
+1.1.4 Giả định, Ràng buộc kỹ thuật & Đánh giá rủi ro ban đầu . . . . . . . . . . . . 5
+1.2 Task 1.2 – Yêu cầu Chức năng và Phi Chức năng (SRS Rút Gọn) . . . . . . . . . . . . 6
+1.2.1 Danh sách Yêu cầu Chức năng (Functional Requirements – FR) . . . . . . . . 6
+1.2.2 Danh sách Yêu cầu Phi Chức năng (Non-Functional Requirements – NFR) . . 7
+1.2.3 Sơ đồ Use-Case Tổng Quát Toàn Hệ Thống . . . . . . . . . . . . . . . . . . . . 7
+1.3 Task 1.3 – Đặc Tả Chi Tiết Use-Case Trọng Tâm: Đặt và Thanh Toán Đơn Hàng . . . 8
+1.3.1 Sơ đồ Use-Case Phân Rã Chi Tiết . . . . . . . . . . . . . . . . . . . . . . . . . 9
+1.3.2 Bảng đặc tả chi tiết Use-Case Trọng tâm (UC-01) . . . . . . . . . . . . . . . . 9
+1.3.3 Kịch bản thực thi chi tiết (Flow of Events) . . . . . . . . . . . . . . . . . . . . 9
+2 TASK 2: MÔ HÌNH HÓA HỆ THỐNG 12
+2.1 Task 2.1 – Sơ Đồ Hoạt Động (Activity Diagram) . . . . . . . . . . . . . . . . . . . . . 12
+2.1.1 Đặc tả 5 phân làn trách nhiệm (Swimlanes) . . . . . . . . . . . . . . . . . . . . 16
+2.1.2 Các điểm rẽ nhánh (Decision / Merge Nodes) & Xử lý kịch bản ngoại lệ . . . . 16
+2.2 Task 2.2 – Sơ Đồ Tuần Tự (Sequence Diagram) . . . . . . . . . . . . . . . . . . . . . . 18
+2.2.1 Phân tích các giai đoạn tương tác tuần tự . . . . . . . . . . . . . . . . . . . . . 18
+2.3 Task 2.3 – Sơ Đồ Lớp Miền Nghiệp Vụ (Domain Class Diagram) . . . . . . . . . . . . 21
+2.3.1 Đặc tả 12 Lớp Miền Nghiệp Vụ Cốt Lõi (Domain Entities) . . . . . . . . . . . 21
+2.3.2 Các kiểu Liệt kê Trạng thái (Domain Enumerations) . . . . . . . . . . . . . . . 23
+2.3.3 Đối soát Tiêu chí Nghiệm thu của Task 2 . . . . . . . . . . . . . . . . . . . . . 23
+3 TASK 3: THIẾT KẾ KIẾN TRÚC 23
+3.1 Task 3.1 – Phương Pháp và Quyết Định Kiến Trúc (ADRs) . . . . . . . . . . . . . . . 23
+3.1.1 Mô hình C4 (The C4 Model for Software Architecture) . . . . . . . . . . . . . . 23
+3.1.2 Phân tích lý do lựa chọn, ưu điểm, hạn chế và sự đánh đổi (Trade-offs) . . . . 24
+3.1.3 Danh mục 6 Quyết định Kiến trúc Quan trọng (ADR 001 – ADR 006) . . . . . 24
+3.2 Task 3.2 – Sơ Đồ Triển Khai (Deployment Diagram) . . . . . . . . . . . . . . . . . . . 26
+3.2.1 Đặc tả chi tiết các tầng hạ tầng Production . . . . . . . . . . . . . . . . . . . . 26
+3.2.2 Giao thức mạng, Cổng kết nối và Quản lý Secret . . . . . . . . . . . . . . . . . 26
+4 TASK 4: TRIỂN KHAI SPRINT 1 29
+4.1 Task 4.1 – Thiết Lập Repository và Quy Trình Làm Việc Nhóm . . . . . . . . . . . . . 29
+4.1.1 Cấu trúc Monorepo Chuẩn Hóa . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+4.1.2 Chiến lược phân nhánh (Branching Strategy) & Quy trình Pull Request . . . . 29
+4.1.3 Quy ước Commit (Conventional Commits) . . . . . . . . . . . . . . . . . . . . 30
+4.1.4 Bảng Product Backlog cho Sprint 1 và Sprint 2 . . . . . . . . . . . . . . . . . . 31
+4.1.5 Tiêu chuẩn Định nghĩa Hoàn thành (Definition of Done – DoD) . . . . . . . . 32
+4.2 Task 4.2 – Quản Lý Tài Liệu và Kiểm Soát Phiên Bản . . . . . . . . . . . . . . . . . . 32
+4.3 Task 4.3 – Xây Dựng MVP Sprint 1 (Menu Browsing) . . . . . . . . . . . . . . . . . . 32
+4.3.1 Phân hệ Backend Catalog API . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+4.3.2 Phân hệ Frontend Next.js Menu Mobile-First & Xử lý 3 Trạng thái . . . . . . . 32
+4.3.3 Kiểm thử Sprint 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+4.4 Task 4.4 – Tích Hợp Liên Tục (Continuous Integration – CI) . . . . . . . . . . . . . . 33
+4.4.1 Minh chứng 1: Pull Request chạy Pipeline CI Thành Công (CI Pass) . . . . . . 33
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 1 / 50
+
+=== PAGE 3 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+4.4.2 Minh chứng 2: Pull Request có lỗi bị Pipeline CI Phát Hiện & Chặn Merge (CI
+Fail) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+5 TASK 5: TRIỂN KHAI SPRINT 2, CI/CD VÀ DELIVERY 37
+5.1 Task 5.1 – Hoàn Thiện MVP Sprint 2 (End-to-End Features) . . . . . . . . . . . . . . 37
+5.1.1 Chi tiết các tính năng nghiệp vụ đã hoàn thiện . . . . . . . . . . . . . . . . . . 37
+5.1.2 Bộ ảnh chụp màn hình Giao diện Thực tế của Hệ thống . . . . . . . . . . . . . 38
+5.2 Task 5.2 – Tích Hợp và Kiểm Thử Hệ Thống (Integration & Testing) . . . . . . . . . . 41
+5.2.1 Kiểm thử Unit Test Nghiệp vụ Nâng cao (Task 10) . . . . . . . . . . . . . . . . 41
+5.2.2 Kiểm thử Hiệu Năng & Khả Năng Xử Lý Idempotency Thực Tế . . . . . . . . 42
+5.2.3 Kiểm thử Tích Hợp & End-to-End (E2E Test) . . . . . . . . . . . . . . . . . . 43
+5.2.4 Khởi chạy Cục bộ Đồng bộ với Docker Compose . . . . . . . . . . . . . . . . . 43
+5.2.5 Endpoint Kiểm tra Sức khỏe Ứng dụng (Health Check) . . . . . . . . . . . . . 44
+5.3 Task 5.3 – Triển Khai Liên Tục (Continuous Delivery / Deployment – CD) . . . . . . 44
+5.3.1 Đặc tả 7 yêu cầu kỹ thuật trong Pipeline CD . . . . . . . . . . . . . . . . . . . 44
+5.4 Task 5.4 – Triển Khai Production và Bàn Giao Sản Phẩm . . . . . . . . . . . . . . . . 45
+5.4.1 Danh sách URL Production Công Khai qua HTTPS . . . . . . . . . . . . . . . 45
+5.4.2 Tài khoản Kiểm thử có sẵn (Seeded Test Accounts) . . . . . . . . . . . . . . . 45
+5.4.3 Phiên bản Phát hành & Hướng dẫn Vận hành . . . . . . . . . . . . . . . . . . . 46
+5.4.4 Biên bản Sprint Review và Sprint Retrospective . . . . . . . . . . . . . . . . . 46
+6 MA TRẬN TRUY VẾT YÊU CẦU (TRACEABILITY MATRIX) 47
+6.1 Bảng Truy Vết Yêu Cầu Chức Năng (Functional Requirements – FR) . . . . . . . . . 48
+6.2 Bảng Truy Vết Yêu Cầu Phi Chức Năng (Non-Functional Requirements – NFR) . . . 49
+6.3 Checklist Bàn Giao và Nghiệm Thu Dự Án (Mục 9.1 Đề Bài) . . . . . . . . . . . . . . 49
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 2 / 50
+
+=== PAGE 4 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+1 TASK 1: KHAI THÁC VÀ ĐẶC TẢ YÊU CẦU
+1.1 Task 1.1 – Bối cảnh, Stakeholder và Phạm vi Hệ thống
+Tài liệu tham chiếu bắt buộc: docs/requirements/context-and-scope.md.
+1.1.1 Vấn đề nghiệp vụ cần giải quyết
+Trong mô hình kinh doanh quán cà phê và đồ uống truyền thống, các cửa hàng thường xuyên gặp
+phải những bất cập sau trong khâu vận hành và phục vụ khách hàng:
+1. Quá tải và chờ đợi lâu vào giờ cao điểm: Khách hàng phải xếp hàng dài để chờ nhân viên ghi
+nhận món tại quầy, gây gián đoạn và giảm tỷ lệ hài lòng của khách.
+2. Sai sót trong tiếp nhận và pha chế order: Khách hàng có nhu cầu tùy biến kích cỡ (Size
+S/M/L) và chọn nhiều topping đi kèm. Việc truyền đạt trực tiếp bằng miệng hoặc ghi chép tay dễ
+dẫn đến nhầm lẫn, làm sai công thức gây lãng phí nguyên liệu.
+3. Thiếu tính minh bạch trong theo dõi tiến độ đơn hàng: Khách hàng không nắm được đơn
+của mình đang ở giai đoạn nào (chờ thanh toán, đang pha chế, hay đã xong để lấy), dẫn đến việc
+tụ tập chờ đợi quanh quầy bar gây lộn xộn.
+4. Quản lý tồn kho và doanh thu phân tán: Khó kiểm soát tồn kho tức thời (real-time stock)
+dẫn đến tình trạng khách đặt món nhưng thực tế nguyên liệu đã hết; thiếu cơ chế đối soát thanh
+toán và rủi ro đặt trùng đơn do lỗi mạng.
+5. Thiếu cơ chế gắn kết khách hàng (Customer Loyalty): Cửa hàng chưa có giải pháp tự động
+tích lũy điểm thưởng thành viên theo giá trị đơn hàng để tái thu hút khách hàng quay lại.
+Giải pháp của BrewLite: Hệ thống xây dựng nền tảng đặt đồ uống trực tuyến gọn nhẹ, tối ưu cho
+thiết bị di động (Mobile-First / PWA), kết nối trực tiếp và đồng bộ theo thời gian thực giữa Khách
+hàng, Nhân viên quầy bar (Barista) và Quản lý cửa hàng.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 3 / 50
+
+=== PAGE 5 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+1.1.2 Bảng phân tích các bên liên quan (Stakeholder Matrix)
+STT Stakeholder Vai trò Mục tiêu chính Kỳ vọng đối với
+hệ thống
+Ảnh hưởng
+1 Khách hàng
+(Customer)
+Đặt món trực
+tuyến qua
+PWA/Web.
+Xem thực đơn, tùy
+biến đồ uống, thanh
+toán nhanh, theo dõi
+đơn, tích điểm.
+Giao diện tải nhanh
+dưới 2s, tính tiền
+chính xác, theo dõi
+trạng thái rõ ràng,
+bảo mật tài khoản.
+Rất cao
+2 Nhân viên
+quầy
+(Barista)
+Tiếp nhận order
+và pha chế đồ
+uống.
+Nhận danh sách đơn
+theo thời gian thực,
+xem chi tiết
+size/topping, báo
+hoàn thành.
+Giao diện KDS trực
+quan, cập nhật tức
+thời tránh trùng/sót
+đơn, giảm tải thao
+tác thủ công.
+Cao
+3 Quản lý
+(Store Manager
+/ Admin)
+Giám sát vận
+hành, kho và
+danh mục.
+Kiểm soát tồn kho
+tức thời, cập nhật
+bật/tắt món, quản
+trị danh
+mục/topping/người
+dùng qua /admin.
+Cảnh báo hết hàng
+kịp thời, phân quyền
+@AdminOnly, không
+xảy ra bán âm kho.
+Cao
+4 Giảng viên
+(Evaluator)
+Nghiệm thu
+chất lượng đồ
+án.
+Đánh giá quy trình
+Agile/Scrum qua 2
+Sprint, kiểm chứng
+tính hoàn thiện kỹ
+thuật.
+Tài liệu chuẩn xác,
+ma trận truy vết đầy
+đủ, hệ thống deploy
+production chạy ổn
+định có HTTPS.
+Rất cao
+5 Nhóm phát
+triển
+(Dev Team)
+Thiết kế, lập
+trình và vận
+hành.
+Kiến trúc module
+hóa, kiểm thử tự
+động toàn diện, tự
+động hóa CI/CD.
+Monorepo phân tách
+rõ ràng, migration dữ
+liệu ổn định, môi
+trường local đồng
+nhất qua Docker.
+Cao
+6 Đơn vị thanh
+toán
+(PayOS /
+MoMo & Mock
+Test)
+Xử lý giao dịch
+VietQR, MoMo
+& mô phỏng
+test.
+Thanh toán trực
+tuyến an toàn qua
+PayOS/MoMo
+Sandbox và kiểm thử
+tự động bằng
+idempotencyKey.
+Phản hồi trạng thái
+chính xác
+(SUCCESS/FAILED),
+đối soát
+Webhook/IPN và an
+toàn khi retry.
+Trung bình
+Bảng 1: Bảng phân tích 6 bên liên quan (Stakeholder Matrix)
+1.1.3 Phạm vi hệ thống (In-Scope và Out-of-Scope)
+A. Phạm vi trong hệ thống (In-Scope):
+ Phạm vi MVP Sprint 1: Xem danh mục thực đơn đồ uống theo danh mục (Cà phê, Trà trái
+cây, Trà sữa, Đá xay & Thức uống khác); Xem chi tiết sản phẩm; Giao diện chuẩn Mobile-first
+Responsive; Xử lý 3 trạng thái bắt buộc (Loading Skeleton, Empty State, Error State); Kịch bản
+database seed dữ liệu mẫu; Kiểm thử tự động cơ bản.
+ Phạm vi Sprint 2 (Hoàn thiện MVP & Mở rộng): Tùy biến kích cỡ ly (Size S, M, L) và chọn
+Topping kèm theo; Giỏ hàng quản lý bằng Zustand kết hợp localStorage; Đăng ký và đăng nhập
+bảo mật bằng mật khẩu băm bcrypt và mã JWT (kèm Rate Limiting); Tạo đơn hàng với giao dịch
+cơ sở dữ liệu atomic; Thanh toán không tiền mặt qua VietQR (PayOS SDK) và Ví MoMo
+Sandbox (cùng endpoint mô phỏng POST /api/payments với khóa idempotencyKey cho kiểm thử
+tự động và đơn 0đ); Theo dõi trạng thái đơn hàng thời gian thực qua máy trạng thái 7 bước; Phân
+hệ Barista KDS (/barista); Phân hệ Quản trị Admin (/admin) với 6 tab quản lý (@AdminOnly);
+Tích lũy điểm thưởng thành viên tự động và áp dụng chiết khấu theo thứ hạng (Đồng, Bạc, Vàng,
+Kim Cương) kèm mã Voucher.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 4 / 50
+
+=== PAGE 6 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+B. Phạm vi ngoài hệ thống (Out-of-Scope):
+ Không sử dụng luồng thu tiền thương mại live sản xuất có đối soát ngân hàng thật (chỉ dùng PayOS
+/ MoMo môi trường Sandbox/Test và Mock Payment Service cho kiểm thử tự động).
+ Không tích hợp định vị GPS hoặc đơn vị vận chuyển đường dài ngoài (GrabExpress, ShopeeFood).
+Khách hàng nhận món trực tiếp tại quầy quán (Pick-up at counter).
+ Không tích hợp phần cứng máy in bill nhiệt ESC/POS hoặc ngăn kéo đựng tiền vật lý.
+ Không phát triển phân hệ chấm công, xếp lịch ca làm việc và tính lương nhân viên.
+1.1.4 Giả định, Ràng buộc kỹ thuật & Đánh giá rủi ro ban đầu
+A. Giả định (Assumptions): Khách hàng sử dụng thiết bị có trình duyệt web hiện đại hỗ trợ
+JavaScript/HTML5 và kết nối mạng Internet ổn định. Quy mô phục vụ một cửa hàng đơn lẻ với lưu
+lượng dưới 100 giao dịch đồng thời trong giờ cao điểm. Khách hàng luôn có đủ số dư tài khoản khi
+thanh toán thử nghiệm.
+B. Ràng buộc kỹ thuật bắt buộc:
+ Frontend: Bắt buộc sử dụng Next.js (App Router) theo định hướng Mobile-first / PWA.
+ Backend: Bắt buộc sử dụng NestJS theo kiến trúc module/domain.
+ Database: Bắt buộc sử dụng PostgreSQL 16 kết hợp Prisma ORM và migration có phiên bản.
+ Containerization: Bắt buộc đóng gói và chạy được toàn bộ hệ thống bằng docker-compose.yml.
+ Toàn vẹn dữ liệu: Thao tác tạo đơn hàng và trừ tồn kho nguyên liệu phải nằm trong một Database
+Transaction(Atomic);Chốngraceconditionbánâmkhobằngtrường version(OptimisticLocking).
+C. Bảng đánh giá rủi ro ban đầu (Initial Risk Assessment):
+Mã Rủi ro phát sinh Xác suất Tác động Giải pháp kiểm soát & Giảm thiểu
+R-01 Bánvượttồnkho
+(Overselling) khi
+nhiều khách cùng
+đặt món cuối.
+Trung bình Rất cao Sử dụng khóa lạc quan (Optimistic
+Concurrency Control) với trường version
+trong bảng Product. Request trùng version bị
+hủy an toàn.
+R-02 Thanh toán
+trùng lặp (Dou-
+ble Payment)
+do mạng lag bấm
+nhiều lần.
+Cao Nghiêm trọng Sử dụng idempotencyKey duy nhất cho mỗi
+giao dịch thanh toán. Backend kiểm tra và trả
+lại kết quả cũ nếu key đã xử lý.
+R-03 Xung đột
+Schema & Mi-
+gration giữa local
+và production.
+Trung bình Cao Sử dụng Prisma Migration có kiểm soát phiên
+bản Git (prisma migrate deploy) chạy tự
+động trong CI/CD.
+R-04 Lỗi triển khai
+CI/CDvàlộlọtse-
+cret môi trường.
+Trung bình Cao Quản lý bí mật bằng Secret Manager của
+Vercel/Render, kiểm thử pipeline sớm từ
+Sprint 1 với 4 chặng Quality Gate.
+Bảng 2: Bảng đánh giá rủi ro ban đầu và giải pháp giảm thiểu
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 5 / 50
+
+=== PAGE 7 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+1.2 Task 1.2 – Yêu cầu Chức năng và Phi Chức năng (SRS Rút Gọn)
+Tài liệu tham chiếu bắt buộc: docs/requirements/srs.md.
+1.2.1 Danh sách Yêu cầu Chức năng (Functional Requirements – FR)
+Mọi yêu cầu chức năng được nhóm phân loại theo mô hình ưu tiên MoSCoW (Must have, Should
+have, Could have, Won’t have) kèm tiêu chí chấp nhận có thể kiểm chứng:
+Bảng 3: Danh sách Yêu cầu Chức năng (Functional Requirements – FR) theo chuẩn MoSCoW
+Mã FR Tên chức năng Ưu tiên Mô tả nghiệp vụ Tiêu chí chấp nhận (Accep-
+tance Criteria)
+FR-01 Xem thực đơn đồ
+uống
+Must Khách hàng duyệt danh
+mục, hình ảnh, giá gốc và
+tình trạng còn/hết hàng
+của đồ uống.
+Trả về JSON đúng cấu trúc; hiển
+thị Loading Skeleton khi tải; hiển
+thị nhãn Hết hàng khi stock = 0;
+thông báo khi danh mục trống.
+FR-02 Tùy biến Size &
+Topping
+Must Khách hàng chọn size
+(S/M/L) và các topping
+thêm cho từng ly.
+Chọn 1 size bắt buộc; chọn 0
+hoặc nhiều topping; cập nhật tổng
+tiền tạm tính ngay tại giao diện
+/product/[id].
+FR-03 Quản lý giỏ hàng Must Thêm món, điều chỉnh số
+lượng, xóa món khỏi giỏ
+hàng.
+Cập nhật số lượng và tổng tiền
+chính xác; lưu trạng thái vào
+localStorage không mất khi tải lại
+trang.
+FR-04 Đăng ký & Đăng
+nhập
+Must Tạo tài khoản, đăng nhập
+hệ thống, cấp phát token
+JWT.
+Mật khẩu băm bcrypt; trả về to-
+ken JWT hợp lệ; giới hạn tần suất
+(ThrottlerGuard);chặnAPIbảovệ
+khi thiếu token.
+FR-05 Tạo đơn hàng &
+Giữ kho
+Must Tạo đơn hàng mới từ
+giỏ hàng ở trạng thái
+PENDING.
+Kiểm tra tồn kho nguyên liệu trước
+khi tạo; thực hiện trong transaction
+atomic; rollback nếu thiếu hàng.
+FR-06 Thanh toán
+không tiền mặt
+Must Thanh toán qua Vi-
+etQR (PayOS), Ví
+MoMo và endpoint
+POST /api/payments
+(idempotencyKey cho
+test & đơn 0đ).
+Đổi đơn sang PAID; xác thực chữ
+ký Webhook/IPN; nếu gửi lặp cùng
+idempotencyKey trả kết quả cũ
+không trừ tiền 2 lần.
+FR-07 Xem lịch sử &
+Tích điểm
+Should Khách hàng xem lại các
+đơn đã đặt và điểm
+thưởng tích lũy.
+Chỉ hiển thị đơn thuộc tài khoản
+đăng nhập; tích lũy 1 điểm cho mỗi
+10.000 VNĐ khi thanh toán thành
+công.
+FR-08 Tiếp nhận & Pha
+chế (Barista)
+Should Barista nhận đơn và cập
+nhật tiến độ pha chế trên
+KDS.
+HiểnthịđơnPAID;chuyểntrạngthái
+PREPARING → READY → COMPLETED;
+polling tự động 10s.
+FR-09 Quản lý bật/tắt
+món & Admin
+Could Quản trị viên (admin)
+quản lý danh mục, sản
+phẩm, topping, đơn hàng
+và người dùng.
+Trang /admin (@AdminOnly);
+cập nhật cờ status món và
+isAvailable của topping; khách
+không thể chọn món đã tắt.
+FR-10 Dọn dẹp đơn quá
+hạn
+Could Giữ chỗ 5 phút ở UI; tự
+động hủy đơn PENDING
+quá 5–6 phút chưa thanh
+toán.
+Hủy đơn quá hạn hoặc khi khách
+hủy (/cancel); hoàn trả số lượng
+tồn kho nguyên liệu đã giữ chỗ.
+FR-11 Chiết khấu hạng
+thành viên
+Should Tự động áp dụng giảm
+giá theo điểm tích lũy của
+khách hàng.
+Đồng (<20đ): 0%; Bạc (20–49đ):
+giảm 5%; Vàng (50–99đ): giảm 10%;
+Kim Cương (≥100đ): giảm 15%.
+(Xem tiếp trang sau...)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 6 / 50
+
+=== PAGE 8 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Bảng 3 – Tiếp theo từ trang trước
+Mã FR Tên chức năng Ưu tiên Mô tả nghiệp vụ Tiêu chí chấp nhận (Accep-
+tance Criteria)
+FR-12 Hiển thị Hero
+Banner & Tìm
+kiếm
+Could Hiển thị Hero Banner
+thương hiệu, lọc danh
+mục và tìm kiếm nhanh
+đồ uống trên trang chủ.
+Hero Banner dẫn trực tiếp xuống
+#menu; lọc theo danh mục và tìm
+theo tên/danh mục từ thanh tìm
+kiếm.
+FR-13 Giới hạn thanh
+toánphitiềnmặt
+Must Chỉ chấp nhận hình thức
+thanh toán không tiền
+mặt.
+Hệ thống từ chối tiền mặt (CASH);
+DTO chỉ nhận WALLET/CARD,
+giao diện Checkout hỗ trợ Vi-
+etQR/MoMo.
+1.2.2 Danh sách Yêu cầu Phi Chức năng (Non-Functional Requirements – NFR)
+Mã NFR Tên yêu cầu Tiêu chí kiểm chứng kỹ
+thuật
+Giải pháp hiện thực hóa
+NFR-01 Hiệu năng (Perfor-
+mance)
+Thời gian phản hồi API <
+500ms đối với 95% request; Tải
+trang PWA lần đầu < 1.5s; Phục
+vụ ổn định 100 người dùng đồng
+thời.
+NestJS Modular Monolith
+in-memory, Next.js Server
+Components, Tailwind CSS nhẹ,
+CDN Vercel Edge.
+NFR-02 Tính toàn vẹn
+(Data Integrity)
+Dữ liệu không bị phân mảnh;
+Không xảy ra bán âm tồn kho
+khi nhiều khách đặt cùng lúc;
+Giao dịch đạt chuẩn ACID.
+PostgreSQL 16, Prisma ORM
+$transaction, Khóa lạc quan
+Product.version.
+NFR-03 Bảo mật (Security) Mật khẩu người dùng được băm
+an toàn; Token xác thực hết hạn
+sau thời gian định sẵn; Chống
+brute-force và replay attack
+thanh toán.
+Thuật toán bcrypt 10 rounds,
+JWT qua Passport Guard,
+ThrottlerGuard (5 req/phút),
+CORS_ORIGIN whitelist, chữ ký
+Webhook/IPN và
+idempotencyKey.
+NFR-04 Khả dụng (Usabil-
+ity)
+Giao diện tối ưu theo chuẩn
+Mobile-First Responsive; Cung
+cấp đủ 3 trạng thái phản hồi
+trực quan.
+Next.js Skeleton Components,
+Toast Alert, thiết kế thân thiện
+một tay trên màn hình cảm ứng
+di động.
+NFR-05 Khả năng triển khai
+(Deployability)
+Hệ thống tự động đóng gói qua
+CI/CD; Có thể tái tạo môi
+trường local bằng 1 lệnh duy
+nhất; Có endpoint kiểm tra sức
+khỏe.
+Tệp docker-compose.yml,
+GitHub Actions CI/CD Pipeline,
+Endpoint GET /health đạt
+chuẩn.
+NFR-06 Khả năng bảo trì
+(Maintainability)
+Mã nguồn sạch, kiểu dữ liệu tĩnh
+nghiêm ngặt; Lịch sử commit
+theo chuẩn thống nhất; Truy vết
+yêu cầu 100%.
+TypeScript Strict Mode cho cả 2
+phân hệ, Conventional Commits,
+Ma trận truy vết RTM chi tiết.
+Bảng 4: Danh sách Yêu cầu Phi Chức năng (Non-Functional Requirements – NFR)
+1.2.3 Sơ đồ Use-Case Tổng Quát Toàn Hệ Thống
+Hệ thống phân định rõ ranh giới nghiệp vụ giữa 4 Actor chính: Khách hàng (Customer), Nhân viên
+pha chế (Barista), Quản lý cửa hàng (Store Manager / Admin) và Cổng thanh toán (Payment Service).
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 7 / 50
+
+=== PAGE 9 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 1: Sơ đồ Use-Case tổng quát hệ thống BrewLite (docs/diagrams/usecase-general.puml /
+.svg)
+Actor Loại tác nhân Danh sách các Use-Case tương tác chính
+Khách hàng
+(Customer)
+Con người
+(Chính)
+Xem thực đơn, Tùy chỉnh size/topping, Quản lý giỏ hàng, Đăng
+ký/Đăng nhập, Tạo đơn hàng, Thanh toán trực tuyến, Xem lịch
+sử đơn hàng & tích điểm.
+Nhân viên pha
+chế
+(Barista)
+Con người
+(Phụ)
+Đăng nhập hệ thống quầy, Xem hàng đợi pha chế thời gian thực,
+Tiếp nhận đơn (PREPARING), Báo pha chế xong (READY), Bàn giao
+đồ uống (COMPLETED).
+Quảnlýcửahàng
+(Store Manager)
+Con người (Phụ
+/ Admin)
+Đăng nhập trang quản trị /admin, Bật/tắt món & topping,
+CRUD sản phẩm/danh mục, Xem danh sách đơn hàng và quản lý
+người dùng.
+Cổng thanh toán
+(PayOS / MoMo &
+Mock)
+Hệ thống (Bên
+ngoài)
+Sinh mã VietQR/MoMo, Xác thực giao dịch qua Webhook/IPN
+và hỗ trợ kiểm thử tự động với idempotencyKey.
+Bảng 5: Bảng phân tích Actor và ánh xạ tương tác Use-Case
+1.3 Task 1.3 – Đặc Tả Chi Tiết Use-Case Trọng Tâm: Đặt và Thanh Toán Đơn
+Hàng
+Tài liệu tham chiếu bắt buộc: docs/requirements/usecase-checkout.md.
+Theo khuyến nghị từ đề bài mục 3.3, nhóm lựa chọn use-case có giá trị nghiệp vụ cốt lõi nhất:
+Đặt và thanh toán đơn hàng (UC-01).
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 8 / 50
+
+=== PAGE 10 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+1.3.1 Sơ đồ Use-Case Phân Rã Chi Tiết
+Hình 2: Sơ đồ Use-Case Đặt và thanh toán đơn hàng (docs/diagrams/usecase-checkout.puml /
+.svg)
+1.3.2 Bảng đặc tả chi tiết Use-Case Trọng tâm (UC-01)
+Thuộc tính Chi tiết đặc tả nghiệp vụ
+Tên Use-Case UC-01: Đặt và thanh toán đơn hàng trực tuyến
+Mã định danh UC-01 (Bao gồm UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08)
+Tác nhân (Actors) Tác nhân chính: Khách hàng (Customer); Tác nhân phụ: Cổng thanh toán
+(PayOS / MoMo Sandbox & Mock Test).
+Mô tả tóm tắt Khách hàng tiến hành gửi giỏ hàng đã chọn lên máy chủ để tạo đơn hàng, hệ
+thống khóa giữ tồn kho nguyên liệu, tính toán chiết khấu thành viên và thực hiện
+thanh toán không tiền mặt an toàn.
+Điểm kích hoạt
+(Trigger)
+Khách hàng nhấn nút “Thanh toán” tại giỏ hàng (/cart) để tạo đơn giữ kho và
+“Thanh toán ngay” tại trang /checkout.
+Tiền điều kiện 1. Khách hàng đã đăng nhập tài khoản hợp lệ (sở hữu Bearer JWT token còn
+hạn).
+2. Giỏ hàng có ít nhất một món đồ uống hợp lệ với số lượng ≥ 1.
+Hậu điều kiện
+(Thành công)
+1. Đơn hàng được ghi nhận vào PostgreSQL với trạng thái PAID.
+2. Tồn kho nguyên liệu bị khấu trừ chính xác.
+3. Giao dịch Payment được lưu vết kèm idempotencyKey.
+4. Điểm thưởng loyaltyPoints được cộng dồn vào tài khoản khách hàng.
+5. Giỏ hàng tại Client được dọn sạch và chuyển sang trang xác nhận thành công.
+Hậu điều kiện
+(Thất bại)
+1. Đơn hàng chuyển sang PAYMENT_FAILED hoặc CANCELLED.
+2. Khi hủy đơn hoặc quá hạn giữ chỗ, số lượng tồn kho nguyên liệu được hoàn trả
+nguyên trạng (Stock Rollback).
+3. Giỏ hàng của khách hàng được bảo lưu/hoàn trả về /cart để có thể đặt và
+thanh toán lại an toàn.
+Yêu cầu liên kết FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-11, NFR-01,
+NFR-02, NFR-03.
+Bảng 6: Bảng đặc tả Use-Case trọng tâm UC-01
+1.3.3 Kịch bản thực thi chi tiết (Flow of Events)
+1. Luồng sự kiện chính (Main Flow / Happy Path):
+1. Khách hàng mở trang Giỏ hàng (/cart), kiểm tra danh sách món, kích cỡ (S/M/L), topping, có thể
+nhập mã voucher và xem mức chiết khấu thành viên (0%, 5%, 10% hoặc 15%) theo loyaltyPoints.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 9 / 50
+
+=== PAGE 11 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+2. Khách hàng nhấn nút “Thanh toán” trên /cart. Nếu chưa đăng nhập, giao diện chuyển hướng
+sang /login?redirect=/cart. Nếu đã có JWT hợp lệ, Next.js gửi POST /api/orders kèm danh
+sách món và voucherCode (nếu có).
+3. Backend NestJS mở một Prisma $transaction:
+ Xác thực phiên đăng nhập người dùng qua JwtAuthGuard.
+ Tính lại toàn bộ đơn giá từ DB (không tin giá từ client) và tự động dọn đơn PENDING quá hạn
+của user (>5 phút) cũng như hệ thống (>6 phút).
+ Kiểm tra và trừ tồn kho nguyên liệu cần thiết cho từng ly nước theo công thức
+(ProductRecipeItem → Ingredient.stock).
+ Kiểm tra và tăng trường version của sản phẩm (updateMany – Optimistic Concurrency Control)
+và tạo đơn hàng mới ở trạng thái PENDING.
+4. Next.js lưu snapshot giữ chỗ 5 phút vào cartStore và chuyển khách hàng sang trang Thanh toán
+(/checkout).
+5. Khách hàng chọn phương thức thanh toán (VietQR Pro qua PayOS hoặc Ví MoMo) và nhấn
+“Thanh toán ngay”:
+ Với VIETQR / MOMO: Client gọi POST /api/payments/create-payos-link hoặc POST
+/api/payments/momo-payment; khi khách quét mã thanh toán, Backend xác thực chữ ký
+Webhook/IPN (hoặc POST /api/payments/payos-verify) rồi thực thi markOrderAsPaid().
+ Với đơn hàng 0đ (hoặc kịch bản kiểm thử tự động NODE_ENV=test): Client sinh UUID v4 làm
+idempotencyKey và gọi POST /api/payments.
+6. Trong transaction nguyên tử, Backend ghi nhận bản ghi Payment, cập nhật trạng thái đơn sang
+PAID, cộng điểm thưởng (1 điểm / 10.000 VNĐ) vào User và LoyaltyTransaction.
+7. Giao diện Next.js xóa sạch giỏ hàng trong Zustand store và chuyển hướng khách hàng sang trang
+Xác nhận đơn hàng (/orders/:id).
+2. Các luồng sự kiện thay thế (Alternative Flows):
+ A1 – Áp dụng mã Voucher khuyến mãi bổ sung: Tại bước 1 trên /cart, khách hàng
+nhập mã ưu đãi (ví dụ: WELCOME10, GIAM20K, VIPGOLD). Backend kiểm tra tính hợp lệ qua GET
+/api/orders/voucher/:code và bảng Promotion (còn hạn, đạt giá trị đơn tối thiểu), áp dụng
+giảm giá trên tổng tiền khi tạo đơn.
+ A2 – Khách hàng thay đổi phương thức thanh toán hoặc quay lại giỏ hàng: Tại bước 5
+trên /checkout, khách hàng có thể chuyển đổi giữa VietQR Pro và Ví MoMo, hoặc bấm quay lại
+giỏ hàng (PATCH /api/orders/:id/cancel) để hoàn trả tồn kho giữ chỗ và đưa món về giỏ hàng.
+3. Các luồng sự kiện ngoại lệ (Exception Flows):
+ E1 – Hết nguyên liệu tồn kho hoặc xung đột phiên bản (Race Condition): Tại bước 3,
+nếu nguyên liệu pha chế không đủ (HTTP 400 Bad Request) hoặc phiên bản Product.version bị
+lệch do khách hàng khác vừa đặt trước (HTTP 409 Conflict sau tối đa 3 lần retry), Backend lập
+tức hủy bỏ transaction (ROLLBACK) và không lưu đơn dở dang.
+ E2 – Hết hạn phiên đăng nhập (JWT Expired): Tại bước 2, nếu token JWT hết hạn, Backend
+từ chối với mã HTTP 401 Unauthorized. Giao diện giữ giỏ hàng trong localStorage và chuyển
+hướng khách sang trang Đăng nhập (/login).
+ E3 – Thanh toán thất bại, hết hạn 5 phút hoặc người dùng hủy giao dịch: Nếu hết thời
+gian giữ chỗ 5 phút trên /checkout hoặc khách hủy trên PayOS/checkout, Frontend gọi PATCH
+/api/orders/:id/cancel (đưa đơn về CANCELLED và hoàn trả tồn kho Ingredient.stock) đồng
+thời khôi phục các món về giỏ hàng. Nếu đơn được đánh dấu PAYMENT_FAILED, khách có thể thử
+lại (PATCH /api/orders/:id/retry) hoặc hủy để hoàn kho.
+ E4 – Khách hàng nhấn thanh toán nhiều lần hoặc gửi lại request (Idempotency Hit):
+Nếu Client gửi lại request POST /api/payments cùng idempotencyKey, Backend kiểm tra khóa duy
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 10 / 50
+
+=== PAGE 12 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+nhất trong bảng Payment, phát hiện key đã tồn tại và lập tức trả về kết quả giao dịch trước đó
+(idempotent: true) mà không trừ tiền hay cộng điểm lần 2. Tương tự, markOrderAsPaid() sử
+dụng điều kiện nguyên tử updateMany kiểm tra trạng thái để tránh ghi trùng khi Webhook và Verify
+gọi đồng thời.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 11 / 50
+
+=== PAGE 13 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+2 TASK 2: MÔ HÌNH HÓA HỆ THỐNG
+2.1 Task 2.1 – Sơ Đồ Hoạt Động (Activity Diagram)
+Tài liệu tham chiếu bắt buộc: docs/diagrams/activity/activity-diagram.md và sơ đồ nguồn
+docs/diagrams/activity/activity-order-flow.puml.
+Sơ đồ hoạt động mô hình hóa luồng nghiệp vụ end-to-end từ lúc khách hàng duyệt món trên thực
+đơn cho đến khi hoàn tất đơn hàng và nhận đồ uống tại quầy. Để đảm bảo kích thước lớn, rõ nét và
+dễ đọc khi in ấn, sơ đồ được tách làm bốn phân đoạn logic liền mạch:
+ Phần A (Hình 3): Duyệt menu, kiểm tra tình trạng món, tùy biến Size/Topping và cập nhật giỏ
+hàng cục bộ.
+ Phần B (Hình 4): Kiểm tra phiên đăng nhập JWT và khởi tạo đơn hàng trong Database Trans-
+action (kèm Optimistic Locking).
+ Phần C (Hình 5): Chọn phương thức thanh toán, kiểm tra Idempotency Key và xử lý nhánh
+thanh toán thất bại / hủy đơn hoàn kho.
+ Phần D (Hình 6): Xử lý nhánh thanh toán thành công (tích điểm thưởng) và quy trình điều phối
+pha chế trên Barista KDS đến khi hoàn tất đơn.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 12 / 50
+
+=== PAGE 14 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 3: Sơ đồ Hoạt động – Phần A: Duyệt menu, Tùy biến món & Giỏ hàng (trích từ
+docs/diagrams/activity/activity-order-flow.puml)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 13 / 50
+
+=== PAGE 15 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 4: Sơ đồ Hoạt động – Phần B: Xác thực JWT & Tạo đơn hàng Transaction (trích từ
+docs/diagrams/activity/activity-order-flow.puml)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 14 / 50
+
+=== PAGE 16 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 5: Sơ đồ Hoạt động – Phần C: Thanh toán, Idempotency & Xử lý lỗi/hủy đơn (trích từ
+docs/diagrams/activity/activity-order-flow.puml)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 15 / 50
+
+=== PAGE 17 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+2.1.1 Đặc tả 5 phân làn trách nhiệm (Swimlanes)
+1. Khách hàng (Customer): Tác nhân khởi phát các hành vi duyệt menu, chọn size (S/M/L), chọn
+toppings, thêm vào giỏ, nhập thông tin đăng nhập (nếu chưa có phiên làm việc), chọn phương thức
+thanh toán và quét mã QR / xác nhận ví.
+2. Giao diện Web (Next.js UI): Render giao diện người dùng, duy trì trạng thái giỏ hàng toàn
+cục qua Zustand store, lưu trữ dữ liệu bền vững trên localStorage, sinh mã ngẫu nhiên UUID
+cho idempotencyKey, và hiển thị phản hồi trạng thái tương ứng.
+3. Máy chủ Ứng dụng (NestJS API): Tiếp nhận các yêu cầu HTTP RESTful, kiểm tra tính hợp
+lệ của DTO qua ValidationPipe, xác thực mã Bearer JWT qua JwtAuthGuard, tính toán chiết
+khấu hạng thành viên và điều phối giao dịch nghiệp vụ.
+4. Cơ sở dữ liệu (PostgreSQL Database): Thực thi các truy vấn trong một Transaction tuần
+tự đạt chuẩn ACID, kiểm tra khóa lạc quan (Optimistic Locking) trên trường version của sản
+phẩm, khấu trừ số lượng tồn kho nguyên vật liệu (Ingredient.stock) và lưu vết lịch sử giao dịch.
+5. Cổng thanh toán mô phỏng (Payment Service): Kiểm tra và đối soát tính duy nhất của
+idempotencyKey, thực hiện khấu trừ số dư mô phỏng của ví điện tử hoặc thẻ ngân hàng và phản
+hồi kết quả giao dịch.
+2.1.2 Các điểm rẽ nhánh (Decision / Merge Nodes) & Xử lý kịch bản ngoại lệ
+ Nhánh kiểm tra đăng nhập: Khi khách hàng nhấn thanh toán, nếu hệ thống phát hiện chưa có
+Bearer Token JWT, luồng xử lý rẽ sang nhánh yêu cầu đăng nhập. Giỏ hàng được lưu tạm vào bộ
+nhớ trình duyệt để không làm gián đoạn trải nghiệm của người dùng.
+ Nhánh kiểm tra tồn kho nguyên liệu: Khi tạo đơn, Backend tính toán định mức tiêu hao
+nguyên vật liệu theo kích cỡ ly. Nếu phát hiện nguyên liệu bị thiếu hụt, hệ thống rẽ sang nhánh
+thất bại, rollback transaction và thông báo lỗi rõ ràng cho người dùng.
+ Nhánh xử lý thanh toán & Hoàn trả kho (Rollback):
+– Thanh toán thành công: Đơn hàng chuyển sang PAID, hệ thống kích hoạt tự động cộng điểm
+thưởng loyaltyPoints theo tỷ lệ 1 điểm / 10.000 VNĐ, xóa sạch giỏ hàng và chuyển sang trang
+hoàn tất.
+– Thanh toán thất bại / Hủy đơn: Khi khách hủy đơn hoặc hết hạn giữ chỗ 5–6 phút, đơn chuyển
+sang CANCELLED và hoàn trả nguyên liệu; nếu đơn được đánh dấu PAYMENT_FAILED, khách có thể
+thử lại hoặc hủy để hoàn trả tồn kho.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 16 / 50
+
+=== PAGE 18 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 6: Sơ đồ Hoạt động – Phần D: Thanh toán thành công, Barista KDS & Hoàn tất đơn (trích từ
+docs/diagrams/activity/activity-order-flow.puml)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 17 / 50
+
+=== PAGE 19 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+2.2 Task 2.2 – Sơ Đồ Tuần Tự (Sequence Diagram)
+Tài liệu tham chiếu bắt buộc: docs/requirements/sequence-checkout.md và sơ đồ nguồn
+docs/diagrams/sequence-checkout.puml.
+Sơ đồ tuần tự mô tả chi tiết quy trình giao tiếp thời gian thực cho use-case trọng tâm "Đặt và
+thanh toán đơn hàng" với đủ 5 Lifelines theo đúng chuẩn OMG UML 2.0 (được tách thành 2
+phần để giữ chữ rõ nét khi in ấn):
+Customer −→ Next.js UI −→ NestJS API −→ Database −→ Payment Service
+2.2.1 Phân tích các giai đoạn tương tác tuần tự
+1. Giai đoạn 1 – Khởi tạo phiên & Xác thực JWT:
+ Client gửi HTTP Request: POST /api/orders kèm header Authorization: Bearer <JWT> và
+payload chứa danh sách món trong giỏ hàng.
+ JwtAuthGuard tại Backend giải mã chữ ký token bằng JWT_SECRET. Nếu token không hợp lệ hoặc
+hết hạn, trả về ngay HTTP 401 Unauthorized.
+2. Giai đoạn 2 – Mở Database Transaction & Khóa tồn kho nguyên liệu:
+ Backend mở khối giao dịch prisma.$transaction(async (tx) => {...}).
+ Truy vấn danh mục định mức nguyên liệu (ProductRecipeItem) của từng sản phẩm theo kích
+cỡ được chọn.
+ Khấu trừ nguyên liệu bằng tx.ingredient.updateMany với điều kiện stock >= needed (bảng
+Product không lưu cột stock tĩnh).
+ Kiểm tra và tăng trường version của sản phẩm bằng tx.product.updateMany({ where: {
+id, version } }) để chống hiện tượng Race Condition (Optimistic Locking, tối đa 3 lần retry).
+ Khởi tạo bản ghi Order ở trạng thái ban đầu là PENDING kèm danh sách chi tiết các dòng món
+OrderItem và toppings đính kèm.
+ Phản hồi mã HTTP 201 Created kèm thông tin đơn hàng vừa khởi tạo về cho Next.js UI.
+3. Giai đoạn 3 – Xử lý giao dịch thanh toán & Cơ chế Idempotency Key:
+ Trên UI Checkout (/checkout), Client gọi POST /api/payments/create-payos-link (VietQR)
+hoặc POST /api/payments/momo-payment (MoMo). Riêng với đơn 0đ hoặc kịch bản kiểm thử
+tự động, Client gửi POST /api/payments kèm orderId, số tiền, phương thức (WALLET / CARD)
+và chuỗi định danh duy nhất idempotencyKey (UUID v4).
+ Backend kiểm tra sự tồn tại của idempotencyKey trong bảng Payment:
+– Nhánh xử lý lặp (Idempotent Hit): Nếu key đã được xử lý trước đó, hệ thống lập tức
+hoàn trả dữ liệu phản hồi đã lưu (idempotent: true), không thực hiện trừ tiền lại hay thay
+đổi trạng thái đơn hàng.
+– Nhánh xử lý mới (New Request): Backend xác nhận qua cổng thanh toán (PayOS/MoMo
+Webhook/IPN hoặc mock trong môi trường test).
+4. Giai đoạn 4 – Phân nhánh kết quả thanh toán (Nhánh Alt):
+ [Thanh toán Thành công]: Khi thanh toán được xác nhận, Backend mở transaction
+cập nhật trạng thái đơn hàng sang PAID (bảo vệ chống trùng bằng updateMany kiểm tra
+PENDING/PAYMENT_FAILED), tạo bản ghi giao dịch trong bảng Payment, cộng điểm thưởng và ghi
+nhận vào bảng LoyaltyTransaction. Giao diện Client dọn sạch giỏ hàng và chuyển sang trang
+/orders/:id.
+ [Hủy đơn / Hết hạn hoặc Thanh toán Thất bại]: Khi khách hủy hoặc hết hạn 5 phút
+(PATCH /api/orders/:id/cancel), Backend chuyển đơn sang CANCELLED và hoàn trả số lượng
+Ingredient.stock đã trừ; nếu đánh dấu PAYMENT_FAILED, đơn chờ khách thử lại (/retry) hoặc
+hủy để hoàn kho.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 18 / 50
+
+=== PAGE 20 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 7: Sơ đồ Tuần tự – Phần 1: Kiểm tra JWT & Tạo đơn hàng Transaction
+(docs/diagrams/sequence-checkout.puml / .svg)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 19 / 50
+
+=== PAGE 21 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 8: Sơ đồ Tuần tự – Phần 2: Thanh toán, Idempotency & Hoàn tất/Lỗi
+(docs/diagrams/sequence-checkout.puml / .svg)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 20 / 50
+
+=== PAGE 22 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+2.3 Task 2.3 – Sơ Đồ Lớp Miền Nghiệp Vụ (Domain Class Diagram)
+Tài liệu tham chiếu bắt buộc: docs/diagrams/class-diagram.md và tệp nguồn docs/diagrams/
+class-diagram.puml.
+Sơ đồ lớp miền nghiệp vụ phản ánh đầy đủ mô hình dữ liệu lõi của hệ thống BrewLite, bao gồm
+các thực thể miền, kiểu dữ liệu, quan hệ kết tập/kết hợp, multiplicity và các phương thức nghiệp vụ
+tương ứng:
+Hình 9: Sơ đồ Lớp miền nghiệp vụ BrewLite (docs/diagrams/class-diagram.puml / .svg)
+2.3.1 Đặc tả 12 Lớp Miền Nghiệp Vụ Cốt Lõi (Domain Entities)
+1. User: Quản lý thông tin tài khoản người dùng trong hệ thống.
+ Thuộc tính: id: BigInt [PK], fullName: String?, email: String [UK], phone: String?
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 21 / 50
+
+=== PAGE 23 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+[UK], passwordHash: String, loyaltyPoints: Int = 0, role: user_role = customer,
+createdAt: DateTime, updatedAt: DateTime.
+ Phương thức / Dịch vụ (UsersService, AuthService): xác thực mật khẩu bcrypt,
+addLoyaltyPoints(), quy đổi hạng thành viên.
+2. Category: Nhóm phân loại thực đơn đồ uống.
+ Thuộc tính: id: Int [PK], name: String [UK], createdAt: DateTime, updatedAt:
+DateTime.
+3. Product: Món đồ uống được bày bán trên thực đơn (tồn kho thành phẩm tính động từ công thức
+nguyên liệu).
+ Thuộc tính: id: BigInt [PK], categoryId: Int? [FK], name: String,
+price: Decimal(12,2), imageUrl: String?, description: String?, version: Int = 0,
+status: ProductStatus = active, createdAt: DateTime, updatedAt: DateTime.
+ Phương thức / Dịch vụ (ProductsService): calculateStock(recipes, targetSize),
+deductIngredients().
+4. Ingredient: Kho lưu trữ nguyên vật liệu pha chế thực tế (hạt cà phê, sữa tươi, siro, ly giấy...).
+ Thuộc tính: id: Int [PK], name: String, unit: String, stock: Int = 0, createdAt:
+DateTime, updatedAt: DateTime.
+ Nghiệp vụ: kiểm tra và trừ/hoàn stock nguyên tử bên trong prisma.$transaction.
+5. ProductRecipeItem: Công thức pha chế / định mức tiêu hao nguyên liệu cho từng kích cỡ ly.
+ Thuộc tính: id: Int [PK], productId: BigInt [FK], size: product_size, ingredientId:
+Int [FK], amount: Int, unit: String, createdAt: DateTime, updatedAt: DateTime.
+6. Topping: Danh mục các món thêm vào ly đồ uống.
+ Thuộc tính: id: Int [PK], name: String [UK], price: Int, isAvailable: Boolean = true,
+createdAt: DateTime.
+7. Order: Đơn đặt hàng của khách hàng theo máy trạng thái FSM 7 bước.
+ Thuộc tính: id: BigInt [PK], userId: BigInt [FK], promotionId: BigInt? [FK], status:
+order_status = PENDING, subtotal: Decimal(12,2), discountAmount: Decimal(12,2),
+total: Decimal(12,2), createdAt: DateTime, updatedAt: DateTime.
+ Phương thức / Dịch vụ (OrdersService): assertTransition(), validateVoucher(),
+cancelOrder().
+8. OrderItem: Chi tiết từng ly đồ uống được gọi trong đơn hàng.
+ Thuộc tính: id: BigInt [PK], orderId: BigInt [FK], productId: BigInt [FK], size:
+product_size, qty: Int, unitPrice: Decimal(12,2), lineTotal: Decimal(12,2).
+9. OrderItemTopping: Bảng liên kết trung gian lưu vết toppings đính kèm ly nước.
+ Thuộc tính: orderItemId: BigInt [PK, FK], toppingId: Int [PK, FK], priceAtTime: Int.
+10. Payment: Giao dịch thanh toán không tiền mặt.
+ Thuộc tính: id: BigInt [PK], orderId: BigInt [FK], idempotencyKey: String [UK],
+amount: Decimal(12,2), method: payment_method, status: payment_status = SUCCESS,
+transactionRef: String?, createdAt: DateTime.
+11. Promotion: Chương trình khuyến mãi và mã voucher ưu đãi.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 22 / 50
+
+=== PAGE 24 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+ Thuộc tính: id: BigInt [PK], code: String [UK], description: String?, discountType:
+discount_type, discountValue: Decimal(12,2), minOrderValue: Decimal(12,2),
+startDate: DateTime, endDate: DateTime, isActive: Boolean, createdAt: DateTime,
+updatedAt: DateTime.
+12. LoyaltyTransaction: Nhật ký biến động điểm tích lũy của khách hàng thân thiết.
+ Thuộc tính: id: BigInt [PK], userId: BigInt [FK], orderId: BigInt? [FK], points: Int,
+type: loyalty_type, balanceAfter: Int, reason: String?, createdAt: DateTime.
+2.3.2 Các kiểu Liệt kê Trạng thái (Domain Enumerations)
+ order_status: PENDING, PAID, PREPARING, READY, COMPLETED, PAYMENT_FAILED, CANCELLED.
+ payment_status: SUCCESS, FAILED.
+ payment_method: WALLET (Ví điện tử MoMo/VietQR), CARD (Thẻ ngân hàng mô phỏng).
+ user_role: customer, barista, admin.
+ product_size: S, M, L.
+ ProductStatus: active, inactive.
+ discount_type: PERCENTAGE, FIXED_AMOUNT, MEMBERSHIP_TIER.
+ loyalty_type: EARN, REDEEM, ADJUST.
+ Ghi chú đơn vị nguyên liệu: Cột unit của Ingredient và ProductRecipeItem dùng kiểu String
+(VarChar(20)), dữ liệu mẫu dùng g, ml, cai.
+2.3.3 Đối soát Tiêu chí Nghiệm thu của Task 2
+ Tính nhất quán với Prisma Schema: Sơ đồ lớp đồng bộ 100% cả 12 bảng, 8 kiểu Enum, kiểu dữ
+liệu BigInt và các trường dữ liệu so với tệp apps/api/prisma/schema.prisma. Các bảng con gắn
+chặt vòng đời (OrderItem, OrderItemTopping, ProductRecipeItem, LoyaltyTransaction theo
+User) dùng ON DELETE CASCADE; các liên kết lịch sử giao dịch (Order.User, OrderItem.Product,
+Payment.Order, OrderItemTopping.Topping) dùng NoAction để tránh xóa mất dữ liệu đối soát.
+ Tính nhất quán với SRS và Sequence Diagram: Đầy đủ các thực thể phục vụ cho chuỗi tương
+tác đặt hàng, khóa giữ kho nguyên liệu và kiểm soát giao dịch thanh toán idempotent.
+3 TASK 3: THIẾT KẾ KIẾN TRÚC
+3.1 Task 3.1 – Phương Pháp và Quyết Định Kiến Trúc (ADRs)
+Tài liệu tham chiếu bắt buộc: docs/architecture/system-architecture.md và thư mục
+docs/architecture/adr/.
+3.1.1 Mô hình C4 (The C4 Model for Software Architecture)
+Kiến trúc hệ thống BrewLite được phân rã theo chuẩn C4 Model nhằm thể hiện rõ ràng các tầng
+trừu tượng từ bức tranh tổng thể đến cấu trúc module chi tiết bên trong mã nguồn:
+1. C4 Level 1 – System Context (Ngữ cảnh hệ thống):
+ Khách hàng (Customer): Tương tác trực tiếp với BrewLite qua trình duyệt điện thoại để xem
+menu, đặt đồ uống và thanh toán.
+ Nhân viên quầy (Barista): Tương tác với BrewLite qua màn hình quầy bar (KDS) để nhận đơn
+và báo trạng thái pha chế.
+ Quản trị viên (Admin): Tương tác qua trang quản trị (/admin) để quản lý sản phẩm, danh mục,
+topping, đơn hàng và người dùng.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 23 / 50
+
+=== PAGE 25 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+ Hệ thống BrewLite: Cung cấp toàn bộ dịch vụ cốt lõi quản lý menu, đơn hàng và tài khoản.
+ Payment Service (PayOS / MoMo & Mock Test): Hệ thống thanh toán VietQR/MoMo Sandbox
+và cổng mô phỏng cho kiểm thử tự động với cơ chế Idempotency Key.
+2. C4 Level 2 – Container (Các khối chứa độc lập):
+ Web Application (Frontend PWA): Ứng dụng Next.js 16 (React 19, Tailwind CSS 4, Zus-
+tand) phục vụ giao diện người dùng tối ưu trên thiết bị di động, chạy tại cổng 3000.
+ API Application (Backend Service): Ứng dụng NestJS 12 (TypeScript) cung cấp toàn bộ
+RESTful API, đóng gói trong Docker Container chạy tại cổng 3001.
+ Database (Cơ sở dữ liệu quan hệ): PostgreSQL 16 đóng gói trong Docker Container chạy
+tại cổng 5432, gắn ổ đĩa lưu trữ bền vững (Persistent Storage).
+3. C4 Level 3 – Component (Phân rã Backend NestJS): Ứng dụng Backend được tổ chức theo
+kiến trúc Modular Monolith với các Module nghiệp vụ khép kín:
+ AuthModule: Phụ trách xác thực người dùng, băm mật khẩu bcrypt, cấp phát/kiểm tra JWT
+qua JwtAuthGuard, phân quyền RolesGuard (@StaffOnly, @AdminOnly) và giới hạn tần suất
+(ThrottlerGuard).
+ CategoriesModule, ProductsModule & ToppingsModule: Phụ trách truy vấn thực đơn, danh
+mục, công thức nguyên liệu và CRUD quản trị (@AdminOnly).
+ OrdersModule: Trọng tâm nghiệp vụ, quản lý máy trạng thái đơn hàng (FSM 7 bước), kiểm tra
+tồn kho nguyên liệu và thực thi khóa lạc quan.
+ PaymentsModule: Quản lý thanh toán VietQR (PayOS SDK), MoMo Sandbox, xác thực Web-
+hook/IPN và chống trùng lặp qua idempotencyKey.
+ UsersModule: Quản lý thông tin tài khoản, tích lũy điểm thưởng, phân hạng thành viên và API
+quản trị người dùng (/api/users).
+ PrismaModule: Dịch vụ dùng chung cung cấp kết nối cơ sở dữ liệu PostgreSQL an toàn kiểu
+(Type-safe).
+3.1.2 Phân tích lý do lựa chọn, ưu điểm, hạn chế và sự đánh đổi (Trade-offs)
+ Lý do chọn Modular Monolith thay vì Microservices: Hệ thống BrewLite phục vụ quy mô
+chuỗi cà phê vừa và nhỏ với lưu lượng hàng nghìn đơn mỗi ngày. Việc lựa chọn Modular Monolith
+giúp toàn bộ giao dịch đặt hàng, khóa giữ kho và thanh toán được thực thi trong một Database
+Transaction (ACID) duy nhất của PostgreSQL, loại bỏ hoàn toàn bài toán phân tán dữ liệu phức
+tạp (như Two-Phase Commit hay Saga Pattern) vốn dễ gây rủi ro sai lệch dữ liệu tài chính trong
+microservices.
+ Đánh đổi (Trade-offs): Toàn bộ backend được triển khai trong cùng một tiến trình (Single
+Deployment Unit). Nếu một module gặp sự cố ngốn CPU, toàn bộ API có thể bị ảnh hưởng. Tuy
+nhiên, bù lại nhóm đạt được tốc độ phát triển cực nhanh, chi phí vận hành hạ tầng Cloud ở mức
+tối thiểu và độ tin cậy dữ liệu đạt 100%.
+3.1.3 Danh mục 6 Quyết định Kiến trúc Quan trọng (ADR 001 – ADR 006)
+Toàn bộ các quyết định kỹ thuật then chốt của dự án được ghi nhận chính thức thành các tài liệu
+Architecture Decision Record (ADR):
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 24 / 50
+
+=== PAGE 26 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Mã ADR Tiêu đề quyết
+định
+Quyết định kỹ thuật cốt lõi Hệ quả và Lợi ích mang lại
+ADR 001 Cấu trúc mã nguồn
+Monorepo
+Lưu trữ toàn bộ Frontend
+(apps/web), Backend
+(apps/api), Tài liệu (docs) trong
+1 Git repo duy nhất.
+Cho phép commit nguyên tử
+(Atomic Commit), đồng bộ hóa
+tài liệu và code, 1 lệnh docker
+compose chạy toàn bộ local.
+ADR 002 Backend Modular
+Monolith với NestJS
+Xây dựng backend dạng module
+khép kín dựa trên NestJS và
+TypeScript thay vì chia
+microservices.
+Dễ bảo trì, tận dụng Dependency
+Injection, giữ trọn vẹn giao dịch
+ACID mà không tốn chi phí hạ
+tầng phân tán.
+ADR 003 PostgreSQL 16 và
+Prisma ORM Migra-
+tion
+Quản lý cơ sở dữ liệu qua Prisma
+Schema, migration có phiên bản
+Git (prisma migrate deploy).
+An toàn kiểu dữ liệu
+(Type-safety), hỗ trợ khóa lạc
+quan chống bán âm kho
+(Product.version), kiểm soát di
+trú schema tự động.
+ADR 004 Cổng thanh toán
+PayOS/MoMo &
+Idempotency Key
+Tích hợp VietQR (PayOS), Ví
+MoMo Sandbox (xác thực
+Webhook/IPN), đồng thời khóa
+endpoint mock POST
+/api/payments trên Production
+(chỉ mở cho test tự động & đơn
+0đ) với idempotencyKey.
+Ngăn chặn triệt để hiện tượng
+trừ tiền 2 lần khi retry/webhook
+trùng và đảm bảo an toàn tài
+chính trên Production.
+ADR 005 Xác thực phi trạng
+thái bằng JWT
+Sử dụng JSON Web Token
+(JWT) SHA-256 qua Passport
+Guard thay vì Session Cookie
+truyền thống.
+Backend hoàn toàn Stateless,
+không tốn bộ nhớ server, tương
+thích tuyệt đối với ứng dụng di
+động Mobile/PWA.
+ADR 006 Logging, Health
+Check & Quản lý
+cấu hình
+Quản lý cấu hình qua
+.env.example, cung cấp
+endpoint GET /health, ghi log
+cấu trúc chuẩn.
+Chuẩn hóa theo tiêu chuẩn
+12-Factor App, phục vụ tự động
+hóa kiểm tra sức khỏe và kích
+hoạt Rollback trong CI/CD.
+Bảng 7: Danh mục 6 Quyết định Kiến trúc (Architecture Decision Records – ADR)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 25 / 50
+
+=== PAGE 27 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+3.2 Task 3.2 – Sơ Đồ Triển Khai (Deployment Diagram)
+Tài liệu tham chiếu bắt buộc: docs/deployment.md và tệp nguồn docs/diagrams/deployment-
+diagram.puml.
+Sơ đồ triển khai phản ánh kiến trúc hạ tầng Production thực tế mà nhóm đã triển khai trên Cloud,
+thể hiện rõ ràng 3 ranh giới môi trường (Environment Boundaries):
+3.2.1 Đặc tả chi tiết các tầng hạ tầng Production
+1. Ranh giới Thiết bị Người dùng (Client Device Tier):
+ Khách hàng và Barista truy cập hệ thống thông qua trình duyệt web di động hoặc PWA cài đặt
+trên thiết bị cá nhân (iOS, Android, Windows).
+ Mã nguồn giao diện được tải qua giao thức bảo mật HTTPS / TLS 1.3 (cổng 443).
+2. Ranh giới Nền tảng Vercel Cloud (Frontend CDN Hosting):
+ Ứng dụng Next.js 16 (apps/web) được biên dịch và phân phối qua mạng lưới Edge Network toàn
+cầu của Vercel.
+ Hỗ trợ Server-Side Rendering (SSR) và Client-Side Rendering (CSR), tự động cấp chứng chỉ bảo
+mật SSL/TLS.
+ Cấu hình biến môi trường NEXT_PUBLIC_API_URL trỏ an toàn về máy chủ Backend trên Render
+qua HTTPS.
+3. Ranh giới Nền tảng Render Cloud (Backend & Database Runtime):
+ Render Ingress Proxy / Load Balancer: Tiếp nhận kết nối HTTPS công khai tại cổng 443,
+thực hiện giải mã SSL (TLS Termination) và chuyển tiếp lưu lượng vào cổng nội bộ của container
+(PORT=3001 hoặc biến PORT do Render cấp).
+ Docker Container Backend API (brewlite-api): Đóng gói dựa trên Dockerfile tối ưu đa
+tầng (Multi-stage build Node 24 Alpine), chạy ứng dụng NestJS lắng nghe trên 0.0.0.0:PORT
+(mặc định 3001). Cung cấp endpoint GET /health để Render thực hiện liveness probe mỗi 30
+giây.
+ Docker Container Database (brewlite-postgres): Chạy phiên bản postgres:16-alpine
+tại cổng nội bộ 5432 nằm hoàn toàn trong mạng nội bộ (Render Private Network VPC).
+Tuyệt đối không mở cổng 5432 ra ngoài Internet, đảm bảo an toàn dữ liệu 100%.
+ Render Persistent Disk Storage: Gắn ổ đĩa cứng bền vững tại thư mục /var/lib/
+postgresql/data, đảm bảo toàn bộ dữ liệu đơn hàng và tài khoản không bị mất khi container
+khởi động lại.
+3.2.2 Giao thức mạng, Cổng kết nối và Quản lý Secret
+Điểm đầu
+(Source)
+Điểm cuối (Dest) Giao thức Cổng Mục đích & Phạm vi kết nối
+Client Browser /
+PWA
+Vercel Edge CDN HTTPS (TLS 1.3) 443 Tải UI Next.js PWA, static
+assets (Public Internet).
+Client Browser Render Reverse
+Proxy
+HTTPS (TLS 1.3) 443 Gọi REST API
+(/api/products, /api/orders,
+/api/payments) kèm JWT.
+Render Reverse
+Proxy
+Container
+brewlite-api
+HTTP 3001 Chuyển tiếp request vào NestJS
+và ping định kỳ GET /health.
+Container
+brewlite-api
+Container
+postgres
+TCP/IP Wire 5432 Truy vấn Prisma ORM trong
+mạng nội bộ riêng (Private
+VPC).
+Bảng 8: Bảng đặc tả giao thức mạng và cổng kết nối hệ thống
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 26 / 50
+
+=== PAGE 28 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 10: Sơ đồ Triển khai môi trường Production BrewLite
+(docs/diagrams/deployment-diagram.puml / .svg)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 27 / 50
+
+=== PAGE 29 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Quản lý Biến môi trường & Bí mật an toàn:
+ Tuyệt đối không lưu tệp .env chứa mật khẩu thật lên Git repository (.env được chặn qua
+.gitignore).
+ Trên Vercel: Cấu hình biến công khai NEXT_PUBLIC_API_URL.
+ Trên Render: Cấu hình biến môi trường/bí mật gồm DATABASE_URL, JWT_SECRET, PORT=3001,
+CORS_ORIGIN, FRONTEND_URL, cùng các khóa cổng thanh toán PAYOS_* và MOMO_*.
+ Trên GitHub Actions: Cấu hình secret PRODUCTION_API_URL, RENDER_DEPLOY_HOOK (và tùy chọn
+RENDER_API_KEY, RENDER_SERVICE_ID, PRODUCTION_WEB_URL) phục vụ tự động hóa kiểm thử, de-
+ploy và rollback.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 28 / 50
+
+=== PAGE 30 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+4 TASK 4: TRIỂN KHAI SPRINT 1
+Sprint Goal: Tạo lập nền tảng kỹ thuật vững chắc, quản lý tài liệu có kiểm soát phiên bản và hiện
+thực một phiên bản MVP đầu tiên chạy được hoàn chỉnh cho luồng xem thực đơn đồ uống (Menu
+Browsing).
+4.1 Task 4.1 – Thiết Lập Repository và Quy Trình Làm Việc Nhóm
+Tài liệu tham chiếu bắt buộc: docs/delivery/team-workflow.md, docs/delivery/conventions.md
+và README.md.
+4.1.1 Cấu trúc Monorepo Chuẩn Hóa
+Dự án được khởi tạo và tổ chức theo mô hình Monorepo thống nhất tại kho lưu trữ Git:
+brewlite /
+| - - apps /
+| | - - web / # Frontend Next . js 16 ( App Router , PWA , Tailwind CSS ,
+Zustand )
+| ‘-- api / # Backend NestJS 12 ( Modular Monolith , Prisma ORM ,
+P o s t g r e S Q L )
+| - - docs / # Toan bo tai lieu dac ta , kien truc , so do UML va minh
+chung
+| | - - r e q u i r e m e n t s / # Task 1 ( Context & Scope , SRS , Use - case checkout )
+| | - - diagrams / # Task 2 & 3 ( Activity , Sequence , Class , C4 , D e p l o y m e n t )
+| | - - a r c h i t e c t u r e / adr / # Task 3 (6 ban ghi quyet dinh kien truc ADR -001 -> ADR
+-006)
+| | - - delivery / # Quy trinh nhom ( team - workflow , conventions , ci - evidence
+...)
+| | - - demo / # Video demo luong End - to - End ( BrewLite - Live - Demo - Runbook .
+mp4 )
+| | - - d e p l o y m e n t . md # Task 3.2 ( Dac ta moi truong Cloud Render & Vercel )
+| ‘-- traceability - matrix . md # Muc 8 ( Ma tran truy vet yeu cau toan he thong )
+| - - tests / e2e / # Kich ban kiem thu End - to - End ( ordering - flow . e2e . test . mjs
+)
+| - - scripts / # Script tien ich khoi tao GitHub backlog / issues
+| - - . github / w or kf low s / # Pipeline CI / CD tu dong ( ci . yml va cd . yml )
+| - - docker - compose . yml # Khoi chay toan bo he thong local chi voi 1 lenh duy nhat
+| - - . env . example # Mau cau hinh bien moi truong an toan
+| - - R E L E A S E _ N O T E S . md # Ghi chu phat hanh phien ban & huong dan Rollback
+‘-- README . md # Huong dan van hanh va tai lieu huong dan he thong
+4.1.2 Chiến lược phân nhánh (Branching Strategy) & Quy trình Pull Request
+ Mô hình nhánh Git:
+– main: Nhánh chính sản xuất (Production-ready), luôn ở trạng thái ổn định và có thể deploy ngay
+lập tức.
+– develop: Nhánh tích hợp chung của cả nhóm trong từng đợt chạy Sprint.
+– feat/<ma-task>-<mo-ta>, fix/..., docs/..., chore/...: Các nhánh ngắn hạn phát triển tính
+năng, sửa lỗi, tài liệu hoặc cấu hình (theo docs/delivery/conventions.md).
+– ci/<ten-task>: Nhánh thiết lập và tối ưu hóa quy trình CI/CD.
+ Quy trình Pull Request & Code Review: Tuyệt đối cấm commit hoặc push trực tiếp
+vào nhánh main. Mọi thay đổi đều phải mở Pull Request (PR) dựa trên mẫu quy định tại
+.github/pull_request_template.md, mô tả rõ ràng nội dung thay đổi, đính kèm mã Task/FR,
+và bắt buộc phải có ít nhất một thành viên khác xem xét (Peer Review) và bấm Approve mới
+được phép merge.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 29 / 50
+
+=== PAGE 31 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+4.1.3 Quy ước Commit (Conventional Commits)
+Mọi thông điệp commit phải tuân theo cấu trúc chuẩn: <type>(<scope>): [<mã-task/FR>] <tiêu
+đề>
+ feat: Thêm tính năng mới (ví dụ: feat(api): [FR-01] implement GET /products).
+ fix: Sửa lỗi (ví dụ: fix(cart): [FR-03] fix price calculation when selecting toppings).
+ docs: Cập nhật tài liệu (ví dụ: docs(srs): [TASK-4.2] add acceptance criteria).
+ test: Thêm hoặc sửatestcase (ví dụ:test(orders): [FR-05] add optimistic locking tests).
+ chore: Cấu hình CI/CD, đóng gói Docker (ví dụ: chore(ci): [TASK-4.4] setup ci pipeline).
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 30 / 50
+
+=== PAGE 32 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+4.1.4 Bảng Product Backlog cho Sprint 1 và Sprint 2
+Mã PB Hạng mục User Story / Nhiệm
+vụ
+Points Ưu tiên Thành viên Sprint
+US-01 Xem danh mục thực đơn đồ uống 3 High Lê Quốc Việt (UI
+Menu)
+Đặng Hoàng Phúc
+(Catalog API)
+Sprint 1
+US-02 Tùy biến kích cỡ Size (S/M/L) &
+Toppings
+5 High Đặng Hoàng Phúc
+(Backend API)
+Thiều Đình Trung
+Hiếu (Trang chi tiết
+/product/[id])
+Sprint 2
+US-03 Quản lý giỏ hàng (Cart) với Zustand 3 High Võ Dương Thành Lê
+(Zustand Store)
+Thiều Đình Trung
+Hiếu (Cart Compo-
+nent)
+Sprint 2
+US-04 Đăng ký & Đăng nhập xác thực
+bằng JWT
+5 High Trần Quang Duy
+(JWT Guard)
+Lê Quốc Việt (UI
+Đăng nhập)
+Sprint 2
+US-05 Tạo đơn hàng & Khóa trừ kho
+atomic
+8 Critical Đặng Hoàng Phúc
+(Atomic Transaction)
+Võ Dương Thành Lê
+(Checkout API)
+Sprint 2
+US-06 Thanh toán an toàn với
+Idempotency Key
+8 Critical Võ Dương Thành Lê
+(Payment API)
+Châu Chí Hải
+(PayOS/MoMo &
+Mock Test)
+Sprint 2
+US-07 Xem lịch sử đơn hàng & Tích điểm
+thành viên
+5 Medium Châu Chí Hải (History
+& Loyalty API)
+Lê Quốc Việt (UI Lịch
+sử đơn)
+Sprint 2
+US-08 Phân hệ Barista KDS điều phối pha
+chế
+8 High Châu Chí Hải (Barista
+State Machine)
+Thiều Đình Trung
+Hiếu (KDS Web UI)
+Sprint 2
+US-09 Phân hệ Quản trị Admin (/admin)
+& RBAC
+5 Medium Nhóm phát triển
+(CRUD Admin,
+@AdminOnly, 6 tab UI)
+Sprint 2
+TECH-01 Thiết lập Monorepo, Docker
+Compose, README
+5 Critical Châu Chí Hải
+Đặng Hoàng Phúc
+Sprint 1
+TECH-02 Thiết lập Pipeline CI (Quality Gate
+4 bước)
+5 Critical Võ Dương Thành Lê
+(CI Pipeline)
+Châu Chí Hải (CI Test
+Gate)
+Sprint 1
+TECH-03 Thiết lập Pipeline CD & Triển khai
+Cloud
+8 Critical Võ Dương Thành Lê
+(Task 5.3 CD)
+Đặng Hoàng Phúc
+(Task 5.4 Cloud)
+Sprint 2
+Bảng 9: Bảng Product Backlog dự án BrewLite
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 31 / 50
+
+=== PAGE 33 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+4.1.5 Tiêu chuẩn Định nghĩa Hoàn thành (Definition of Done – DoD)
+Một User Story chỉ được chuyển sang cột Done trên bảng quản lý khi thỏa mãn cả 6 tiêu chuẩn sau:
+1. Chức năng (Functionality): Đạt 100% các tiêu chí Acceptance Criteria quy định trong SRS.
+2. Kiểm thử (Testing): Đã viết Unit Test / Integration Test bao phủ luồng chính và biên; pass
+100%.
+3. Chấtlượng(CodeQuality):Vượtquakiểmtralinting(npm run lint),khôngcólỗiTypeScript.
+4. CI Gate (Tự động hóa): Pipeline CI tự động kích hoạt và trả về kết quả màu xanh (Success).
+5. Đồng cấp kiểm duyệt (Peer Review): Có ít nhất 1 thành viên review và Approve trên PR.
+6. Tài liệu & Truy vết: Đã cập nhật tương ứng vào Ma trận truy vết docs/traceability-matrix.
+md.
+4.2 Task 4.2 – Quản Lý Tài Liệu và Kiểm Soát Phiên Bản
+ Toàn bộ tài liệu đặc tả của Task 1–3 được đưa trực tiếp vào thư mục docs/ của kho mã nguồn, bao
+gồm các tệp nguồn (.md, .puml) và các tệp xuất bản (.svg, .pdf).
+ Kiểm soát phiên bản bằng Git: Mọi thay đổi về đặc tả yêu cầu, điều chỉnh sơ đồ hay bổ sung
+tiêu chí đều đi qua Pull Request, có commit rõ ràng và ghi chú nguyên nhân sửa đổi, bảo đảm tính
+lịch sử và khả năng phục hồi.
+ Tính đồng bộ tuyệt đối: Đảm bảo không có bất kỳ mâu thuẫn nào giữa tài liệu SRS
+(Task 1.2), sơ đồ Sequence (Task 2.2), Class Diagram (Task 2.3) và Prisma Schema tại
+apps/api/prisma/schema.prisma.
+4.3 Task 4.3 – Xây Dựng MVP Sprint 1 (Menu Browsing)
+Phiên bản MVP đầu tiên được hoàn thành và kiểm chứng trực tiếp trên môi trường chạy thực tế:
+4.3.1 Phân hệ Backend Catalog API
+ GET /api/products: Trả về danh sách toàn bộ sản phẩm đang kinh doanh kèm mã định danh, tên
+gọi, danh mục, giá gốc, hình ảnh và trạng thái còn hàng.
+ GET /api/products/:id: Tra cứu thông tin chi tiết của một món đồ uống kèm danh sách các loại
+toppings có thể chọn thêm.
+ Dữ liệu mẫu (Database Seed): Kịch bản apps/api/prisma/seed.js kết hợp tệp
+brewlite_seed_data.sql nạp tự động 12 sản phẩm cà phê/trà, 4 danh mục, 3 loại topping, 13
+nguyên liệu cùng định mức công thức (ProductRecipeItem) phục vụ chạy thử nghiệm.
+4.3.2 Phân hệ Frontend Next.js Menu Mobile-First & Xử lý 3 Trạng thái
+Giao diện thiết kế chuẩn Mobile-first, hiển thị mượt mà trên di động và xử lý triệt để 3 trạng thái
+phản hồi bắt buộc:
+1. Trạng thái Đang tải (Loading Skeleton): Hiển thị các khối khung xương xám dạng sóng
+chuyển động (Skeleton Component) trong khi đợi API phản hồi.
+2. Trạng thái Danh mục trống (Empty State): Hiển thị hình ảnh minh họa thân thiện kèm
+thông báo: “Hiện chưa có sản phẩm nào trong danh mục này” và nút quay về trang chủ.
+3. Trạng thái Lỗi kết nối (Error State): Hiển thị hộp cảnh báo màu đỏ với thông báo lỗi cụ thể
+và nút “Thử lại ngay” để tải lại dữ liệu mà không cần tải lại toàn trang.
+4.3.3 Kiểm thử Sprint 1
+Tập tin kiểm thử tự động apps/api/src/products/products.service.spec.ts được viết bằng Jest,
+kiểm tra thành công kịch bản truy vấn danh mục sản phẩm (API-T01), đạt tỷ lệ Pass 100%.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 32 / 50
+
+=== PAGE 34 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+4.4 Task 4.4 – Tích Hợp Liên Tục (Continuous Integration – CI)
+Tài liệu tham chiếu bắt buộc:docs/delivery/ci-evidence.md và tệp workflow.github/workflows/
+ci.yml.
+Theo yêu cầu mục 6.4, nhóm thiết lập pipeline CI chạy tự động trên GitHub Actions runner
+ubuntu-latest mỗi khi mở Pull Request hoặc push code vào nhánh main/develop. Pipeline thực thi
+nghiêm ngặt chuỗi kiểm soát chất lượng (mở rộng thêm bước Migrate, Seed và Integration/E2E test
+ở Sprint 2):
+Install −→ Lint −→ Migrate & Seed −→ Unit Test & E2E −→ Build
+4.4.1 Minh chứng 1: Pull Request chạy Pipeline CI Thành Công (CI Pass)
+ Pull Request #22 (CI Pass): https://github.com/Phucdang-gif/Assignment2/pull/22 (Nhánh
+ci/task-4.4-ci-and-deployment merge vào main).
+ Workflow Run #42985903031: Cả hai Jobs Backend CI (NestJS) và Frontend CI (Next.js) đều
+vượt qua toàn bộ 4 chặng kiểm tra thành công.
+Hình 11: Minh chứng trạng thái CI Pass trên Pull Request #22
+(docs/delivery/screenshots/ci-success.png)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 33 / 50
+
+=== PAGE 35 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 12: Minh chứng Workflow Run thành công toàn diện trên GitHub Actions
+(docs/delivery/screenshots/ci-success-run.png)
+4.4.2 Minh chứng 2: Pull Request có lỗi bị Pipeline CI Phát Hiện & Chặn Merge (CI
+Fail)
+ Pull Request #21 (CI Fail): https://github.com/Phucdang-gif/Assignment2/pull/21 (Nhánh
+test/ci-failure-demo hướng vào main).
+ Kịch bản gây lỗi có chủ đích: Nhóm cố ý chỉnh sửa file products.service.spec.ts với kỳ vọng
+sai expect(result).toHaveLength(999).
+ Kết quả: Pipeline phát hiện lỗi ngay tại bước Run Unit Tests, lập tức hủy bỏ bước Build NestJS
+application và đánh dấu trạng thái đỏ Some checks were not successful. Quy tắc Branch
+Protection trên GitHub đã khóa nút Merge Pull Request, ngăn chặn hoàn toàn mã nguồn lỗi lọt
+vào nhánh chính.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 34 / 50
+
+=== PAGE 36 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 13: Minh chứng PR #21 bị CI phát hiện lỗi và khóa merge
+(docs/delivery/screenshots/ci-failed.png)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 35 / 50
+
+=== PAGE 37 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 14: Chi tiết bước Unit Test thất bại và chặn bước Build trên GitHub Actions
+(docs/delivery/screenshots/ci-failed-job.png)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 36 / 50
+
+=== PAGE 38 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+5 TASK 5: TRIỂN KHAI SPRINT 2, CI/CD VÀ DELIVERY
+Sprint Goal: Hoàn thành trọn vẹn luồng nghiệp vụ end-to-end từ đặt món đến nhận đồ uống, tự động
+hóa đóng gói và triển khai phiên bản sản xuất (Production) ổn định lên môi trường Cloud công khai
+qua HTTPS.
+5.1 Task 5.1 – Hoàn Thiện MVP Sprint 2 (End-to-End Features)
+Trong Sprint 2, nhóm hiện thực hóa đầy đủ toàn bộ các chức năng nghiệp vụ còn lại:
+5.1.1 Chi tiết các tính năng nghiệp vụ đã hoàn thiện
+1. Tùy biến Chi tiết món (Size & Topping): Khách hàng chọn kích cỡ (S/M/L) và thêm các
+loại topping có trong hệ thống (Trân châu đen hoàng gia, Kem cheese (Macchiato), Thạch dừa non
+giòn). Giá tạm tính được tính toán tự động và cập nhật tức thời trên giao diện /product/[id].
+2. Quản lý Giỏ hàng (Cart): Quản lý trạng thái bằng Zustand store, tích hợp localStorage giúp
+bảo toàn danh sách món khi khách hàng làm mới (F5) trình duyệt, hỗ trợ áp dụng mã voucher.
+3. Xác thực Người dùng (Auth JWT): Đăng ký và đăng nhập bảo mật; mật khẩu được băm
+1 chiều bằng thuật toán bcrypt (10 rounds); cấp mã xác thực JWT chứa thông tin phân quyền
+(role: customer | barista | admin) kèm giới hạn tần suất (ThrottlerGuard).
+4. Khởi tạo Đơn hàng (Order Creation): API POST /api/orders thực thi trong một transaction
+tuần tự của PostgreSQL, khóa kiểm tra tồn kho nguyên vật liệu (Ingredient.stock) và phòng
+chống Race Condition bằng Product.version (Optimistic Locking).
+5. Thanh toán Trực tuyến Không tiền mặt: Trên giao diện Checkout hỗ trợ hai phương
+thức: Quét mã QR chuyển khoản (VietQR / PayOS SDK) và Ví điện tử MoMo Sand-
+box (xác thực chữ ký Webhook/IPN). Ngoài ra, endpoint POST /api/payments được bảo vệ bằng
+idempotencyKey duy nhất để loại trừ hiện tượng trừ tiền trùng lặp (áp dụng cho kiểm thử tự động
+và hoàn tất đơn 0đ).
+6. Theo dõi Trạng thái & Lịch sử đơn hàng: Sau khi thanh toán, hệ thống hiển thị màn hình
+xác nhận đơn hàng thành công (/orders/:id), hiển thị mã đơn, tiến trình trạng thái và cho phép
+xem lại danh sách đơn đã đặt qua GET /api/orders/me.
+7. Phân hệ Barista KDS (Kitchen Display System): Giao diện màn hình quầy bar (/barista)
+hiển thị danh sách đơn PAID theo thời gian thực (FIFO), tự động làm mới bằng cơ chế polling mỗi
+10 giây, cho phép Barista bấm “Nhận đơn” (→ PREPARING), “Đã pha xong” (→ READY), và “Đã
+giao nước” (→ COMPLETED).
+8. Chiết khấu & Tích điểm Thành viên: Tự động giảm giá theo 4 thứ hạng: Đồng (<20 điểm:
+0%), Bạc (20–49 điểm: 5%), Vàng (50–99 điểm: 10%), Kim Cương (≥100 điểm: 15%). Tự động
+cộng 1 điểm cho mỗi 10.000 VNĐ chi tiêu khi thanh toán thành công.
+9. PhânhệQuảntrịAdminDashboard(/admin):Dànhriêngchotàikhoảnadmin(@AdminOnly),
+gồm 6 tab: Tổng quan, Sản phẩm, Danh mục, Topping, Đơn hàng và Người dùng.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 37 / 50
+
+=== PAGE 39 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+5.1.2 Bộ ảnh chụp màn hình Giao diện Thực tế của Hệ thống
+Hình 15: Giao diện Đăng nhập BrewLite
+ Hình 16: Giao diện Đăng ký tài khoản
+Hình 17: Giao diện Trang chủ: Hero Banner & Cam kết dịch vụ
+Hình 18: Giao diện Thực đơn Menu đồ uống theo danh mục
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 38 / 50
+
+=== PAGE 40 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 19: Giao diện Chi tiết món & Tùy biến
+Size/Topping
+Hình 20: Giao diện Giỏ hàng & Tóm tắt đơn hàng
+Hình 21: Giao diện Xác nhận phương thức Thanh
+toán
+Hình 22: Giao diện Quét mã thanh toán VietQR
+(PayOS)
+Hình 23: Giao diện Lịch sử đơn hàng người dùng
+ Hình 24: Màn hình Xác nhận Đặt hàng thành
+công
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 39 / 50
+
+=== PAGE 41 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 25: Giao diện Điều phối pha chế Barista Dashboard (KDS)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 40 / 50
+
+=== PAGE 42 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+5.2 Task 5.2 – Tích Hợp và Kiểm Thử Hệ Thống (Integration & Testing)
+5.2.1 Kiểm thử Unit Test Nghiệp vụ Nâng cao (Task 10)
+Toàn bộ logic nghiệp vụ phức tạp của hệ thống được kiểm thử tự động với Jest tại apps/api/src/
+orders/orders.service.spec.ts (30 test cases) và apps/api/src/payments/payments.service.
+spec.ts (tổng bộ unit test Backend đạt 11 suites, 118 test cases pass 100%):
+ Kiểm thử Order State Machine: Xác minh chuỗi chuyển trạng thái hợp lệ (PENDING → PAID
+→ PREPARING → READY → COMPLETED); Chặn và ném ngoại lệ khi chuyển trạng thái sai quy tắc (ví
+dụ: PENDING nhảy cóc sang READY, hoặc đơn đã COMPLETED không được quay lại).
+ Kiểm thử Tính Idempotent (Idempotency-Key): Gửi yêu cầu thanh toán lần đầu → Thành
+công; Gửi lại lần 2 với cùng idempotencyKey → Trả về kết quả giao dịch cũ, không tạo record mới,
+không trừ tiền hai lần; Chặn lỗi khi gửi thiếu key.
+ Kiểm thử Khóa tồn kho & Optimistic Concurrency Control: Kiểm tra số lượng tồn kho
+nguyên liệu bị khấu trừ chính xác; Mô phỏng kịch bản 2 khách hàng đồng thời đặt món cuối cùng
+→ Giao dịch thứ 2 bị hủy an toàn do lệch version, không gây bán âm kho.
+ Kiểm thử Chiết khấu Hạng Thành viên & Điểm thưởng: Kiểm tra tính đúng đắn mức giảm
+giá theo điểm tích lũy (Đồng: 0%, Bạc: 5%, Vàng: 10%, Kim Cương: 15%); Tích điểm chuẩn 1 điểm
+/ 10.000 VNĐ.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 41 / 50
+
+=== PAGE 43 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 26: Kết quả chạy bộ kiểm thử tự động Task 10 (17 passed trong ảnh chụp giai đoạn phát triển;
+bộ test đầy đủ hiện đạt 118 passed / 11 suites) (docs/delivery/screenshots/test-task10.png)
+5.2.2 Kiểm thử Hiệu Năng & Khả Năng Xử Lý Idempotency Thực Tế
+Nhóm tiến hành kiểm thử hiệu năng hệ thống trên môi trường local (ALLOW_MOCK_PAYMENT=true)
+bằng kịch bản PowerShell tự động đo lường thời gian phản hồi:
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 42 / 50
+
+=== PAGE 44 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+Hình 27: Kết quả kiểm thử hiệu năng API và cơ chế chống trùng Idempotency
+(docs/delivery/screenshots/test-performance-idempotency.jpeg)
+Phân tích kết quả thực nghiệm:
+ Thời gian phản hồi API xem thực đơn GET /api/products chỉ mất trung bình 3ms đến 5ms (đạt
+xuất sắc tiêu chí < 500ms của NFR-01).
+ Thời gian thực thi luồng tạo đơn và thanh toán POST /api/payments đạt trung bình 17ms đến
+35ms.
+ Khi gửi lại cùng một đơn hàng với idempotencyKey lặp: Lần 1 phản hồi 20ms (reused=false), Lần
+2 phản hồi 10ms (reused=true) – xác nhận cơ chế chống trùng giao dịch hoạt động hoàn hảo.
+5.2.3 Kiểm thử Tích Hợp & End-to-End (E2E Test)
+Kịch bản kiểm thử E2E tự động được viết tại tệp tests/e2e/ordering-flow.e2e.test.mjs (8
+bước từ /health, xem menu, đăng nhập POST /api/auth/login, áp voucher, tạo đơn, thanh toán
+idempotent đến Barista hoàn tất đơn), kết hợp cùng bộ Integration/E2E trên PostgreSQL thật tại
+apps/api/test/app.e2e-spec.ts (bao gồm cả bước đăng ký tài khoản POST /api/auth/register
+và hủy đơn hoàn kho) và apps/api/test/orders-payments.e2e-spec.ts.
+5.2.4 Khởi chạy Cục bộ Đồng bộ với Docker Compose
+Tệp docker-compose.yml ở thư mục gốc cho phép khởi chạy toàn bộ 3 containers (web:3000,
+api:3001, db:5433->5432) và nạp dữ liệu mẫu tự động chỉ với 1 câu lệnh duy nhất:
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 43 / 50
+
+=== PAGE 45 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+docker compose up -- build
+5.2.5 Endpoint Kiểm tra Sức khỏe Ứng dụng (Health Check)
+Đường dẫn công khai GET /health (hoặc GET /api/health) phản hồi trạng thái hoạt động của
+NestJS và kết nối PostgreSQL:
+{
+" status ": " ok " ,
+" service ": " BrewLite API " ,
+" ti me st am p ": "2026 -11 -15 T10 : 0 0 : 0 0 . 0 0 0 Z " ,
+" uptime ": 123.45 ,
+" info ": {
+" database ": { " status ": " up " }
+}
+}
+5.3 Task 5.3 – Triển Khai Liên Tục (Continuous Delivery / Deployment – CD)
+Tài liệu tham chiếu bắt buộc: .github/workflows/cd.yml và docs/deployment.md.
+Quy trình phân phối và triển khai liên tục được tự động hóa hoàn toàn trên GitHub Actions, đáp
+ứng đầy đủ 7 yêu cầu bắt buộc của mục 7.3 đề bài:
+Chuỗi 6 bước trong Pipeline CD (.github/workflows/cd.yml)
+Push main / Tag (v*.*.*) −→ Quality Gate (Lint, Test, E2E, Build) −→ Docker Image
+Build & Push GHCR −→ Trigger Deploy Render (API/Hook) −→ Safe Prisma Migration
+−→ Automated Smoke Test (/health & /api/products)
+5.3.1 Đặc tả 7 yêu cầu kỹ thuật trong Pipeline CD
+1. Quality Gate nghiêm ngặt: Trước khi cho phép đóng gói, pipeline tự động chạy kiểm tra
+linting (oxlint, eslint), khởi tạo container PostgreSQL dịch vụ, chạy Prisma migration, nạp
+test seed, thực thi Unit Test (npm test), Integration/E2E (npm run test:e2e), kiểm tra biến
+PRODUCTION_API_URL và build cả Backend lẫn Frontend. Bất kỳ bước nào thất bại, pipeline dừng
+ngay lập tức.
+2. Tạo Docker Image gắn tag phiên bản: Docker Image được gắn nhãn định danh kép: commit
+Git SHA (để đối soát mã nguồn), latest và Semantic Version (ví dụ: v1.0.1).
+3. Đẩy Image lên Container Registry: Đẩy Docker Image đã đóng gói lên GitHub Container
+Registry (GHCR) an toàn.
+4. Triển khai vào Production bằng Secret: Sử dụng RENDER_API_KEY + RENDER_SERVICE_ID
+(hoặc Webhook bí mật RENDER_DEPLOY_HOOK) lưu trong GitHub Secrets để kích hoạt Render kéo
+image mới mà không để lộ mật khẩu.
+5. Chạy Database Migration an toàn: Tuyệt đối không dùng lệnh prisma db push có nguy cơ
+mất dữ liệu. Hệ thống sử dụng lệnh npx prisma migrate deploy trong chỉ lệnh CMD của Dockerfile
+để bảo đảm tính toàn vẹn dữ liệu.
+6. Smoke Test tự động sau triển khai: Sau khi kích hoạt deploy, pipeline chờ container khởi động
+(grace period 45s) và thực hiện kiểm tra tự động (retry 6 lần × 15s) tới endpoint GET /health và
+kiểm tra dữ liệu thực tế qua GET /api/products trên môi trường Production.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 44 / 50
+
+=== PAGE 46 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+7. Cơ chế Rollback khi triển khai thất bại:
+ Tầng 1 (Render Zero-Downtime): Render chỉ chuyển đổi lưu lượng truy cập khi container mới
+pass Health Check. Nếu container mới bị lỗi crash loop, Render giữ nguyên container phiên bản
+cũ đang chạy.
+ Tầng 2 (REST API Rollback): Pipeline CD tự động phát lệnh đảo ngược qua Render REST API
+nếu Smoke Test thất bại.
+ Tầng 3 (SOP Rollback thủ công): Đội ngũ kỹ sư có thể rollback nhanh trong 30 giây trực tiếp từ
+Render Dashboard tại mục Web Service → Deploys → Rollback to this deploy.
+5.4 Task 5.4 – Triển Khai Production và Bàn Giao Sản Phẩm
+5.4.1 Danh sách URL Production Công Khai qua HTTPS
+Hệ thống BrewLite đã được bàn giao và vận hành ổn định trên môi trường Production thực tế:
+ URL Frontend Production (Vercel CDN): https://assignment2-murex-gamma.vercel.app
+(Ứng dụng Next.js 16 PWA, bảo mật SSL/TLS tự động, tối ưu hóa hiển thị di động).
+ URL Backend API Production (Render Docker): https://assignment2-ugde.onrender.com
+(Máy chủ NestJS API đóng gói Docker Container chạy trên nền tảng Render Cloud).
+ URL Health Check Endpoint: https://assignment2-ugde.onrender.com/health (Phản hồi trạng
+thái hoạt động của NestJS và kết nối cơ sở dữ liệu PostgreSQL).
+ Cơ sở dữ liệu Production: PostgreSQL 16 chạy trong mạng nội bộ riêng (Render Private
+Network VPC), gắn ổ cứng bền vững Persistent Disk, tuyệt đối không mở cổng trực tiếp ra ngoài
+Internet.
+5.4.2 Tài khoản Kiểm thử có sẵn (Seeded Test Accounts)
+Vai trò (Role) Email đăng nhập Mật khẩu Mục đích kiểm
+thử
+Khách hàng Vàng customer@brewlite.com customer123 Có sẵn 63 điểm
+loyalty (gồm 2 đơn
+mẫu trong seed) –
+Hạng Vàng tự động
+giảm giá 10%.
+Khách hàng Bạc khachhang2@example.com password123 Đã có 20 điểm
+loyalty – Hạng Bạc
+được tự động giảm
+giá 5%.
+Nhân viên Barista barista@brewlite.com barista123 Truy cập màn hình
+điều phối pha chế
+tại đường dẫn
+/barista.
+Quản trị viên (Admin) admin@brewlite.com barista123 Truy cập trang
+quản trị /admin
+(quản lý sản phẩm,
+danh mục, topping,
+đơn hàng, người
+dùng).
+Bảng 10: Danh sách tài khoản kiểm thử được nạp sẵn trong brewlite_seed_data.sql
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 45 / 50
+
+=== PAGE 47 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+5.4.3 Phiên bản Phát hành & Hướng dẫn Vận hành
+ Release Tag: v1.0.1 (Latest Production Tag; sau đó tiếp tục bổ sung phân hệ Admin và tăng
+cường RBAC qua các PR #60–#64).
+ Tài liệu Hướng dẫn Vận hành: Tệp README.md ở thư mục gốc cung cấp đầy đủ các kịch bản
+khởi chạy bằng Docker Compose, chạy local thủ công, chạy kiểm thử tự động, cấu hình cổng thanh
+toán qua Ngrok (apps/api/PAYMENT_SETUP.md) và quy trình cứu hộ sự cố.
+ Bảo mật Secret: Không có bất kỳ API key, JWT Secret hay thông tin đăng nhập database nào
+bị rò rỉ trong kho mã nguồn Git hay log CI.
+5.4.4 Biên bản Sprint Review và Sprint Retrospective
+1. Đánh giá kết quả Sprint Review (Đạt mục tiêu Sprint 2):
+ Đã hoàn thành 100% các hạng mục User Story đã cam kết trong Product Backlog.
+ Luồng đặt hàng end-to-end vận hành trơn tru: duyệt món → tùy biến → giỏ hàng → thanh toán
+VietQR/MoMo → Barista tiếp nhận → hoàn tất đơn.
+ Cơ chế khóa lạc quan và Idempotency bảo vệ tính toàn vẹn dữ liệu hoàn hảo, không có lỗi bán âm
+hay trừ tiền trùng.
+2. Biên bản Rút kinh nghiệm Sprint Retrospective (Agile Lessons Learned):
+ Những điểm nhóm đã làm tốt (What went well):
+– Phân công công việc rõ ràng, bám sát chuyên môn của từng thành viên.
+– Quy tắc Branch Protection và Pipeline CI 4 bước giúp loại bỏ 100% nguy cơ đưa code lỗi vào
+nhánh main.
+– Cấu trúc Monorepo giúp việc quản lý tài liệu và mã nguồn luôn đồng bộ và nhất quán.
+ Những điểm cần cải thiện (What could be improved):
+– Giai đoạn đầu còn gặp một số xung đột (merge conflict) do các thành viên chưa tạo thói quen
+pull code mới nhất về trước khi lập trình. Nhóm đã khắc phục triệt để bằng quy chuẩn làm việc
+nhóm docs/delivery/team-workflow.md.
+– Môi trường Cloud Render gói miễn phí có độ trễ khởi động lại (cold start). Giải pháp trong tương
+lai là duy trì gói nâng cấp hoặc cấu hình cron job tự động ping health check giữ ấm server.
+ Bài học kinh nghiệm (Key Takeaways): Việc đầu tư thiết kế kỹ lưỡng ngay từ Task 1 (SRS)
+và Task 2 (UML Diagrams) giúp quá trình lập trình ở Task 4 và Task 5 diễn ra nhanh chóng, đúng
+hướng và không bị lệch yêu cầu.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 46 / 50
+
+=== PAGE 48 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+6 MA TRẬN TRUY VẾT YÊU CẦU (TRACEABILITY MA-
+TRIX)
+Tài liệu tham chiếu bắt buộc: docs/traceability-matrix.md.
+Theo quy định mục 8.1 của đề bài, ma trận truy vết (Requirements Traceability Matrix – RTM)
+là cơ sở nghiệm thu bắt buộc, chứng minh mọi yêu cầu chức năng và phi chức năng đều được hiện
+thực hóa qua sơ đồ thiết kế, quyết định kiến trúc, mã nguồn API và các bài kiểm thử tự động tương
+ứng:
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 47 / 50
+
+=== PAGE 49 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+6.1 Bảng Truy Vết Yêu Cầu Chức Năng (Functional Requirements – FR)
+Mã
+FR
+Use-case /
+Story
+Thiết kế / Sơ
+đồ
+ADR áp
+dụng
+Mã nguồn / API End-
+point
+Bài kiểm thử (Test Cases)
+FR-
+01
+US-01: Xem
+menu
+UC-01: Xem
+menu
+Activity-01,
+Class-01, C4-
+Container
+ADR-001
+ADR-002
+GET /api/products
+GET /api/products/:id
+products.service.
+spec.ts (API-T01)
+FR-
+02
+US-02: Size &
+Topping
+UC-03, UC-04
+Class-01
+(Topping,
+OrderItem-
+Topping)
+ADR-002 GET/api/toppings
+apps/web/app/product/
+[id]/pageProduct.tsx
+toppings.service.spec.ts
+products.service.spec.ts
+FR-
+03
+US-03: Giỏ
+hàng
+UC-05: Quản lý
+giỏ
+Class-01
+(OrderItem),
+C4-Container
+ADR-001 Frontend useCartStore
+apps/web/app/cart/
+pageCart.tsx
+frontend.unit.test.mjs
+ordering-flow.e2e.
+test.mjs
+app.e2e-spec.ts
+FR-
+04
+US-04: Đăng
+ký/nhập
+UC-10, UC-11
+Class-01 (User),
+Sequence-Auth
+ADR-005 POST /api/auth/login
+POST /api/auth/register
+/api/users (@AdminOnly)
+auth.service.spec.ts
+users.service.spec.ts
+users.controller.spec.ts
+FR-
+05
+US-05: Đặt
+hàng
+UC-06: Đặt
+hàng mới
+Sequence-01,
+Class-01 (Order,
+Product.
+version)
+ADR-002
+ADR-003
+POST /api/orders
+(Prisma Transaction &
+Lock)
+orders.service.spec.ts
+orders.controller.spec.ts
+orders-payments.e2e-spec.ts
+FR-
+06
+US-06: Thanh
+toán
+UC-07: Thanh
+toán ví
+Sequence-
+01, Class-01
+(Payment)
+ADR-004 POST /api/payments/
+create-payos-link,
+momo-payment
+POST /api/payments
+payments.service.
+spec.ts
+payments.controller.
+spec.ts
+FR-
+07
+US-07: Lịch sử
+& Điểm
+UC-09: Lịch sử
+đơn
+Class-01
+(LoyaltyTx),
+C4-Backend
+ADR-002 GET /api/orders/me
+tx.loyaltyTransaction
+orders.service.spec.ts
+payments.service.spec.ts
+FR-
+08
+US-08: Pha chế
+UC-12, UC-13
+State Machine,
+Class-01
+(order_status)
+ADR-002 GET/api/orders/barista/
+queue
+PATCH/api/orders/
+barista/:id/{prepare,
+ready,complete}
+orders.service.spec.ts
+orders.controller.spec.ts
+FR-
+09
+US-09: Quản trị
+Admin
+UC-14: Bật/tắt
+món
+Class-01
+(ProductStatus)
+ADR-002 PATCH /api/products/:id
+PATCH /api/toppings/:id
+GET /api/*/admin/all,
+/admin
+products.service.spec.ts
+toppings.service.spec.ts
+categories.service.spec.ts
+FR-
+10
+US-10: Hủy đơn
+quá hạn
+UC-06: Hủy
+PENDING
+Activity-01
+(Rollback),
+Class-01
+ADR-002
+ADR-003
+OrdersService.create()
+PATCH
+/api/orders/:id/cancel
+orders.service.spec.ts
+app.e2e-spec.ts
+FR-
+11
+US-11: Ưu đãi
+& Voucher
+UC-06: Áp
+voucher
+Class-01
+(Promotion),
+C4-Backend
+ADR-002 OrdersService.
+validateVoucher
+orders.service.spec.ts
+(Tier & voucher tests)
+FR-
+12
+US-12: Hero &
+Tìm kiếm
+UC-01: Menu
+C4-Container,
+Class-01
+(Product)
+ADR-001 GET /api/products
+apps/web/app/page.tsx
+products.service.
+spec.ts
+FR-
+13
+US-13: Chặn
+tiền mặt
+UC-07: Thanh
+toán
+Class-01
+(payment_
+method)
+ADR-004 DTO validation chặn
+CASH, chỉ nhận WAL-
+LET/CARD
+payments.service.spec.ts
+orders-payments.e2e-spec.ts
+Bảng 11: Ma trận truy vết yêu cầu chức năng (RTM – Functional Requirements)
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 48 / 50
+
+=== PAGE 50 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+6.2 Bảng Truy Vết Yêu Cầu Phi Chức Năng (Non-Functional Requirements –
+NFR)
+Mã NFR Mục tiêu phi
+chức năng
+Tiêu chí kiểm chứng kỹ
+thuật
+Giải pháp kiến trúc & Thành
+phần kỹ thuật
+NFR-01 Hiệu năng (Per-
+formance)
+Thời gian phản hồi API <
+500ms; Tải trang PWA <
+1.5s; Phục vụ ổn định 100
+người dùng đồng thời.
+Modular Monolith NestJS (ADR-002),
+Next.js App Router, Tailwind CSS nhẹ,
+CDN Vercel Edge.
+NFR-02 Tính toàn vẹn
+(Data Integrity)
+Dữ liệu không bị phân mảnh;
+Không xảy ra bán âm tồn
+kho; Giao dịch đạt chuẩn
+ACID.
+PostgreSQL 16, Prisma $transaction
+(ADR-003), Khóa lạc quan
+Product.version.
+NFR-03 Bảo mật & Độ
+tin cậy
+Mật khẩu băm an toàn;
+Không bị trừ tiền lặp; To-
+ken tự động hết hạn; Chống
+brute-force.
+Băm bcrypt 10 rounds, JWT qua
+Passport Guard (ADR-005),
+ThrottlerGuard, CORS_ORIGIN,
+idempotencyKey (ADR-004).
+NFR-04 Khả dụng (Us-
+ability)
+Giao diện tối ưu Mobile-First
+Responsive; Đủ 3 trạng thái
+phản hồi.
+Next.js Loading Skeleton, Toast Alert,
+Thiết kế giao diện thân thiện một tay
+(ADR-001).
+NFR-05 Khả năng triển
+khai
+Tự động hóa CI/CD; Khởi
+chạy 1 lệnh bằng Docker;
+Endpoint kiểm tra sức khỏe.
+Tệp docker-compose.yml, GitHub
+Actions Pipeline (ci.yml, cd.yml),
+Endpoint GET /health (ADR-006).
+NFR-06 Khả năng bảo trì Mã nguồn sạch, kiểu dữ
+liệu tĩnh nghiêm ngặt; Lịch
+sử commit chuẩn; Truy vết
+100%.
+TypeScript Strict Mode
+(tsconfig.json), oxlint & ESLint,
+Conventional Commits,
+docs/traceability-matrix.md.
+Bảng 12: Ma trận truy vết yêu cầu phi chức năng (RTM – Non-Functional Requirements)
+6.3 Checklist Bàn Giao và Nghiệm Thu Dự Án (Mục 9.1 Đề Bài)
+✓ Link Repository & Quyền truy cập: Kho mã nguồn chính thức tại: https://github.com/
+Phucdang-gif/Assignment2.
+✓ Tài liệu SRS, Đặc tả Use-Case & Ma trận truy vết: Hoàn thành đầy đủ tại thư mục
+docs/requirements/ (srs.md, usecase-checkout.md) và tệp docs/traceability-matrix.md.
+✓ Sơ đồ Thiết kế Hệ thống: Đầy đủ Activity Diagram, Sequence Diagram, Domain Class Diagram,
+C4 Architecture Model và UML Deployment Diagram.
+✓ Mã nguồn Đầy đủ (Source Code): Phân hệ Frontend Next.js (apps/web), Phân hệ Backend
+NestJS (apps/api) và Prisma Migration Schema (apps/api/prisma/).
+✓ Kiểm thử Tự động (Testing): Unit Tests nghiệp vụ Task 10, Integration Tests API và End-to-
+End Tests (tests/e2e/).
+✓ PipelineCI/CDVậnhànhThựctế:PipelineCI(.github/workflows/ci.yml)vớiminhchứng
+PR #22 Pass và PR #21 Fail; Pipeline CD (.github/workflows/cd.yml) tự động đóng gói và
+triển khai lên Render/Vercel.
+✓ URL Production Hoạt động Ổn định qua HTTPS:
+– Frontend Web App: https://assignment2-murex-gamma.vercel.app
+– Backend API Service: https://assignment2-ugde.onrender.com
+– Health Check Endpoint: https://assignment2-ugde.onrender.com/health
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 49 / 50
+
+=== PAGE 51 ===
+TRƯỜNG ĐẠI HỌC SÀI GÒN
+Khoa Công Nghệ Thông Tin Báo cáo Assignment 2: BrewLite
+✓ Release Notes, README & Hướng dẫn Rollback: Hướng dẫn chi tiết tại README.md và tài
+liệu docs/deployment.md (quy trình chạy local, test, build và khôi phục sự cố).
+✓ Sprint Review & Sprint Retrospective: Đánh giá hoàn thành 100% mục tiêu Sprint và đúc
+rút bài học kinh nghiệm phát triển phần mềm Agile/Scrum.
+BrewLite – Hệ thống Đặt đồ uống & Thanh toán Trực tuyến Trang 50 / 50
+

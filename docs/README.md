@@ -36,7 +36,7 @@
 - [`traceability-matrix.md`](traceability-matrix.md): Ma trận truy vết từ Yêu cầu (FR/NFR) đến Thiết kế, ADR, API Code và Test Case tương ứng.
 - [`delivery/conventions.md`](delivery/conventions.md): Quy ước đặt tên Git branch, Conventional Commits, Coding style và chuẩn hóa RESTful API.
 - [`delivery/team-workflow.md`](delivery/team-workflow.md): Quy trình làm việc nhóm theo Git Feature Branch, Pull Request Review và Definition of Done.
-- [`delivery/api-testing-guide.md`](delivery/api-testing-guide.md) & [`collection JSON`](delivery/brewlite-collection.postman_collection.json): Hướng dẫn kiểm thử API tự động và bộ sưu tập Postman / Thunder Client.
+- [`delivery/api-testing-guide.md`](delivery/api-testing-guide.md) & [`BrewLite API Collection/`](delivery/BrewLite%20API%20Collection): Hướng dẫn kiểm thử API tự động và bộ sưu tập request YAML cho Postman / API client.
 
 ### 5. Kiểm thử Tích hợp, CD Pipeline & Bàn giao (Task 5 Delivery)
 - [`../.github/workflows/cd.yml`](../.github/workflows/cd.yml): Pipeline Continuous Delivery/Deployment (Quality Gates ➔ GHCR Docker Image ➔ Render Deploy ➔ Smoke Test ➔ Auto/SOP Rollback).

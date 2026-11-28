@@ -33,6 +33,10 @@ describe('OrdersService', () => {
       topping: {
         findMany: jest.fn().mockResolvedValue([]),
       },
+      promotion: {
+        findUnique: jest.fn(),
+      },
+      orderItemTopping: {},
       $queryRaw: jest.fn(),
       $transaction: jest.fn(async (cb) => {
         if (typeof cb === 'function') {
@@ -108,6 +112,28 @@ describe('OrdersService', () => {
         }),
       );
     });
+    it('Admin có thể xem toàn bộ đơn hàng trong hàng đợi (chỉ xem)', async () => {
+      const adminId = 9;
+      mockUsersService.findOne.mockResolvedValue({
+        id: adminId,
+        email: 'admin@brewlite.com',
+        role: 'admin',
+      });
+      mockPrisma.order.findMany.mockResolvedValue([
+        { id: BigInt(1), userId: BigInt(10), status: order_status.PAID },
+      ]);
+
+      await service.findBaristaQueue(adminId);
+
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(adminId);
+      expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({
+            userId: expect.anything(),
+          }),
+        }),
+      );
+    });
   });
 
   describe('baristaUpdateStatus (Quyền chỉnh sửa trạng thái đơn hàng)', () => {
@@ -156,8 +182,19 @@ describe('OrdersService', () => {
       expect(mockPrisma.order.update).toHaveBeenCalled();
     });
 
-    it('cho phép admin cập nhật trạng thái đơn như barista', async () => {
-      mockUsersService.findOne.mockResolvedValue({ id: 9, role: 'admin' });
+    it('Admin chỉ có quyền xem, không được nhận/cập nhật trạng thái đơn -> ném ForbiddenException', async () => {
+      const adminId = 9;
+      mockUsersService.findOne.mockResolvedValue({
+        id: adminId,
+        email: 'admin@brewlite.com',
+        role: 'admin',
+      });
+
+      await expect(
+        service.baristaUpdateStatus(1, order_status.PREPARING, adminId),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
     });
   });
 
@@ -670,6 +707,87 @@ describe('OrdersService', () => {
         service.create(
           {
             items: [{ productId: 1, size: 'M', qty: 1, toppings: ['Topping Không Có'] }],
+          },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('markPaymentFailed chặn người dùng đánh dấu lỗi thanh toán trên đơn hàng của người khác (IDOR/BOLA)', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: BigInt(700),
+        userId: BigInt(10),
+        status: order_status.PENDING,
+        OrderItem: [],
+        Payment: [],
+      });
+      mockUsersService.findOne.mockResolvedValue({ id: 99, role: 'CUSTOMER' });
+
+      await expect(service.markPaymentFailed(700, 99)).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it('tự động khử trùng lặp topping trong cùng một món khi tạo đơn', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({
+        id: BigInt(1),
+        name: 'Trà sen',
+        price: 35000,
+        status: 'active',
+        version: 0,
+      });
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.topping.findMany.mockResolvedValue([
+        { id: 10, name: 'Trân châu trắng', price: 5000, isAvailable: true },
+      ]);
+      mockPrisma.order.create.mockResolvedValue({ id: BigInt(800) });
+
+      await service.create(
+        {
+          items: [
+            {
+              productId: 1,
+              size: 'M',
+              qty: 1,
+              toppings: ['Trân châu trắng', 'Trân châu trắng'], // trùng lặp topping
+            },
+          ],
+        },
+        1,
+      );
+
+      expect(mockPrisma.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            OrderItem: {
+              create: [
+                expect.objectContaining({
+                  OrderItemTopping: {
+                    create: [{ toppingId: 10, priceAtTime: 5000 }], // chỉ tạo 1 bản ghi
+                  },
+                }),
+              ],
+            },
+          }),
+        }),
+      );
+    });
+
+    it('từ chối tạo đơn nếu mã voucher không tồn tại hoặc hết hạn', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({
+        id: BigInt(1),
+        name: 'Cà phê',
+        price: 30000,
+        status: 'active',
+        version: 0,
+      });
+      mockPrisma.product.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.promotion.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create(
+          {
+            items: [{ productId: 1, size: 'S', qty: 1 }],
+            voucherCode: 'NON_EXISTENT',
           },
           1,
         ),

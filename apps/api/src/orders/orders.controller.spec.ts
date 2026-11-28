@@ -21,6 +21,7 @@ describe('OrdersController (Security & Guards)', () => {
     baristaUpdateStatus: jest.fn(),
     cancelOrder: jest.fn(),
     retryPayment: jest.fn(),
+    markPaymentFailed: jest.fn(),
     getOrderStatuses: jest.fn(),
     validateVoucher: jest.fn(),
     findOneForUser: jest.fn(),
@@ -48,7 +49,7 @@ describe('OrdersController (Security & Guards)', () => {
     expect(controller).toBeDefined();
   });
 
-  it('các route cập nhật trạng thái của barista phải yêu cầu JwtAuthGuard và RolesGuard với role barista', () => {
+  it('các route cập nhật trạng thái của barista phải yêu cầu JwtAuthGuard và RolesGuard với chỉ role barista (không cho admin)', () => {
     const baristaRoutes = [
       controller.updateOrderStatus,
       controller.prepareOrder,
@@ -62,8 +63,8 @@ describe('OrdersController (Security & Guards)', () => {
       expect(guards).toEqual(expect.arrayContaining([JwtAuthGuard, RolesGuard]));
 
       const roles = reflector.get<string[]>(ROLES_KEY, route);
-      expect(roles).toBeDefined();
-      expect(roles).toEqual(expect.arrayContaining(['barista']));
+      expect(roles).toEqual(['barista']);
+      expect(roles).not.toContain('admin');
     }
   });
 
@@ -75,6 +76,7 @@ describe('OrdersController (Security & Guards)', () => {
       controller.getBaristaQueue,
       controller.cancelOrder,
       controller.retryPayment,
+      controller.markPaymentFailed,
       controller.findOne,
     ];
 
@@ -83,6 +85,15 @@ describe('OrdersController (Security & Guards)', () => {
       expect(guards).toBeDefined();
       expect(guards).toEqual(expect.arrayContaining([JwtAuthGuard]));
     }
+  });
+
+  it('markPaymentFailed truyền đúng id và userId vào ordersService chống IDOR/BOLA', async () => {
+    mockOrdersService.markPaymentFailed.mockResolvedValue({ id: 10, status: 'PAYMENT_FAILED' });
+    const res = await controller.markPaymentFailed(10, {
+      user: { userId: 42, email: 'user@brewlite.com' },
+    });
+    expect(mockOrdersService.markPaymentFailed).toHaveBeenCalledWith(10, 42);
+    expect(res).toEqual({ id: 10, status: 'PAYMENT_FAILED' });
   });
 
   it('route getOrderStatuses và validateVoucher là public', () => {

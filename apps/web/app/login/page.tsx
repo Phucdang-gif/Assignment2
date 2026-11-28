@@ -27,7 +27,7 @@ function LoginForm() {
     setError('');
 
     if (!email.trim() || !password.trim()) {
-      setError('Vui lòng nhập đầy đủ email và mật khẩu.');
+      setError('Vui lòng nhập đầy đủ email/số điện thoại và mật khẩu.');
       return;
     }
 
@@ -82,11 +82,11 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-[#3E2723]">
-              Email hoặc số điện thoại
+              Email hoặc Số điện thoại
             </label>
             <input
               type="text"
-              placeholder="Nhập email hoặc số điện thoại"
+              placeholder="Nhập email hoặc số điện thoại của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-[#FDFBF7] border border-[#E8DFD8] rounded-xl px-3.5 py-2.5 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#8D6E63] focus:border-[#8D6E63]"

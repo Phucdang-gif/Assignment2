@@ -15,6 +15,7 @@ export const ROLES_KEY = 'roles';
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
 
 export const STAFF_ROLES = ['barista', 'admin'] as const;
+export const ADMIN_ROLES = ['admin'] as const;
 
 export const isStaffRole = (role?: string | null): boolean =>
   !!role && (STAFF_ROLES as readonly string[]).includes(role);
@@ -63,3 +64,6 @@ export class RolesGuard implements CanActivate {
 
 export const StaffOnly = () =>
   applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...STAFF_ROLES));
+
+export const AdminOnly = () =>
+  applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...ADMIN_ROLES));

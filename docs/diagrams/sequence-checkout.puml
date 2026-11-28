@@ -35,7 +35,7 @@ UI -> UI : Kiểm tra giỏ hàng & JWT trong LocalStorage
 alt Giỏ hàng rỗng (E1)
     UI --> C : Khóa nút, báo "Giỏ hàng rỗng"
 else Chưa đăng nhập / không có token (E2)
-    UI --> C : Chuyển hướng /login?redirect=/checkout\n(giữ giỏ hàng ở LocalStorage)
+    UI --> C : Chuyển hướng /login?redirect=/cart\n(giữ giỏ hàng ở LocalStorage)
 else Giỏ hàng hợp lệ và có token
     UI --> C : Hiển thị trang Checkout (tóm tắt, giảm giá theo điểm)
 end
@@ -44,12 +44,12 @@ C -> UI : Chọn phương thức, bấm "Xác nhận thanh toán"
 UI -> UI : Sinh idempotencyKey (UUID v4)
 
 == 2. Tạo đơn hàng (Transaction) ==
-UI -> API : POST /orders\n(Bearer JWT, items, idempotencyKey)
+UI -> API : POST /api/orders\n(Bearer JWT, items, voucherCode?)
 activate API
 API -> API : JwtAuthGuard: verify chữ ký & hạn token (exp)
 alt Token không hợp lệ / hết hạn (HTTP 401)
     API --> UI : 401 Unauthorized
-    UI --> C : Xóa token, chuyển hướng /login?redirect=/checkout
+    UI --> C : Xóa token, chuyển hướng /login?redirect=/cart
 else Token hợp lệ
     API -> API : Gắn userId, role vào Request.user\nValidate DTO (items, quantity, topping, isAvailable)
     alt Dữ liệu không hợp lệ (HTTP 400)
@@ -58,8 +58,8 @@ else Token hợp lệ
     else Dữ liệu hợp lệ
         API -> DB : BEGIN prisma.$transaction
         activate DB
-        API -> DB : Đọc stock, version của các sản phẩm\n(SELECT ... FOR UPDATE)
-        DB --> API : stock, version
+        API -> DB : Đọc Ingredient.stock theo công thức\n(ProductRecipeItem) & Product.version
+        DB --> API : ingredientStock, version
         alt Hết hàng (stock < quantity) hoặc xung đột version (E3)
             API -> DB : ROLLBACK
             DB --> API : Đã hoàn tác toàn bộ
@@ -67,7 +67,7 @@ else Token hợp lệ
             API --> UI : 400 / 409 "Sản phẩm đã hết hàng"
             UI --> C : Cảnh báo đỏ, yêu cầu chỉnh giỏ hàng
         else Đủ tồn kho
-            API -> DB : UPDATE products SET stock = stock - qty,\nversion = version + 1 WHERE version = :v
+            API -> DB : UPDATE Ingredient SET stock -= needed;\nUPDATE Product SET version += 1 (OCC)
             API -> DB : INSERT Order (PENDING), OrderItem, OrderItemTopping\n(áp dụng giảm giá điểm tích lũy)
             API -> DB : COMMIT
             DB --> API : orderId, totalAmount
@@ -75,7 +75,7 @@ else Token hợp lệ
             API --> UI : 201 Created (orderId, totalAmount)
 
             == 3. Thanh toán & idempotency ==
-            UI -> API : POST /payments\n(Bearer JWT, orderId, method, amount, idempotencyKey)
+            UI -> API : POST /api/payments[/create-payos-link|momo]\n(Bearer JWT, orderId, method, amount, idempotencyKey)
             API -> API : Verify JWT & validate dữ liệu
             API -> DB : Tìm Payment theo idempotencyKey
             DB --> API : Kết quả tra cứu
@@ -102,7 +102,7 @@ else Token hợp lệ
                     PAY --> API : FAILED (ví không đủ tiền...)
                     API -> DB : BEGIN transaction
                     activate DB
-                    API -> DB : UPDATE Order -> PAYMENT_FAILED\nHoàn trả tồn kho (stock += qty, version += 1)
+                    API -> DB : UPDATE Order -> PAYMENT_FAILED\nGiữ nguyên tồn kho chờ retry;\n(chỉ hoàn kho khi CANCELLED)
                     API -> DB : COMMIT
                     DB --> API : OK
                     deactivate DB

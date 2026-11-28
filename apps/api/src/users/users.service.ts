@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -56,12 +56,24 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, dto: UpdateUserDto) {
+  async update(id: number, dto: UpdateUserDto, actorUserId?: number) {
+    if (
+      actorUserId !== undefined &&
+      Number(actorUserId) === Number(id) &&
+      dto.role &&
+      dto.role !== 'admin'
+    ) {
+      throw new BadRequestException(
+        'Không thể tự hạ quyền tài khoản quản trị đang đăng nhập',
+      );
+    }
+
     const data: Prisma.UserUpdateInput = {};
     if (dto.email) data.email = dto.email;
     if (dto.fullName) data.fullName = dto.fullName;
     if (dto.phone) data.phone = dto.phone;
     if (dto.password) data.passwordHash = await bcrypt.hash(dto.password, 10);
+    if (dto.role) data.role = dto.role;
 
     try {
       return await this.prisma.user.update({ where: { id }, data, select: userSelect });
@@ -70,7 +82,11 @@ export class UsersService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, actorUserId?: number) {
+    if (actorUserId !== undefined && Number(actorUserId) === Number(id)) {
+      throw new BadRequestException('Không thể tự xóa tài khoản đang đăng nhập');
+    }
+
     try {
       await this.prisma.user.delete({ where: { id } });
     } catch (e) {
@@ -80,6 +96,19 @@ export class UsersService {
 
   findByEmailWithHash(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  findByEmailOrPhoneWithHash(identifier: string) {
+    const clean = identifier.trim().toLowerCase();
+    const phoneFormat = clean.replace(/[\s.-]/g, '');
+    return this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: clean },
+          { phone: phoneFormat },
+        ],
+      },
+    });
   }
 
   addLoyaltyPoints(userId: number, points: number) {
@@ -96,6 +125,11 @@ export class UsersService {
         const t = (e.meta?.target as string[]) ?? [];
         if (t.includes('phone')) throw new ConflictException('Số điện thoại đã được sử dụng');
         throw new ConflictException('Email đã được sử dụng');
+      }
+      if (e.code === 'P2003') {
+        throw new ConflictException(
+          'Không thể xóa tài khoản này vì đã có lịch sử đơn hàng. Vui lòng giữ lại để đảm bảo dữ liệu đối soát.',
+        );
       }
       if (e.code === 'P2025') throw new NotFoundException(`User ${id} không tồn tại`);
     }

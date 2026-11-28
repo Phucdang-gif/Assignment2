@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { order_status } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard, Roles, STAFF_ROLES } from '../auth/roles.guard';
+import { RolesGuard, Roles } from '../auth/roles.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
@@ -51,7 +51,7 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(...STAFF_ROLES)
+  @Roles('barista')
   @Patch(':id/status')
   updateOrderStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -66,7 +66,7 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(...STAFF_ROLES)
+  @Roles('barista')
   @Patch('barista/:id/prepare')
   prepareOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -80,7 +80,7 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(...STAFF_ROLES)
+  @Roles('barista')
   @Patch('barista/:id/ready')
   readyOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -94,7 +94,7 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(...STAFF_ROLES)
+  @Roles('barista')
   @Patch('barista/:id/complete')
   completeOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -129,8 +129,9 @@ export class OrdersController {
   @Patch(':id/payment-failed')
   markPaymentFailed(
     @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: { userId: number; email: string } },
   ) {
-    return this.ordersService.markPaymentFailed(id);
+    return this.ordersService.markPaymentFailed(id, Number(req.user.userId));
   }
 
   @Get('statuses')
@@ -144,6 +145,17 @@ export class OrdersController {
     @Query('subtotal') subtotal?: string,
   ) {
     return this.ordersService.validateVoucher(code, Number(subtotal || 0));
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('admin/all')
+  findAllAdmin(@Query('status') status?: string, @Query('limit') limit?: string) {
+    const parsedLimit = limit ? Number(limit) : undefined;
+    return this.ordersService.findAllAdmin(
+      status,
+      Number.isFinite(parsedLimit) ? parsedLimit : undefined,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

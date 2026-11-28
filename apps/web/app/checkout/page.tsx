@@ -11,9 +11,6 @@ import {
   ArrowLeftIcon,
   BankIcon,
   BagIcon,
-  TrashIcon,
-  PlusIcon,
-  MinusIcon,
   InfoIcon,
 } from '@/components/Icons';
 import {
@@ -21,95 +18,6 @@ import {
   CHECKOUT_DURATION_MINUTES,
   formatTimer,
 } from '@/hooks/useCheckoutTimer';
-
-
-function CheckoutItemQuantityControl({
-  quantity,
-  max = 999,
-  onChange,
-  onRemove,
-}: {
-  quantity: number;
-  max?: number;
-  onChange: (qty: number) => void;
-  onRemove: () => void;
-}) {
-  const [inputValue, setInputValue] = useState(String(quantity));
-
-  useEffect(() => {
-    setInputValue(String(quantity));
-  }, [quantity]);
-
-  const commitValue = (val: string) => {
-    const parsed = parseInt(val, 10);
-    if (isNaN(parsed) || parsed < 1) {
-      setInputValue('1');
-      onChange(1);
-    } else if (parsed > max) {
-      setInputValue(String(max));
-      onChange(max);
-    } else {
-      setInputValue(String(parsed));
-      onChange(parsed);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/^\d*$/.test(val)) {
-      setInputValue(val);
-      const parsed = parseInt(val, 10);
-      if (!isNaN(parsed) && parsed >= 1) {
-        onChange(Math.min(max, parsed));
-      }
-    }
-  };
-
-  return (
-    <div className="flex items-center border border-gray-200 rounded-lg bg-[#FDFBF7] focus-within:border-[#8D6E63] focus-within:ring-1 focus-within:ring-[#8D6E63] transition-all">
-      <button
-        type="button"
-        onClick={() => {
-          if (quantity > 1) {
-            onChange(quantity - 1);
-          } else {
-            onRemove();
-          }
-        }}
-        className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-black cursor-pointer"
-        aria-label="Giảm số lượng"
-      >
-        <MinusIcon className="w-2.5 h-2.5" />
-      </button>
-      <input
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={inputValue}
-        onChange={handleInputChange}
-        onBlur={() => commitValue(inputValue)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            (e.target as HTMLInputElement).blur();
-          }
-        }}
-        className="w-7 text-center font-bold text-[11px] text-[#3E2723] bg-transparent focus:outline-none focus:bg-white rounded px-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        aria-label="Nhập số lượng"
-        title={`Tối đa: ${max}`}
-      />
-      <button
-        type="button"
-        onClick={() => onChange(Math.min(max, quantity + 1))}
-        disabled={quantity >= max}
-        className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-black disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-        aria-label="Tăng số lượng"
-        title={quantity >= max ? `Đã đạt giới hạn tồn kho (${max})` : 'Tăng 1'}
-      >
-        <PlusIcon className="w-2.5 h-2.5" />
-      </button>
-    </div>
-  );
-}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -119,8 +27,9 @@ export default function CheckoutPage() {
     items,
     checkoutItems,
     pendingOrderId,
-    removeFromCart,
-    updateQuantity,
+    pendingOrderTotal,
+    pendingOrderDiscount,
+    pendingOrderRawTotal,
     startCheckout,
     restoreCheckoutToCart,
     clearCheckoutItems,
@@ -145,7 +54,20 @@ export default function CheckoutPage() {
   const [createdOrderData, setCreatedOrderData] = useState<{
     id: number;
     total: number;
-  } | null>(null);
+    subtotal?: number;
+    discountAmount?: number;
+    voucherCode?: string;
+  } | null>(() => {
+    if (pendingOrderId && pendingOrderTotal !== null) {
+      return {
+        id: pendingOrderId,
+        total: Number(pendingOrderTotal),
+        subtotal: pendingOrderRawTotal !== null ? Number(pendingOrderRawTotal) : undefined,
+        discountAmount: pendingOrderDiscount !== null ? Number(pendingOrderDiscount) : undefined,
+      };
+    }
+    return null;
+  });
   const [payosPaymentData, setPayosPaymentData] = useState<{
     qrCode?: string;
     accountNumber?: string;
@@ -213,7 +135,15 @@ export default function CheckoutPage() {
   }, [subtotal, membership.discountPercent]);
 
   const grandTotal = Math.max(0, subtotal - discountAmount);
-  const earnedPointsPreview = Math.floor(grandTotal / 10000);
+
+  const displaySubtotal = createdOrderData?.subtotal ?? subtotal;
+  const displayDiscount = createdOrderData?.discountAmount !== undefined
+    ? Number(createdOrderData.discountAmount)
+    : discountAmount;
+  const displayGrandTotal = createdOrderData?.total !== undefined
+    ? Number(createdOrderData.total)
+    : grandTotal;
+  const earnedPointsPreview = Math.floor(displayGrandTotal / 10000);
 
   useEffect(() => {
     setHasHydrated(true);
@@ -235,6 +165,27 @@ export default function CheckoutPage() {
   }, [token]);
 
   useEffect(() => {
+    if (pendingOrderId && token) {
+      fetch(`${API_URL}/orders/${pendingOrderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((order) => {
+          if (order) {
+            setCreatedOrderData({
+              id: Number(order.id),
+              total: Number(order.total),
+              subtotal: Number(order.subtotal),
+              discountAmount: Number(order.discountAmount || 0),
+              voucherCode: order.Promotion?.code || order.promotion?.code,
+            });
+          }
+        })
+        .catch((err) => console.error("Lỗi đồng bộ đơn hàng:", err));
+    }
+  }, [pendingOrderId, token]);
+
+  useEffect(() => {
     if (hasHydrated && !token) {
       alert("Vui lòng đăng nhập để thanh toán đơn hàng!");
       router.push("/login?redirect=/checkout");
@@ -243,9 +194,14 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (pendingOrderId && (!createdOrderData || createdOrderData.id !== pendingOrderId)) {
-      setCreatedOrderData({ id: pendingOrderId, total: grandTotal });
+      setCreatedOrderData({
+        id: pendingOrderId,
+        total: pendingOrderTotal !== null ? Number(pendingOrderTotal) : grandTotal,
+        subtotal: pendingOrderRawTotal !== null ? Number(pendingOrderRawTotal) : subtotal,
+        discountAmount: pendingOrderDiscount !== null ? Number(pendingOrderDiscount) : discountAmount,
+      });
     }
-  }, [pendingOrderId, createdOrderData, grandTotal]);
+  }, [pendingOrderId, pendingOrderTotal, pendingOrderRawTotal, pendingOrderDiscount, createdOrderData, grandTotal, subtotal, discountAmount]);
 
   useEffect(() => {
     if (isNavigatingToOrderRef.current) return;
@@ -253,21 +209,6 @@ export default function CheckoutPage() {
       router.push("/cart");
     }
   }, [hasHydrated, pendingOrderId, activeItems.length, router]);
-
-  useEffect(() => {
-    if (!hasHydrated) return;
-    const store = useCartStore.getState();
-    const hasItems =
-      (store.checkoutItems && store.checkoutItems.length > 0) ||
-      (store.items && store.items.length > 0);
-    if (!hasItems) return;
-
-    const isExpiredOrMissing =
-      !store.checkoutExpiresAt || store.checkoutExpiresAt <= Date.now();
-    if (isExpiredOrMissing) {
-      startCheckout(CHECKOUT_DURATION_MINUTES);
-    }
-  }, [hasHydrated, startCheckout]);
 
   const handleTimeout = useCallback(async () => {
     const orderIdToCancel = createdOrderData?.id || useCartStore.getState().pendingOrderId;
@@ -292,6 +233,24 @@ export default function CheckoutPage() {
     }
     router.push("/cart?reason=timeout");
   }, [createdOrderData?.id, token, restoreCheckoutToCart, router]);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    const store = useCartStore.getState();
+    const hasItems =
+      (store.checkoutItems && store.checkoutItems.length > 0) ||
+      (store.items && store.items.length > 0);
+    if (!hasItems) return;
+
+    if (store.checkoutExpiresAt && store.checkoutExpiresAt <= Date.now()) {
+      handleTimeout();
+      return;
+    }
+
+    if (!store.checkoutExpiresAt) {
+      startCheckout(CHECKOUT_DURATION_MINUTES);
+    }
+  }, [hasHydrated, startCheckout, handleTimeout]);
 
   const { secondsLeft, isUrgent } = useCheckoutTimer({
     enabled: hasHydrated,
@@ -345,11 +304,39 @@ export default function CheckoutPage() {
       setIsPaying(true);
 
       const orderId = createdOrderData?.id || useCartStore.getState().pendingOrderId;
-      const payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : grandTotal;
+      const payableAmount = createdOrderData?.total !== undefined ? Number(createdOrderData.total) : displayGrandTotal;
 
       if (!orderId) {
         alert("Phiên thanh toán không tồn tại hoặc đã hết hạn. Vui lòng quay lại giỏ hàng!");
         router.push("/cart");
+        return;
+      }
+
+      if (payableAmount === 0) {
+        // Đơn hàng miễn phí (100% giảm giá qua voucher hoặc điểm), hoàn tất trực tiếp
+        const freePayRes = await fetch(`${API_URL}/payments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            orderId,
+            amount: 0,
+            method: "WALLET",
+            idempotencyKey: generateUUIDv4(),
+          }),
+        });
+
+        if (!freePayRes.ok) {
+          const errData = await freePayRes.json().catch(() => ({}));
+          throw new Error(errData.message || "Không thể hoàn tất đơn hàng 0đ");
+        }
+
+        isNavigatingToOrderRef.current = true;
+        clearCheckoutItems?.();
+        clearActiveCart();
+        router.push(`/orders/${orderId}?status=PAID`);
         return;
       }
 
@@ -395,6 +382,27 @@ export default function CheckoutPage() {
 
       if (paymentMethod === "MOMO") {
         try {
+          const momoRes = await fetch(`${API_URL}/payments/momo-payment`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ orderId }),
+          });
+
+          if (momoRes.ok) {
+            const momoData = await momoRes.json();
+            if (momoData.payUrl) {
+              window.location.href = momoData.payUrl;
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Chưa cấu hình MoMo Gateway API, hiển thị mã thanh toán QR:", e);
+        }
+
+        try {
           const payosResponse = await fetch(
             `${API_URL}/payments/create-payos-link`,
             {
@@ -415,7 +423,13 @@ export default function CheckoutPage() {
           console.error("Không thể tạo PayOS link cho MoMo:", e);
         }
 
-        setCreatedOrderData({ id: orderId, total: payableAmount });
+        setCreatedOrderData((prev) => ({
+          id: orderId,
+          total: payableAmount,
+          subtotal: prev?.subtotal,
+          discountAmount: prev?.discountAmount,
+          voucherCode: prev?.voucherCode,
+        }));
         setShowMomoModal(true);
         return;
       }
@@ -485,62 +499,32 @@ export default function CheckoutPage() {
   const handleConfirmMomoPaid = async () => {
     if (!createdOrderData || !token) return;
 
-    if (!momoIdempotencyKeyRef.current) {
-      momoIdempotencyKeyRef.current = generateUUIDv4();
-    }
-
     try {
       setIsPaying(true);
-      const paymentResponse = await fetch(
-        `${API_URL}/payments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            orderId: Number(createdOrderData.id),
-            amount: Math.round(Number(createdOrderData.total)),
-            method: "WALLET",
-            idempotencyKey: momoIdempotencyKeyRef.current || generateUUIDv4(),
-          }),
-        },
-      );
+      const res = await fetch(`${API_URL}/orders/${createdOrderData.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const paymentData = await paymentResponse.json();
-      if (!paymentResponse.ok) {
-        const errorMsg = Array.isArray(paymentData.message)
-          ? paymentData.message.join(", ")
-          : paymentData.message || "Không thể xác nhận thanh toán";
+      if (res.ok) {
+        const order = await res.json();
         if (
-          errorMsg.includes("đã được thanh toán") ||
-          errorMsg.includes("PAID")
+          order.status === "PAID" ||
+          order.status === "PREPARING" ||
+          order.status === "READY" ||
+          order.status === "COMPLETED"
         ) {
-          // Đơn hàng đã được thanh toán (qua webhook hoặc polling), tiếp tục chuyển trang
-        } else {
-          throw new Error(errorMsg);
+          isNavigatingToOrderRef.current = true;
+          setShowMomoModal(false);
+          clearCheckoutItems();
+          clearActiveCart();
+          router.push(`/orders/${createdOrderData.id}?status=PAID`);
+          return;
         }
       }
 
-      if (paymentData.pointsEarned) {
-        const currentPoints = useAuthStore.getState().user?.loyaltyPoints || 0;
-        useAuthStore
-          .getState()
-          .updateLoyaltyPoints(
-            currentPoints + Number(paymentData.pointsEarned),
-          );
-      }
-
-      isNavigatingToOrderRef.current = true;
-      const targetOrderId = createdOrderData.id;
-      momoIdempotencyKeyRef.current = null;
-      setShowMomoModal(false);
-      clearCheckoutItems();
-      clearActiveCart();
-      router.push(`/orders/${targetOrderId}?status=PAID`);
+      alert("Hệ thống chưa nhận được thông báo chuyển tiền từ MoMo. Nếu bạn vừa chuyển khoản, vui lòng đợi 10-15 giây rồi kiểm tra lại.");
     } catch (err: unknown) {
-      alert((err as Error)?.message || "Lỗi xác nhận thanh toán MoMo");
+      alert((err as Error)?.message || "Lỗi kiểm tra trạng thái đơn hàng");
     } finally {
       setIsPaying(false);
     }
@@ -763,7 +747,7 @@ export default function CheckoutPage() {
                       <div className="flex justify-between py-1">
                         <span className="text-gray-500">Số tiền:</span>
                         <span className="font-extrabold text-[#8D6E63] text-sm">
-                          {grandTotal.toLocaleString("vi-VN")}đ
+                          {displayGrandTotal.toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                       <div className="flex justify-between py-1.5 bg-[#F5F0E6] px-3 rounded-lg border border-[#E8DFD8]">
@@ -833,7 +817,7 @@ export default function CheckoutPage() {
                       <div className="flex justify-between py-1">
                         <span className="text-gray-500">Số tiền:</span>
                         <span className="font-extrabold text-[#A50064] text-sm">
-                          {grandTotal.toLocaleString("vi-VN")}đ
+                          {displayGrandTotal.toLocaleString("vi-VN")}đ
                         </span>
                       </div>
                       <div className="flex justify-between py-1.5 bg-[#FFF0F6] px-3 rounded-lg border border-[#F3D1E4]">
@@ -938,39 +922,23 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      {(() => {
-  const otherQtySameProduct = activeItems
-    .filter(
-      (i) =>
-        Number(i.productId) === Number(item.productId) &&
-        i.cartItemId !== item.cartItemId
-    )
-    .reduce((sum, i) => sum + Number(i.quantity || 0), 0);
-  const hasStockLimit = item.stock !== undefined && item.stock !== null;
-  const itemStock = hasStockLimit ? Math.max(0, Number(item.stock)) : 999;
-  const maxAllowed = hasStockLimit ? Math.max(1, itemStock - otherQtySameProduct) : 999;
-
-  return (
-    <CheckoutItemQuantityControl
-      quantity={item.quantity}
-      max={maxAllowed}
-      onChange={(newQty) => updateQuantity(item.cartItemId, newQty)}
-      onRemove={() => removeFromCart(item.cartItemId)}
-    />
-  );
-})()}
-
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.cartItemId)}
-                        className="text-gray-300 hover:text-red-500 p-1 cursor-pointer"
-                        title="Xóa"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                      <span className="text-xs font-bold text-[#5C4D44] bg-[#F5F0E6] px-2.5 py-1 rounded-lg">
+                        x{item.quantity}
+                      </span>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD8] text-[11px] text-[#8D6E63] flex items-center justify-between">
+                <span>Món và số lượng đã được giữ kho cho bạn.</span>
+                <button
+                  type="button"
+                  onClick={handleBackToCart}
+                  className="font-bold text-[#763A1E] hover:underline cursor-pointer"
+                >
+                  Sửa món / giỏ hàng
+                </button>
               </div>
 
               <div className="pt-2 border-t border-gray-100 space-y-3">
@@ -1061,23 +1029,22 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-[#5C4D44]">
                   <span>Tạm tính ({activeItems.length} món)</span>
                   <span className="font-bold text-[#2E1810]">
-                    {subtotal.toLocaleString("vi-VN")}đ
+                    {displaySubtotal.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
 
-                {discountAmount > 0 ? (
+                {displayDiscount > 0 ? (
                   <div className="flex justify-between text-emerald-600 font-medium">
                     <span>
-                      Giảm giá thành viên (Hạng {membership.tier} -
-                      {membership.discountPercent}%)
+                      Giảm giá {createdOrderData?.voucherCode ? `(Mã: ${createdOrderData.voucherCode})` : (membership.discountPercent > 0 ? `(Hạng ${membership.tier} - ${membership.discountPercent}%)` : '')}
                     </span>
                     <span className="font-bold">
-                      -{discountAmount.toLocaleString("vi-VN")}đ
+                      -{displayDiscount.toLocaleString("vi-VN")}đ
                     </span>
                   </div>
                 ) : (
                   <div className="flex justify-between text-gray-400">
-                    <span>Giảm giá thành viên</span>
+                    <span>Giảm giá</span>
                     <span>0đ</span>
                   </div>
                 )}
@@ -1095,7 +1062,7 @@ export default function CheckoutPage() {
                   Tổng cộng
                 </span>
                 <span className="font-extrabold text-2xl text-[#3E2723]">
-                  {grandTotal.toLocaleString("vi-VN")}đ
+                  {displayGrandTotal.toLocaleString("vi-VN")}đ
                 </span>
               </div>
 
@@ -1157,15 +1124,15 @@ export default function CheckoutPage() {
                 <img
                   src={
                     payosPaymentData?.accountNumber
-                      ? `https://img.vietqr.io/image/970448-${payosPaymentData.accountNumber}-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(payosPaymentData.description || `BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent(payosPaymentData.accountName || "VO DUONG THANH LE")}`
-                      : `https://img.vietqr.io/image/970448-0962629594-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(`BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent("VO DUONG THANH LE")}`
+                      ? `https://img.vietqr.io/image/970448-${payosPaymentData.accountNumber}-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(payosPaymentData.description || `BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent(payosPaymentData.accountName || "BrewLite Coffee")}`
+                      : `https://img.vietqr.io/image/970448-0962629594-compact2.png?amount=${createdOrderData.total}&addInfo=${encodeURIComponent(`BrewLite #${createdOrderData.id}`)}&accountName=${encodeURIComponent("BrewLite Coffee")}`
                   }
                   alt="MoMo VietQR"
                   className="w-full h-full object-contain"
                 />
               </div>
               <span className="text-xs font-bold text-[#A50064] mt-2.5">
-                VO DUONG THANH LE — 0962 6295 94
+                {payosPaymentData?.accountName || "BrewLite Coffee"} — {payosPaymentData?.accountNumber || "0962 629 594"}
               </span>
               <span className="text-xl font-black text-[#A50064] mt-0.5">
                 {createdOrderData.total.toLocaleString("vi-VN")}đ
@@ -1184,12 +1151,12 @@ export default function CheckoutPage() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Người nhận:</span>
                 <span className="font-bold text-gray-800">
-                  VO DUONG THANH LE
+                  {payosPaymentData?.accountName || "BrewLite Coffee"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Số MoMo:</span>
-                <span className="font-bold text-[#A50064]">0962 6295 94</span>
+                <span className="text-gray-500">Số tài khoản / MoMo:</span>
+                <span className="font-bold text-[#A50064]">{payosPaymentData?.accountNumber || "0962 629 594"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">
@@ -1210,8 +1177,8 @@ export default function CheckoutPage() {
                 className="w-full bg-[#A50064] hover:bg-[#880052] disabled:opacity-50 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-[#A50064]/25 text-sm cursor-pointer"
               >
                 {isPaying
-                  ? "Đang xác nhận..."
-                  : "✅ Tôi đã chuyển tiền MoMo thành công"}
+                  ? "Đang kiểm tra..."
+                  : "🔄 Tôi đã chuyển tiền — Kiểm tra trạng thái đơn"}
               </button>
               <button
                 type="button"

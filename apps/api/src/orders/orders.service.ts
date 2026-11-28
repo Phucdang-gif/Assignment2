@@ -68,7 +68,7 @@ export class OrdersService {
         userId: BigInt(userId) as any,
         status: order_status.PENDING,
         createdAt: {
-          lt: new Date(Date.now() - 60000), // tự động hủy các đơn treo quá 1 phút của user
+          lt: new Date(Date.now() - 5 * 60 * 1000), // tự động hủy các đơn treo quá thời gian giữ đơn (5 phút) của user
         },
       },
       include: { OrderItem: true },
@@ -124,6 +124,13 @@ export class OrdersService {
                 });
               }
             }
+
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                version: { increment: 1 },
+              },
+            });
           }
         });
       }
@@ -245,7 +252,9 @@ export class OrdersService {
           const allToppingNames = new Set<string>();
           for (const item of createOrderDto.items) {
             if (item.toppings && Array.isArray(item.toppings)) {
-              item.toppings.forEach((t) => allToppingNames.add(t));
+              item.toppings.forEach((t) => {
+                if (typeof t === 'string' && t.trim()) allToppingNames.add(t.trim());
+              });
             }
           }
 
@@ -269,13 +278,21 @@ export class OrdersService {
           }
 
           // Tính đơn giá từng món trực tiếp từ Database (Product.price + phụ thu Size + Topping.price)
-          // Tuyệt đối không tin tưởng giá (item.price) từ phía Client gửi lên
+          // Tuyệt đối không tin tưởng giá (item.price) từ phía Client gửi lên.
+          // Khử trùng lặp topping trên mỗi món để tránh lỗi trùng khóa chính OrderItemTopping(orderItemId, toppingId)
           const enrichedItems = createOrderDto.items.map((item) => {
             const product = productsMap.get(Number(item.productId));
             const basePrice = Number(product.price);
             const sizeExtra =
               OrdersService.SIZE_SURCHARGE[String(item.size).toUpperCase()] ?? 0;
-            const itemToppings = (item.toppings || [])
+            const uniqueToppingNames = Array.from(
+              new Set(
+                (item.toppings || [])
+                  .map((t) => (typeof t === 'string' ? t.trim() : t))
+                  .filter(Boolean),
+              ),
+            );
+            const itemToppings = uniqueToppingNames
               .map((name) => toppingsMap.get(name))
               .filter(Boolean);
             const toppingsExtra = itemToppings.reduce(
@@ -303,28 +320,37 @@ export class OrdersService {
           let promoDiscount = 0;
           appliedVoucher = null;
           if (createOrderDto.voucherCode && (tx as any).promotion) {
+            const cleanCode = createOrderDto.voucherCode.trim().toUpperCase();
             const promo = await (tx as any).promotion.findUnique({
-              where: { code: createOrderDto.voucherCode.trim().toUpperCase() },
+              where: { code: cleanCode },
             });
-            const now = new Date();
-            if (promo && promo.isActive && now >= promo.startDate && now <= promo.endDate) {
-              if (rawTotal >= Number(promo.minOrderValue || 0)) {
-                promotionId = promo.id;
-                if (promo.discountType === 'PERCENTAGE' || promo.discountType === 'MEMBERSHIP_TIER') {
-                  promoDiscount = Math.round((rawTotal * Number(promo.discountValue)) / 100);
-                } else {
-                  promoDiscount = Number(promo.discountValue);
-                }
-                appliedVoucher = {
-                  id: Number(promo.id),
-                  code: promo.code,
-                  description: promo.description ?? null,
-                  discountType: promo.discountType,
-                  discountValue: Number(promo.discountValue),
-                  discountAmount: promoDiscount,
-                };
-              }
+            if (!promo || !promo.isActive) {
+              throw new BadRequestException(`Mã giảm giá "${cleanCode}" không tồn tại hoặc đã ngừng áp dụng`);
             }
+            const now = new Date();
+            if (now < new Date(promo.startDate) || now > new Date(promo.endDate)) {
+              throw new BadRequestException(`Mã giảm giá "${cleanCode}" đã hết hạn hoặc chưa đến thời gian áp dụng`);
+            }
+            if (rawTotal < Number(promo.minOrderValue || 0)) {
+              throw new BadRequestException(
+                `Đơn hàng cần đạt tối thiểu ${Number(promo.minOrderValue).toLocaleString('vi-VN')}đ để áp dụng mã "${cleanCode}"`,
+              );
+            }
+
+            promotionId = promo.id;
+            if (promo.discountType === 'PERCENTAGE' || promo.discountType === 'MEMBERSHIP_TIER') {
+              promoDiscount = Math.round((rawTotal * Number(promo.discountValue)) / 100);
+            } else {
+              promoDiscount = Number(promo.discountValue);
+            }
+            appliedVoucher = {
+              id: Number(promo.id),
+              code: promo.code,
+              description: promo.description ?? null,
+              discountType: promo.discountType,
+              discountValue: Number(promo.discountValue),
+              discountAmount: promoDiscount,
+            };
           }
 
           const totalDiscount = Math.min(rawTotal, discountAmount + promoDiscount);
@@ -489,53 +515,46 @@ export class OrdersService {
           }
         }
 
-        if ((item as any)?.Product?.stock !== undefined) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stock: { increment: item.qty },
-              version: { increment: 1 },
-            },
-          });
-        }
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            version: { increment: 1 },
+          },
+        });
       }
 
       // Thu hồi điểm tích lũy nếu đơn hàng đã từng được PAID
       if (order.status === order_status.PAID && (tx as any).loyaltyTransaction) {
-        try {
-          const earnTxs = await (tx as any).loyaltyTransaction.findMany({
-            where: {
+        const earnTxs = await (tx as any).loyaltyTransaction.findMany({
+          where: {
+            orderId: BigInt(id),
+            type: 'EARN',
+          },
+        });
+        const pointsToRevoke = (earnTxs || []).reduce(
+          (sum: number, t: any) => sum + Number(t.points),
+          0,
+        );
+        if (pointsToRevoke > 0) {
+          const targetUser = await tx.user.findUnique({ where: { id: order.userId } });
+          const currentPoints = targetUser?.loyaltyPoints ?? 0;
+          const newBalance = Math.max(0, currentPoints - pointsToRevoke);
+
+          await tx.user.update({
+            where: { id: order.userId },
+            data: { loyaltyPoints: newBalance },
+          });
+
+          await (tx as any).loyaltyTransaction.create({
+            data: {
+              userId: order.userId,
               orderId: BigInt(id),
-              type: 'EARN',
+              points: -pointsToRevoke,
+              type: 'ADJUST',
+              balanceAfter: newBalance,
+              reason: `Thu hồi điểm do hủy đơn hàng #${id}`,
             },
           });
-          const pointsToRevoke = (earnTxs || []).reduce(
-            (sum: number, t: any) => sum + Number(t.points),
-            0,
-          );
-          if (pointsToRevoke > 0) {
-            const targetUser = await tx.user.findUnique({ where: { id: order.userId } });
-            const currentPoints = targetUser?.loyaltyPoints ?? 0;
-            const newBalance = Math.max(0, currentPoints - pointsToRevoke);
-
-            await tx.user.update({
-              where: { id: order.userId },
-              data: { loyaltyPoints: newBalance },
-            });
-
-            await (tx as any).loyaltyTransaction.create({
-              data: {
-                userId: order.userId,
-                orderId: BigInt(id),
-                points: -pointsToRevoke,
-                type: 'ADJUST',
-                balanceAfter: newBalance,
-                reason: `Thu hồi điểm do hủy đơn hàng #${id}`,
-              },
-            });
-          }
-        } catch (err) {
-          console.warn('[cancelOrder] Lỗi thu hồi điểm thưởng:', err);
         }
       }
 
@@ -568,8 +587,15 @@ export class OrdersService {
     });
   }
 
-  async markPaymentFailed(id: number) {
+  async markPaymentFailed(id: number, userId?: number) {
     const order = await this.findOne(id);
+    if (userId !== undefined && Number(order.userId) !== userId) {
+      const user = await this.usersService.findOne(userId);
+      const isStaff = isStaffRole((user as any)?.role);
+      if (!isStaff) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đơn hàng này');
+      }
+    }
     this.assertTransition(order.status, order_status.PAYMENT_FAILED);
 
     return this.prisma.order.update({
@@ -781,12 +807,50 @@ export class OrdersService {
 
   async baristaUpdateStatus(orderId: number, newStatus: string, userId: number) {
     const user = await this.usersService.findOne(userId);
-    const isBarista = isStaffRole((user as any)?.role);
+    const isBarista = (user as any)?.role === 'barista';
 
     if (!isBarista) {
-      throw new ForbiddenException('Khách hàng không có quyền chỉnh sửa trạng thái đơn hàng');
+      throw new ForbiddenException(
+        'Chỉ nhân viên Barista mới có quyền nhận và cập nhật trạng thái đơn hàng',
+      );
     }
 
     return this.updateStatus(orderId, newStatus);
+  }
+
+  async findAllAdmin(status?: string, limit = 200) {
+    const whereClause: any = {};
+    if (status && status !== 'ALL' && Object.values(order_status).includes(status as order_status)) {
+      whereClause.status = status as order_status;
+    }
+
+    const safeLimit = Math.min(Math.max(1, Math.floor(limit || 200)), 500);
+
+    return this.prisma.order.findMany({
+      where: whereClause,
+      take: safeLimit,
+      include: {
+        OrderItem: {
+          include: {
+            Product: true,
+            OrderItemTopping: {
+              include: {
+                Topping: true,
+              },
+            },
+          },
+        },
+        User: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 }

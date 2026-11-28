@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -187,6 +187,12 @@ describe('UsersService', () => {
       await service.update(1, { password: 'newPassword123' });
       expect(bcrypt.hash).toHaveBeenCalledWith('newPassword123', 10);
     });
+
+    it('chặn admin tự hạ quyền tài khoản đang đăng nhập', async () => {
+      await expect(
+        service.update(1, { role: 'customer' as any }, 1),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('remove', () => {
@@ -197,6 +203,20 @@ describe('UsersService', () => {
       expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
+    });
+
+    it('chặn admin tự xóa tài khoản đang đăng nhập', async () => {
+      await expect(service.remove(1, 1)).rejects.toThrow(BadRequestException);
+    });
+
+    it('ném ConflictException thân thiện khi người dùng đã có lịch sử đơn hàng (P2003)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError('FK failed', {
+        code: 'P2003',
+        clientVersion: '5.22.0',
+      });
+      mockPrismaService.user.delete.mockRejectedValueOnce(prismaError);
+
+      await expect(service.remove(1)).rejects.toThrow(ConflictException);
     });
   });
 

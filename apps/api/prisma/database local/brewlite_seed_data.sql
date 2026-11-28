@@ -18,10 +18,10 @@ ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     "updatedAt" = now();
 
--- 2. Tài khoản người dùng (User) - Mật khẩu mặc định: 'password123'
+-- 2. Tài khoản người dùng (User) - Barista & Admin: 'barista123'
 INSERT INTO "User" (id, "fullName", email, phone, "passwordHash", "loyaltyPoints", role, "createdAt", "updatedAt") VALUES
     (1, 'Nguyễn Văn Barista', 'barista@brewlite.com',   '0901234567', '$2b$10$mP5dJ.qWueg02XGw/Bu/AevZNCBtware14sA3KYotm2IgfCBoUv7e', 100, 'barista',  now(), now()),
-    (2, 'Trần Thị Khách Hàng', 'customer@brewlite.com',  '0912345678', '$2b$10$ptgUmawGGT9c4RLeqIoLx.OQj6vuIOfjrhOq/clKVgO5cNhPTyvF2',  50, 'customer', now(), now()),
+    (2, 'Trần Thị Khách Hàng', 'customer@brewlite.com',  '0912345678', '$2b$10$ptgUmawGGT9c4RLeqIoLx.OQj6vuIOfjrhOq/clKVgO5cNhPTyvF2',  63, 'customer', now(), now()),
     (3, 'Lê Văn Khách Hàng 2', 'khachhang2@example.com', '0987654321', '$2b$10$vaMHsq05UxbqkciIo9skZes9eoqKkO3wHyIx3ZYY76GvDHvM5lj4m',  20, 'customer', now(), now()),
     (4, 'Quản Trị Viên Hệ Thống', 'admin@brewlite.com',   '0909999999', '$2b$10$mP5dJ.qWueg02XGw/Bu/AevZNCBtware14sA3KYotm2IgfCBoUv7e', 500, 'admin',    now(), now())
 ON CONFLICT (id) DO UPDATE SET
@@ -285,8 +285,7 @@ ON CONFLICT ("orderItemId", "toppingId") DO NOTHING;
 -- 11. Giao dịch thanh toán (Payment)
 INSERT INTO "Payment" (id, "orderId", "idempotencyKey", amount, method, status, "transactionRef", "createdAt") VALUES
     (1, 1, 'idem-brewlite-ord1-wallet-001', 90000.00, 'WALLET', 'SUCCESS', 'TXN-WAL-001', now() - interval '2 day'),
-    (2, 2, 'idem-brewlite-ord2-card-002',   47000.00, 'CARD',   'SUCCESS', 'TXN-CRD-002', now() - interval '1 hour'),
-    (3, 3, 'idem-brewlite-ord3-wallet-003', 39600.00, 'WALLET', 'SUCCESS', 'TXN-WAL-003', now() - interval '10 minute')
+    (2, 2, 'idem-brewlite-ord2-card-002',   47000.00, 'CARD',   'SUCCESS', 'TXN-CRD-002', now() - interval '1 hour')
 ON CONFLICT (id) DO NOTHING;
 
 -- 12. Lịch sử điểm thưởng (LoyaltyTransaction)
